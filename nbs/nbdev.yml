@@ -1,0 +1,14 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "slopometer"
+  site-url: "https://AnswerDotAI.github.io/slopometer"
+  description: "Score prose for simplicity and precision against plain-English reference rules"
+  repo-branch: main
+  repo-url: "https://github.com/AnswerDotAI/slopometer"
+
+format-links:
+  - html
+  - format: commonmark
+    text: Markdown

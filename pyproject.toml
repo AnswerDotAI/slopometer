@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "slopometer"
+dynamic = ["version"]
+description = "Score prose for simplicity and precision against plain-English reference rules"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "Apache-2.0"}
+authors = [{name = "Jeremy Howard", email = "github@jhoward.fastmail.fm"}]
+keywords = ['nbdev']
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+]
+dependencies = ["fastcore", "spacy"]
+
+[project.urls]
+Repository = "https://github.com/AnswerDotAI/slopometer"
+Documentation = "https://AnswerDotAI.github.io/slopometer/"
+
+[project.entry-points.nbdev]
+slopometer = "slopometer._modidx:d"
+
+[tool.setuptools.dynamic]
+version = {attr = "slopometer.__version__"}
+
+[tool.setuptools.packages.find]
+include = ["slopometer"]
+
+[tool.nbdev]
