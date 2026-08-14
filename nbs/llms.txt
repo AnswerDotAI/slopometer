@@ -6,6 +6,7 @@
 
 - [slopometer.cli](https://AnswerDotAI.github.io/slopometer/cli.html.md): The command line: score a file or stdin, warm
 - [slopometer.core](https://AnswerDotAI.github.io/slopometer/core.html.md): Tells, findings, the rule registry, and what the meter cannot see
+- [slopometer.corpus](https://AnswerDotAI.github.io/slopometer/corpus.html.md): Build the labeled corpus: weak positives from scored replies, mixed human negatives
 - [slopometer.features](https://AnswerDotAI.github.io/slopometer/features.html.md): Continuous measurements for learned scoring
 - [slopometer.lexicon](https://AnswerDotAI.github.io/slopometer/lexicon.html.md): Word and phrase rules: banned vocabulary, hedges, fillers, and splices
 - [slopometer.para](https://AnswerDotAI.github.io/slopometer/para.html.md): Paragraph rules: restatement, elegant variation, forced symmetry, and coinage
