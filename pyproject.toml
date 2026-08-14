@@ -15,11 +15,14 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
 ]
-dependencies = ["fastcore", "spacy"]
+dependencies = ["fastcore", "spacy", "mdhtml", "warmpy>=0.1.0"]
 
 [project.urls]
 Repository = "https://github.com/AnswerDotAI/slopometer"
 Documentation = "https://AnswerDotAI.github.io/slopometer/"
+
+[project.scripts]
+slopometer = "slopometer.cli:main"
 
 [project.entry-points.nbdev]
 slopometer = "slopometer._modidx:d"
