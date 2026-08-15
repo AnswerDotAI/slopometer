@@ -64,12 +64,12 @@ find_noting = lex_rule('noting', tell=8, weight=SMELL, lex=noting)
 find_transitions = lex_rule('transitions', tell=19, weight=SMELL, lex=transitions)
 
 # %% ../nbs/02_lexicon.ipynb #79549961
-_splice = re.compile(r'—|(?<=\w) -- (?=\w)|(?<=\w); (?=\w)|(?<=\w) - (?=\w)')
+_splice = re.compile(r'—|(?<=\w) -- (?=\w)|(?<=\w) - (?=\w)')
 _conseq = re.compile(r', so\b')
 
 @rule('splice', tell=1, weight=KILL, level='phrase')
 def find_splice(txt):
-    "Em dashes, two-hyphen dashes, semicolon joins, and spaced-hyphen joins"
+    "Em dashes, two-hyphen dashes, and spaced-hyphen joins"
     return [Finding('splice', 1, m.start(), m.end(), m.group(), KILL) for m in _splice.finditer(txt)]
 
 @rule('conseq', tell=6, weight=SMELL, level='phrase')

@@ -83,9 +83,11 @@ def score_text(txt):
     return Result(txt, run_rules(txt), prose_words(segment(txt)))
 
 def score_path(p):
-    "Score the file at `p`; report rows carry exhash addresses"
-    txt = Path(p).read_text()
-    return Result(txt, run_rules(txt), prose_words(segment(txt)), path=Path(p))
+    "Score the file at `p` (expands `~`); report rows carry exhash addresses"
+    p = Path(p).expanduser()
+    txt = p.read_text()
+    return Result(txt, run_rules(txt), prose_words(segment(txt)), path=p)
+
 
 # %% ../nbs/05_score.ipynb #0e3b855b
 def score_many(txts, n_workers=8):

@@ -8,9 +8,9 @@ Docs: https://AnswerDotAI.github.io/slopometer/syntax.html.md"""
 
 # %% auto #0
 __all__ = ['MODEL', 'MODEL_PKG', 'MODEL_URL', 'find_throat', 'find_todays', 'find_announce', 'find_notxbuty', 'find_teaser',
-           'find_appraisal', 'model_path', 'get_nlp', 'find_sent_len', 'find_clauses', 'find_passive',
-           'find_verb_banned', 'find_intensifiers', 'find_noun_cluster', 'find_nominalization', 'find_artifact_agent',
-           'find_recipient_subject', 'sent_rule', 'find_rhetorical']
+           'find_appraisal', 'model_path', 'get_nlp', 'find_sent_len', 'find_clauses', 'find_semi_splice',
+           'find_passive', 'find_verb_banned', 'find_intensifiers', 'find_noun_cluster', 'find_nominalization',
+           'find_artifact_agent', 'find_recipient_subject', 'sent_rule', 'find_rhetorical']
 
 # %% ../nbs/03_syntax.ipynb #e2b9a004
 import spacy, zipfile, shutil, importlib
@@ -52,24 +52,47 @@ def get_nlp():
     return _nlp
 
 # %% ../nbs/03_syntax.ipynb #d8078a42
-@rule('sent_len', tell=1, weight=PRESSURE, level='sentence')
-def find_sent_len(sent):
-    "Sentences past 25 words, escalating one weight point per extra word"
-    n = sum(1 for t in sent if not t.is_punct)
-    if n <= 25: return []
-    return [Finding('sent_len', 1, 0, len(sent.text), sent.text, PRESSURE*(n-25))]
-
 _clausy = {'advcl', 'ccomp'}
 
 def _own_subj(t): return any(c.dep_ in ('nsubj', 'nsubjpass', 'expl') for c in t.children)
 
+def _n_clauses(sent):
+    "How many idea-bearing clauses `sent` stacks"
+    return 1 + sum(1 for t in sent if t.pos_ in ('VERB', 'AUX')
+        and (t.dep_ in _clausy or (t.dep_ == 'conj' and _own_subj(t))))
+
+@rule('sent_len', tell=1, weight=PRESSURE, level='sentence')
+def find_sent_len(sent):
+    "Multi-clause sentences past 25 words, escalating one weight point per extra word"
+    n = sum(1 for t in sent if not t.is_punct)
+    if n <= 25 or _n_clauses(sent) < 2: return []
+    return [Finding('sent_len', 1, 0, len(sent.text), sent.text, PRESSURE*(n-25))]
+
 @rule('clauses', tell=1, weight=PRESSURE, level='sentence')
 def find_clauses(sent):
     "Sentences stacking four or more idea-bearing clauses, escalating per extra clause"
-    n = 1 + sum(1 for t in sent if t.pos_ in ('VERB', 'AUX')
-        and (t.dep_ in _clausy or (t.dep_ == 'conj' and _own_subj(t))))
+    n = _n_clauses(sent)
     if n < 4: return []
     return [Finding('clauses', 1, 0, len(sent.text), sent.text, PRESSURE*(n-3))]
+
+
+# %% ../nbs/03_syntax.ipynb #1245fd6f
+def _clausal(toks):
+    "Do `toks` contain a finite clause: a subject attached to a verb?"
+    return any(t.dep_.startswith('nsubj') and t.head.pos_ in ('VERB', 'AUX') for t in toks)
+
+@rule('semi_splice', tell=1, weight=KILL, level='sent')
+def find_semi_splice(sent):
+    "Semicolons joining two independent clauses; serial semicolons and citations pass"
+    res, depth = [], 0
+    for t in sent:
+        if t.text == '(': depth += 1
+        elif t.text == ')': depth = max(0, depth-1)
+        elif t.text == ';' and not depth:
+            if _clausal([x for x in sent if x.i < t.i]) and _clausal([x for x in sent if x.i > t.i]):
+                o = t.idx - sent.start_char
+                res.append(Finding('semi_splice', 1, o, o+1, ';', KILL))
+    return res
 
 # %% ../nbs/03_syntax.ipynb #9431332d
 @rule('passive', tell=None, weight=SMELL, level='sentence')
