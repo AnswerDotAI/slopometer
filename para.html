@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Paragraph rules: restatement, elegant variation, forced symmetry, and coinage">
+
+<title>para – slopometer</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-d63a2c9c8df14b07662b36303925c8cc.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="para – slopometer">
+<meta property="og:description" content="Paragraph rules: restatement, elegant variation, forced symmetry, and coinage">
+<meta property="og:site_name" content="slopometer">
+<meta name="twitter:title" content="para – slopometer">
+<meta name="twitter:description" content="Paragraph rules: restatement, elegant variation, forced symmetry, and coinage">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">slopometer</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./para.html">para</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">slopometer</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./core.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">core</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./segment.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">segment</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./lexicon.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">lexicon</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./syntax.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">syntax</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./para.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">para</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./score.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">score</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cli.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">cli</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./features.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">features</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./corpus.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">corpus</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#word-vectors-in-sixty-seconds" id="toc-word-vectors-in-sixty-seconds" class="nav-link active" data-scroll-target="#word-vectors-in-sixty-seconds">Word vectors in sixty seconds</a></li>
+  <li><a href="#restatement" id="toc-restatement" class="nav-link" data-scroll-target="#restatement">Restatement</a>
+  <ul class="collapse">
+  <li><a href="#find_heading_echo" id="toc-find_heading_echo" class="nav-link" data-scroll-target="#find_heading_echo">find_heading_echo</a></li>
+  <li><a href="#parse_blocks" id="toc-parse_blocks" class="nav-link" data-scroll-target="#parse_blocks">parse_blocks</a></li>
+  </ul></li>
+  <li><a href="#elegant-variation" id="toc-elegant-variation" class="nav-link" data-scroll-target="#elegant-variation">Elegant variation</a>
+  <ul class="collapse">
+  <li><a href="#find_variation" id="toc-find_variation" class="nav-link" data-scroll-target="#find_variation">find_variation</a></li>
+  </ul></li>
+  <li><a href="#forced-symmetry" id="toc-forced-symmetry" class="nav-link" data-scroll-target="#forced-symmetry">Forced symmetry</a>
+  <ul class="collapse">
+  <li><a href="#find_bullet_mold" id="toc-find_bullet_mold" class="nav-link" data-scroll-target="#find_bullet_mold">find_bullet_mold</a></li>
+  <li><a href="#find_triad" id="toc-find_triad" class="nav-link" data-scroll-target="#find_triad">find_triad</a></li>
+  </ul></li>
+  <li><a href="#the-paragraph-cap" id="toc-the-paragraph-cap" class="nav-link" data-scroll-target="#the-paragraph-cap">The paragraph cap</a>
+  <ul class="collapse">
+  <li><a href="#find_para_cap" id="toc-find_para_cap" class="nav-link" data-scroll-target="#find_para_cap">find_para_cap</a></li>
+  </ul></li>
+  <li><a href="#coinage" id="toc-coinage" class="nav-link" data-scroll-target="#coinage">Coinage</a>
+  <ul class="collapse">
+  <li><a href="#find_coinage" id="toc-find_coinage" class="nav-link" data-scroll-target="#find_coinage">find_coinage</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/AnswerDotAI/slopometer/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div><div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="para.html.md"><i class="bi bi-file-code"></i>Markdown</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">para</h1>
+</div>
+
+<div>
+  <div class="description">
+    Paragraph rules: restatement, elegant variation, forced symmetry, and coinage
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<p>The rules that read a whole paragraph: restatement, elegant variation, forced symmetry, and coinage. The first two need a way to measure whether two different word sequences say the same thing, and word vectors provide it. The paragraph is the largest unit any of these rules analyzes, and coinage, which counts across paragraphs, does so with arithmetic alone.</p>
+<div id="b7ffc00e" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> fastcore.test <span class="im">import</span> <span class="op">*</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="word-vectors-in-sixty-seconds" class="level2">
+<h2 class="anchored" data-anchor-id="word-vectors-in-sixty-seconds">Word vectors in sixty seconds</h2>
+<p>A word vector is 300 numbers that summarize the contexts a word appears in, learned by counting co-occurrences over billions of words. Words used in similar contexts get similar vectors, and the cosine of the angle between two vectors is a workable measure of how related the words are: 1.0 means interchangeable contexts, near 0 means unrelated. The vectors in <code>en_core_web_md</code> come from the <a href="https://nlp.stanford.edu/projects/glove/">GloVe</a> algorithm (Pennington, Socher, and Manning, 2014), trained on Common Crawl. Chapter 6 of <a href="https://web.stanford.edu/~jurafsky/slp3/">Jurafsky and Martin</a> covers the theory from scratch.</p>
+<p>Two properties matter for the rules below. Similarity is symmetric and graded, which lets a threshold say “these two words are close enough to be the same concept”. And the vocabulary is finite: a token with no vector (<code>is_oov</code>) is a word the training corpus effectively never saw, which is how the coinage rule recognizes invented terms. spaCy averages token vectors to give spans and sentences a vector too, which is crude, order-blind, and still good enough to catch a sentence that restates its paragraph.</p>
+<div id="75b28030" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>nlp <span class="op">=</span> get_nlp()</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>v <span class="op">=</span> nlp.vocab</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>[(a, b, <span class="bu">round</span>(v[a].similarity(v[b]), <span class="dv">3</span>)) <span class="cf">for</span> a,b <span class="kw">in</span> [(<span class="st">'kernel'</span>,<span class="st">'interpreter'</span>), (<span class="st">'folder'</span>,<span class="st">'directory'</span>), (<span class="st">'kernel'</span>,<span class="st">'pineapple'</span>)]] <span class="op">+</span> <span class="op">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    [(w, <span class="st">'oov'</span>, v[w].is_oov) <span class="cf">for</span> w <span class="kw">in</span> (<span class="st">'heartbeat'</span>, <span class="st">'slopometer'</span>, <span class="st">'exhash'</span>)]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>[('kernel', 'interpreter', 0.383),
+ ('folder', 'directory', 0.323),
+ ('kernel', 'pineapple', 0.131),
+ ('heartbeat', 'oov', False),
+ ('slopometer', 'oov', True),
+ ('exhash', 'oov', True)]</code></pre>
+</div>
+</div>
+<p>The numbers above are a warning as much as a demonstration. “folder” and “directory” reach only 0.32, and “kernel” and “interpreter” score 0.38, because GloVe learned from the general web, where a kernel is corn and an interpreter is a person, and md’s pruned vector table even scrambles the ordering between such pairs. General-purpose vectors under-rate technical synonymy, so a rule that trusted a high similarity threshold to find technical word-swapping would miss most of it. The elegant-variation rule below therefore treats vectors as one signal of three, and the out-of-vocabulary flag, which needs no similarity at all, is exactly reliable for what the coinage rule needs: <code>slopometer</code> is a made-up word and the vocabulary knows it.</p>
+</section>
+<section id="restatement" class="level2">
+<h2 class="anchored" data-anchor-id="restatement">Restatement</h2>
+<p>Tell 9’s commonest form is a lead sentence that summarizes the paragraph it starts: delete it and nothing is lost. Averaged sentence vectors can measure this, but averaging flattens everything toward the middle, and every pair of sentences about the same software scores high. What separates restatement from progression is the margin above that baseline, and the margin has to be measured before a threshold means anything. One restating paragraph and one fact-adding paragraph, both in register:</p>
+<div id="87683d18" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>restating <span class="op">=</span> nlp(<span class="st">"Failures are visible now too. A startup failure used to print to the server log and leave a half-booted dialog that looked ready. It now raises, and the user sees an error toast and a red status dot."</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>progressing <span class="op">=</span> nlp(<span class="st">"The ready-wait runs once per kernel, in start. watch polls the process and the heartbeat. Three missed heartbeats mark the kernel unresponsive in its model."</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> _lead_sim(doc):</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    sents <span class="op">=</span> <span class="bu">list</span>(doc.sents)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">round</span>(sents[<span class="dv">0</span>].similarity(doc[sents[<span class="dv">1</span>].start:]), <span class="dv">3</span>)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>_lead_sim(restating), _lead_sim(progressing)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>(0.857, 0.849)</code></pre>
+</div>
+</div>
+<p>The design fails, and the numbers above are the evidence: the restating and progressing paragraphs score within a hundredth of each other, and which one ranks higher flips between models. Averaged vectors measure shared topic, not shared claim, and every well-scoped paragraph shares its topic with its own lead. So lead-sentence restatement joins the unscoreable registry, with this measurement as the reason, rather than shipping as a rule that flags good paragraphs. What survives is the heading echo: a section whose first sentence repeats its heading’s words (“## Configuration” followed by “Configuration is stored…”) is detectable by plain lemma overlap, and the overlap is direct repetition, not paraphrase, so vectors are not needed at all.</p>
+<p>This is the first rule that reads across blocks, and it sets the shape for document-level rules: they receive every block plus the parsed <code>Doc</code> for each prose block, aligned by position, and return findings with offsets already absolute.</p>
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/para.py#L24" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="find_heading_echo" class="level3">
+<h3 class="anchored" data-anchor-id="find_heading_echo">find_heading_echo</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> find_heading_echo(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    blocks, docs</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>A section’s first sentence repeating its heading’s words</em></p>
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/para.py#L37" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="parse_blocks" class="level3">
+<h3 class="anchored" data-anchor-id="parse_blocks">parse_blocks</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> parse_blocks(</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    blocks</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The spaCy <code>Doc</code> for each prose block, aligned with <code>blocks</code>, None elsewhere</em></p>
+<div id="d713766e" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>echo_doc <span class="op">=</span> <span class="st">"## Configuration</span><span class="ch">\n\n</span><span class="st">Configuration is stored in a single file.</span><span class="ch">\n\n</span><span class="st">## Sockets</span><span class="ch">\n\n</span><span class="st">Each worker owns one socket.</span><span class="ch">\n</span><span class="st">"</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>bs <span class="op">=</span> segment(echo_doc)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> find_heading_echo(bs, parse_blocks(bs))</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>test_eq(<span class="bu">len</span>(res), <span class="dv">1</span>)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>res</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>[[3] heading_echo (tell 9, restatement): 'Configuration is stored in a single file.']</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="elegant-variation" class="level2">
+<h2 class="anchored" data-anchor-id="elegant-variation">Elegant variation</h2>
+<p>Fowler coined the name for the habit of dressing one concept in different words to avoid repetition: “the heartbeat” in one sentence becomes “beats” in the next, and the reader must decide whether two names mean two things. In reference prose the rule is STE’s: one concept, one name, every time. In coding discussions the correct name is the code symbol when one exists: <code>restart</code> every time, never “the respawn operation” in one sentence and “recycling” in the next, and tell 5 makes the same demand of statuses and values. The tempting detector is vector similarity between distinct nouns in one paragraph, and it fails: cosine similarity measures shared context, and words that co-occur constantly score high whether or not they are interchangeable.</p>
+<div id="46629176" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>[(a, b, <span class="bu">round</span>(v[a].similarity(v[b]), <span class="dv">3</span>)) <span class="cf">for</span> a,b <span class="kw">in</span> [(<span class="st">'client'</span>,<span class="st">'server'</span>), (<span class="st">'read'</span>,<span class="st">'write'</span>), (<span class="st">'heartbeat'</span>,<span class="st">'beat'</span>)]]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>[('client', 'server', 0.272),
+ ('read', 'write', 0.383),
+ ('heartbeat', 'beat', 0.187)]</code></pre>
+</div>
+</div>
+<p>The measurements settle it: “client” and “server” score well above “heartbeat” and “beat”, and a vector threshold would flag client-server paragraphs while missing the canonical variation pair. So vectors stay out of this rule. What remains is precise: a curated list of genuinely interchangeable term pairs, and stem containment, which catches one word embedded in the other (“beats” inside “heartbeats”). The rule flags the second name, which is where the variation happened. A token of one repeated character is excluded, because segmentation X-fills inline code and GloVe happens to know runs of x as real web tokens. The rule does not gate on syntactic role: in the <code>write_docs</code> example the two names appear as object and subject, so a role gate would miss the exact case the tell quotes.</p>
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/para.py#L47" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="find_variation" class="level3">
+<h3 class="anchored" data-anchor-id="find_variation">find_variation</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> find_variation(</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    doc</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Two names for one concept within a paragraph, by curated pair or shared stem</em></p>
+<div id="3d6bb7d8" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>test_eq(find_variation(nlp(<span class="st">'The heartbeat channel carries heartbeats only.'</span>)), [])</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>find_variation(nlp(<span class="st">'Three missed heartbeats mark it unresponsive, and the next beat clears the mark. Put each parameter on its own line, and document every argument.'</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>[[3] variation (tell 4, elegant variation): 'heartbeats ... beat',
+ [3] variation (tell 4, elegant variation): 'parameter ... argument']</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="forced-symmetry" class="level2">
+<h2 class="anchored" data-anchor-id="forced-symmetry">Forced symmetry</h2>
+<p>Tell 20 is the AI habit of making material march in step: “fresh ports, fresh channels, and a fresh interpreter”, three pros and three cons, every bullet opening with the same word. Real material is lumpy. Two symmetric shapes are mechanical enough to catch with precision. Inside a paragraph, three or more coordinated nouns each modified by the same adjective lemma is the marked example from the <code>write_docs</code> passage. Across a bullet list, three or more consecutive items opening with the same word is the list forced into one grammatical mold, and list items are their own blocks, so this half reads the document.</p>
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/para.py#L82" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="find_bullet_mold" class="level3">
+<h3 class="anchored" data-anchor-id="find_bullet_mold">find_bullet_mold</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> find_bullet_mold(</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    blocks, docs</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Three or more consecutive list items opening with the same word</em></p>
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/para.py#L67" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="find_triad" class="level3">
+<h3 class="anchored" data-anchor-id="find_triad">find_triad</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> find_triad(</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    doc</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Three or more coordinated nouns sharing one modifier lemma</em></p>
+<div id="7ebc1d08" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>tri <span class="op">=</span> find_triad(nlp(<span class="st">'The kernel gains fresh ports, fresh channels, and a fresh interpreter.'</span>))</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>bs2 <span class="op">=</span> segment(<span class="st">'- fast startup</span><span class="ch">\n</span><span class="st">- fast shutdown</span><span class="ch">\n</span><span class="st">- fast restarts</span><span class="ch">\n</span><span class="st">'</span>)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>tri <span class="op">+</span> find_bullet_mold(bs2, parse_blocks(bs2))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>[[3] triad (tell 20, forced symmetry): 'ports, fresh channels, and a fresh interpreter',
+ [3] bullet_mold (tell 20, forced symmetry): '- fast startup\n- fast shutdown\n- fast restarts']</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="the-paragraph-cap" class="level2">
+<h2 class="anchored" data-anchor-id="the-paragraph-cap">The paragraph cap</h2>
+<p>ASD-STE100 caps paragraphs at six sentences. Counting sentences fights the sentence-length rule, though: splitting a long sentence raises the count, punishing the fix the meter itself demands. So the cap counts words instead, at 150, which is six sentences at the sentence cap, escalating per extra 25. An earlier version flagged the meter’s own calibration passage, which was then a single nine-sentence paragraph. That conflict had two possible resolutions, and treating the fixture as untouchable would have picked one silently. Reading the passage settled it the other way: the paragraph really did pack a status contract and a restart story together, <code>write_docs</code> gained a paragraph break, and the rule ships. Nothing in this project is beyond refinement, including the calibration set, and this rule’s history is the proof.</p>
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/para.py#L97" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="find_para_cap" class="level3">
+<h3 class="anchored" data-anchor-id="find_para_cap">find_para_cap</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> find_para_cap(</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    doc</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Paragraphs past 150 words, escalating per extra 25</em></p>
+<div id="2f82fbc6" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>s25 <span class="op">=</span> <span class="st">'The gateway holds one socket open for every kernel it manages and closes each one when that kernel finally exits. '</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>test_eq(find_para_cap(nlp(s25 <span class="op">*</span> <span class="dv">6</span>)), [])</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>test_eq(find_para_cap(nlp(<span class="st">'The server does a thing. '</span> <span class="op">*</span> <span class="dv">9</span>)), [])</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>find_para_cap(nlp(s25 <span class="op">*</span> <span class="dv">8</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>[[1] para_cap: '160-word paragraph']</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="coinage" class="level2">
+<h2 class="anchored" data-anchor-id="coinage">Coinage</h2>
+<p>Tell 12 has two halves, and one is definable: a locally-invented term dropped without definition. “The carrier” in a design doc cannot be looked up anywhere, and that is what separates a coinage from an established term of art. The vocabulary gives a mechanical proxy for “cannot be looked up”: a word GloVe never saw in billions of web words (<code>is_oov</code>) is not established. The rule flags a lowercase out-of-vocabulary word that recurs outside backticks, and it flags the first occurrence, which is where the definition belonged. Backticked mentions are already invisible here because rules read scrubbed text, and that is the escape hatch working as designed: a coinage named as a code symbol is doing its job. Capitalized words stay out on purpose, since an out-of-vocabulary capitalized word is usually a product or a person, and both are names, not coinages.</p>
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/para.py#L106" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="find_coinage" class="level3">
+<h3 class="anchored" data-anchor-id="find_coinage">find_coinage</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> find_coinage(</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>    blocks, docs</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>A recurring out-of-vocabulary term outside backticks</em></p>
+<div id="6f7e19f3" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>coin_doc <span class="op">=</span> <span class="st">'Each dlgpart holds one message. A dlgpart never owns its buffer.</span><span class="ch">\n\n</span><span class="st">The `exhash` addresses are separate, and `exhash` recurs freely in backticks.</span><span class="ch">\n</span><span class="st">'</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>bs3 <span class="op">=</span> segment(coin_doc)</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> find_coinage(bs3, parse_blocks(bs3))</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>test_eq(<span class="bu">len</span>(res), <span class="dv">1</span>)</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>res</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>[[3] coinage (tell 12, audience misjudged): 'dlgpart']</code></pre>
+</div>
+</div>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/AnswerDotAI\.github\.io\/slopometer");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/AnswerDotAI/slopometer/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
