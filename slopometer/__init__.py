@@ -12,4 +12,4 @@ Modules:
 - `slopometer.segment`: Markdown becomes typed blocks that keep their file positions
 - `slopometer.syntax`: The spaCy rules: sentences, clauses, passives, and the patterns anchored to them"""
 
-__version__ = "0.0.2"
+__version__ = "0.0.3"
