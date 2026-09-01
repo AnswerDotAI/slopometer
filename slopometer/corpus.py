@@ -133,7 +133,7 @@ async def gh_readme_asof(api, owner, repo, date='2022-06-01'):
     "The text of `owner/repo`'s README as of `date`, or None when none exists"
     cs = await api.repos.list_commits(owner=owner, repo=repo, path='README.md', until=f'{date}T00:00:00Z', per_page=1)
     if not cs: return None
-    from fastspec.errors import APIError
+    from fasttransport.errors import APIError
     try: r = await api.repos.get_content(owner=owner, repo=repo, path='README.md', ref=cs[0].sha)
     except APIError as e:
         if e.status_code != 404: raise
@@ -143,7 +143,7 @@ async def gh_readme_asof(api, owner, repo, date='2022-06-01'):
 async def gh_readme_paras(repos=GH_REPOS, date='2022-06-01', min_words=50):
     "Rows from the curated repos' READMEs, as each stood at `date`"
     from ghapi.skill import GhApi
-    from fastspec.errors import APIError
+    from fasttransport.errors import APIError
     api = GhApi()
     rows = []
     for rp in repos:
