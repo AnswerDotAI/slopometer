@@ -81,7 +81,7 @@ def _clausal(toks):
     "Do `toks` contain a finite clause: a subject attached to a verb?"
     return any(t.dep_.startswith('nsubj') and t.head.pos_ in ('VERB', 'AUX') for t in toks)
 
-@rule('semi_splice', tell=1, weight=KILL, level='sent')
+@rule('semi_splice', tell=1, weight=KILL, level='sentence')
 def find_semi_splice(sent):
     "Semicolons joining two independent clauses; serial semicolons and citations pass"
     res, depth = [], 0
