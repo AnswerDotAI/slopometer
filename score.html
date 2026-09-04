@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Run every rule, weigh the findings, and report worst first">
+
+<title>score – slopometer</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-d63a2c9c8df14b07662b36303925c8cc.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="score – slopometer">
+<meta property="og:description" content="Run every rule, weigh the findings, and report worst first">
+<meta property="og:site_name" content="slopometer">
+<meta name="twitter:title" content="score – slopometer">
+<meta name="twitter:description" content="Run every rule, weigh the findings, and report worst first">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">slopometer</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./score.html">score</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">slopometer</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./core.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">core</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./segment.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">segment</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./lexicon.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">lexicon</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./syntax.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">syntax</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./para.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">para</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./score.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">score</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cli.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">cli</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./features.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">features</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./corpus.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">corpus</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#over-structuring" id="toc-over-structuring" class="nav-link active" data-scroll-target="#over-structuring">Over-structuring</a></li>
+  <li><a href="#the-runner" id="toc-the-runner" class="nav-link" data-scroll-target="#the-runner">The runner</a></li>
+  <li><a href="#the-result" id="toc-the-result" class="nav-link" data-scroll-target="#the-result">The result</a></li>
+  <li><a href="#the-drift-test" id="toc-the-drift-test" class="nav-link" data-scroll-target="#the-drift-test">The drift test</a></li>
+  <li><a href="#calibration" id="toc-calibration" class="nav-link" data-scroll-target="#calibration">Calibration</a></li>
+  <li><a href="#the-register-measured" id="toc-the-register-measured" class="nav-link" data-scroll-target="#the-register-measured">The register, measured</a></li>
+  <li><a href="#referential-load-a-prototype" id="toc-referential-load-a-prototype" class="nav-link" data-scroll-target="#referential-load-a-prototype">Referential load, a prototype</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/AnswerDotAI/slopometer/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div><div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="score.html.md"><i class="bi bi-file-code"></i>Markdown</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">score</h1>
+</div>
+
+<div>
+  <div class="description">
+    Run every rule, weigh the findings, and report worst first
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<p>The meter assembled: one pass that segments a document, runs every registered rule at its level, rebases every finding onto document offsets, and reduces the findings to two numbers. Density is weighted findings per 100 prose words, and the max is the single worst finding. A clean document scores near zero on both. One kill-on-sight finding pushes the max to 10 alone, which is the tiers doing their job.</p>
+<div id="ec786e2c" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-04T04:56:21.605957+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-04T04:56:21.606709+00:00&quot;,&quot;total&quot;:0.0007560070000067753}}" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> fastcore.test <span class="im">import</span> <span class="op">*</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> nbdev.config <span class="im">import</span> get_config</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="over-structuring" class="level2">
+<h2 class="anchored" data-anchor-id="over-structuring">Over-structuring</h2>
+<p>Tell 25: headers are navigation, and a document that fits on a screen needs none. The two counters from segmentation make this arithmetic. The rule fires when a document has two or more headings and averages under 40 prose words per heading, which passes a real README with sections and catches the bullet-riddled skeleton whose headers outnumber its sentences.</p>
+<div id="f0f758b3" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-04T04:56:21.608253+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-04T04:56:21.614753+00:00&quot;,&quot;total&quot;:0.006503424000015912}}" data-execution_count="5">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/score.py#L23" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="find_overstructure" class="level3">
+<h3 class="anchored" data-anchor-id="find_overstructure">find_overstructure</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> find_overstructure(</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    blocks, docs</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>More headings than the prose beneath them justifies</em></p>
+</section>
+</div>
+</section>
+<section id="the-runner" class="level2">
+<h2 class="anchored" data-anchor-id="the-runner">The runner</h2>
+<p>Dispatch follows each rule’s level. Phrase rules read the scrubbed text of every block, headings and list items included, because a banned word in a heading is still a banned word. Sentence and paragraph rules read parsed prose blocks only. Document rules run once over everything. A finding’s offsets are relative to whatever its rule read, and the runner rebases each one onto document offsets: the block’s start, plus the sentence’s offset within the block for sentence rules. The round-trip property from segmentation is what makes both additions exact.</p>
+<div id="59839d4d" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-04T04:56:21.616959+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-04T04:56:21.620339+00:00&quot;,&quot;total&quot;:0.003383050000024923}}" data-execution_count="7">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/score.py#L38" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="run_rules" class="level3">
+<h3 class="anchored" data-anchor-id="run_rules">run_rules</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> run_rules(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    txt</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Every registered rule’s findings for markdown <code>txt</code>, rebased to document offsets</em></p>
+</section>
+</div>
+</section>
+<section id="the-result" class="level2">
+<h2 class="anchored" data-anchor-id="the-result">The result</h2>
+<p>A result is the findings plus the two numbers, and its display is the report: header line first, then one row per finding, worst first. Rows for a scored file carry <code>lineno|hash|</code> addresses in the exhash format, which drop straight into hash-verified editing tools, so a finding is not just a complaint but an edit-ready location.</p>
+<div id="c06f765f" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-04T04:56:21.623710+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-04T04:56:21.626511+00:00&quot;,&quot;total&quot;:0.0028048389999639767}}" data-execution_count="9">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/score.py#L85" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="score_path" class="level3">
+<h3 class="anchored" data-anchor-id="score_path">score_path</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> score_path(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    p</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Score the file at <code>p</code> (expands <code>~</code>); report rows carry exhash addresses</em></p>
+</section>
+</div>
+<div id="22a7eb3f" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-04T04:56:21.626614+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-04T04:56:21.629114+00:00&quot;,&quot;total&quot;:0.002503074999992805}}" data-execution_count="10">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/score.py#L81" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="score_text" class="level3">
+<h3 class="anchored" data-anchor-id="score_text">score_text</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> score_text(</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    txt</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Score markdown <code>txt</code>, returning a <a href="https://AnswerDotAI.github.io/slopometer/score.html#result"><code>Result</code></a></em></p>
+</section>
+</div>
+<div id="25333280" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-04T04:56:21.629200+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-04T04:56:21.631684+00:00&quot;,&quot;total&quot;:0.0024876830000266636}}" data-execution_count="11">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/score.py#L57" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="result" class="level3">
+<h3 class="anchored" data-anchor-id="result">Result</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> Result(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    txt, <span class="co"># The scored document</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    findings, <span class="co"># `Finding`s, worst first</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    words, <span class="co"># Prose word count</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    path:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Source file, when scoring a file</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Initialize self. See help(type(self)) for accurate signature.</em></p>
+</section>
+</div>
+<p>Scoring many documents at once parallelizes with plain threads, because spaCy’s pipeline spends its time in C operations that release the GIL. Measured on this design: 8 workers score a batch 2.7 times faster than serial, 16 lose ground to contention, and process pools add nothing but memory. <a href="https://AnswerDotAI.github.io/slopometer/score.html#score_many"><code>score_many</code></a> records the measured default.</p>
+<div id="10e91bea" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-04T04:56:21.632398+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-04T04:56:21.634484+00:00&quot;,&quot;total&quot;:0.002088952999997673}}" data-execution_count="13">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/score.py#L93" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="score_many" class="level3">
+<h3 class="anchored" data-anchor-id="score_many">score_many</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> score_many(</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    txts, n_workers:<span class="bu">int</span><span class="op">=</span><span class="dv">8</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Score texts in parallel threads, returning a <a href="https://AnswerDotAI.github.io/slopometer/score.html#result"><code>Result</code></a> per text</em></p>
+</section>
+</div>
+<div id="cca88e23" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>pair <span class="op">=</span> [<span class="st">'The gateway never kills an unresponsive kernel.'</span>, <span class="st">"It isn't just fast - it's seamless."</span>]</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>test_eq([r.density <span class="cf">for</span> r <span class="kw">in</span> score_many(pair)], [score_text(t).density <span class="cf">for</span> t <span class="kw">in</span> pair])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="dc8186b1" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>score_text(<span class="st">'''# widget</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="st">A tool for widgets. Call `enhance()` to start.</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="st">## Features</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="st">widget leverages a robust paradigm to deliver results.</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="st">It parses the config, then it writes the output.</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="st">- fast startup</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="st">- fast shutdown</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="st">- fast restarts</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="st">'''</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>density 184.0 (weight 46 on 25 prose words), worst 10
+7: [10] banned: 'leverages' -&gt; 'use'
+7: [10] banned: 'robust' -&gt; 'strong'
+7: [10] banned: 'paradigm'
+7: [10] banned: 'deliver results'
+1: [3] overstructure (tell 25, over-structuring): '2 headings on 25 words of prose'
+10: [3] bullet_mold (tell 20, forced symmetry): '- fast startup\n- fast shutdown\n- fast restarts'</code></pre>
+</div>
+</div>
+</section>
+<section id="the-drift-test" class="level2">
+<h2 class="anchored" data-anchor-id="the-drift-test">The drift test</h2>
+<p><code>write_docs</code> and slopometer can only stay aligned if something fails when they drift. This cell parses the numbered tells out of the live <code>write_docs</code> docstring and asserts that every one maps to a registered rule or to the unscoreable registry. A tell added to <code>write_docs</code> without a slopometer decision fails here. The test needs <code>aai_coding</code> installed, which is true on team machines and false on CI, and it says which case it hit.</p>
+<div id="348ed237" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-04T04:56:21.634897+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-04T04:56:21.635951+00:00&quot;,&quot;total&quot;:0.0010568799999646217}}" data-execution_count="14">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> aai_coding.write_docs <span class="im">as</span> _wd</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    doc_tells <span class="op">=</span> {<span class="bu">int</span>(n) <span class="cf">for</span> n <span class="kw">in</span> re.findall(<span class="vs">r'</span><span class="dv">^</span><span class="kw">(</span><span class="dv">\d</span><span class="op">+</span><span class="kw">)</span><span class="ch">\.</span><span class="vs">'</span>, _wd.__doc__, flags<span class="op">=</span>re.M)}</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    covered <span class="op">=</span> {r.tell <span class="cf">for</span> r <span class="kw">in</span> rules.values() <span class="cf">if</span> r.tell <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>} <span class="op">|</span> <span class="bu">set</span>(unscoreable)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    test_eq(doc_tells <span class="op">-</span> covered, <span class="bu">set</span>())</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f'</span><span class="sc">{</span><span class="bu">len</span>(doc_tells)<span class="sc">}</span><span class="ss"> tells in write_docs, every one mapped to a rule or the registry'</span>)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> <span class="pp">ImportError</span>: <span class="bu">print</span>(<span class="st">'aai_coding not installed: drift test skipped, it runs on team machines'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>aai_coding not installed: drift test skipped, it runs on team machines</code></pre>
+</div>
+</div>
+</section>
+<section id="calibration" class="level2">
+<h2 class="anchored" data-anchor-id="calibration">Calibration</h2>
+<p><code>write_docs</code> teaches with a passage pair: the same design-doc section written in register and written as slop, with the slop’s tells marked. The pair is the meter’s calibration set. The after-passage must score near zero, because a meter that flags clean reference prose trains its readers to ignore it. The before-passage must score high, with the kill-tier findings present. The marker numbers are stripped so the meter reads natural text.</p>
+<div id="d0fa2eb9" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>AFTER <span class="op">=</span> <span class="st">"`GatewayKernel` ties the three lower layers together. The ready-wait runs once per kernel, in `start`. `watch` polls the process and the heartbeat. A process that dies unexpectedly broadcasts the synthesized `dead` status. Three missed heartbeats mark the kernel `unresponsive` in its model, with the next echo clearing the mark.</span><span class="ch">\n\n</span><span class="st">The gateway never kills an unresponsive kernel. A kernel becomes `dead` only when its process exits. `restart` terminates and respawns with fresh ports in a new process. Clients see `restarting`, then `starting` once the new kernel is ready."</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>BEFORE <span class="op">=</span> <span class="st">"This section describes how `GatewayKernel` manages the kernel lifecycle. `GatewayKernel` ties the three lower layers together, and its `start` is the only place the ready-wait runs: once per kernel, ever. The core mechanism: `watch`. It isn't just a poller - it's the liveness authority. Furthermore, it polls the process and the heartbeat: a process that dies unexpectedly broadcasts the synthesized `dead` status, and three missed beats mark the kernel `unresponsive` in its model. The distinction is worth being precise about. That marking is observational only - only process exit means dead - and it clears itself on the next echo. So what does `restart` actually do? It terminates and respawns; the kernel gains fresh ports, fresh channels, and a fresh interpreter via the new process, so the channel set is rebuilt and clients simply see `restarting` then a fresh welcome-backed ready kernel."</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>ra, rb <span class="op">=</span> score_text(AFTER), score_text(BEFORE)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>ra</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>density 0.0 (weight 0 on 87 prose words), worst 0</code></pre>
+</div>
+</div>
+<div id="d3a260b5" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>rb</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>density 70.4 (weight 100 on 142 prose words), worst 12
+1: [12] sent_len (tell 1, splices): 'It terminates and respawns; the kernel gains fresh ports, fresh channels, and a fresh interpreter via the new process, so the channel set is rebuilt and clients simply see `restarting` then a fresh welcome-backed ready kernel.'
+1: [10] notxbuty (tell 16, not-X-but-Y): "isn't just a"
+1: [10] splice (tell 1, splices): ' - '
+1: [10] splice (tell 1, splices): ' - '
+1: [10] splice (tell 1, splices): ' - '
+1: [10] splice (tell 1, splices): '; '
+1: [4] sent_len (tell 1, splices): 'Furthermore, it polls the process and the heartbeat: a process that dies unexpectedly broadcasts the synthesized `dead` status, and three missed beats mark the kernel `unresponsive` in its model.'
+1: [3] throat_clearing (tell 13, throat-clearing): 'This section describes'
+1: [3] announce (tell 15, announce-then-deliver): 'The core mechanism: '
+1: [3] transitions (tell 19, filler transitions): 'Furthermore' -&gt; 'and'
+1: [3] variation (tell 4, elegant variation): 'heartbeat ... beats'
+1: [3] appraisal (tell 21, appraisal preamble): 'worth being precise'
+1: [3] rhetorical (tell 18, rhetorical questions): 'So what does `restart` actually do?'
+1: [3] recipient_subject (tell 23, recipient-as-subject): 'gains'
+1: [3] triad (tell 20, forced symmetry): 'ports, fresh channels, and a fresh interpreter'
+1: [3] conseq (tell 6, consequence glue): ', so'
+1: [3] passive: 'set is rebuilt'
+1: [3] intensifiers (tell 3, emphasis devices): 'simply'
+1: [1] clauses (tell 1, splices): 'It terminates and respawns; the kernel gains fresh ports, fresh channels, and a fresh interpreter via the new process, so the channel set is rebuilt and clients simply see `restarting` then a fresh welcome-backed ready kernel.'</code></pre>
+</div>
+</div>
+<p>The separation is the meter working: 0.0 against 70, and the report reads back the passage’s own margin notes. The assertions pin the properties that must survive rule changes, not the exact numbers: the clean passage stays clean, the slop passage scores past any sane threshold, and the kill-tier tells the passage was built around are all present.</p>
+<div id="1b1d602d" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>test_eq(ra.total, <span class="dv">0</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> rb.density <span class="op">&gt;</span> <span class="dv">30</span> <span class="kw">and</span> rb.worst <span class="op">&gt;=</span> <span class="dv">10</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>hit <span class="op">=</span> {f.tell <span class="cf">for</span> f <span class="kw">in</span> rb.findings <span class="cf">if</span> f.tell <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>}</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> {<span class="dv">1</span>, <span class="dv">13</span>, <span class="dv">16</span>, <span class="dv">18</span>, <span class="dv">19</span>, <span class="dv">21</span>} <span class="op">&lt;=</span> hit</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="bu">sorted</span>(hit)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>[1, 3, 4, 6, 13, 15, 16, 18, 19, 20, 21, 23]</code></pre>
+</div>
+</div>
+</section>
+<section id="the-register-measured" class="level2">
+<h2 class="anchored" data-anchor-id="the-register-measured">The register, measured</h2>
+<p>The <code>samples/</code> directory holds four drafts of one design statement, written in sequence during warmpy’s design: <code>theory1.md</code> is aphorism-heavy slop, <code>theory2.md</code> is the same content mechanically chopped into short sentences, <code>theory3.md</code> is the narrative rewrite a reader actually understood, and <code>theory4.md</code> is that rewrite brought into the reference register. The numbers teach three lessons the passage pair cannot.</p>
+<p>theory4 shows what clean looks like on real material: its only findings are two sentences slightly past the word cap, one of them a deliberate single-idea enumeration. Reference prose does not require chopping. Its sentences carry their referents with them (“<code>yourcommand</code> becomes a small program that starts fast”), name things by symbol instead of by definite reference, and still score near zero.</p>
+<p>theory2 beats theory3 on density and loses to theory4. Every theory3 finding is real: its semicolons are splices and its “, so” chains are consequence glue, in the narrative register as much as this one. But theory2’s low score is the blind spot, not a verdict: “the server is a cache, and doubt means disposal” passes every surface rule while saying nothing. Chopped prose smuggles its confusion into what the sentences omit, and omissions have no span to flag. The prototype below measures that omission directly.</p>
+<div id="14203a99" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>sd <span class="op">=</span> get_config().config_path<span class="op">/</span><span class="st">'samples'</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>t1,t2,t3,t4 <span class="op">=</span> (score_path(sd<span class="op">/</span><span class="ss">f'theory</span><span class="sc">{</span>i<span class="sc">}</span><span class="ss">.md'</span>) <span class="cf">for</span> i <span class="kw">in</span> (<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>))</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>[(<span class="ss">f'theory</span><span class="sc">{</span>i<span class="sc">}</span><span class="ss">'</span>, r.density, r.worst) <span class="cf">for</span> i,r <span class="kw">in</span> <span class="bu">zip</span>((<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>), (t1, t2, t3, t4))]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>[('theory1', 59.6, 53),
+ ('theory2', 5.4, 3),
+ ('theory3', 14.0, 12),
+ ('theory4', 1.5, 4)]</code></pre>
+</div>
+</div>
+</section>
+<section id="referential-load-a-prototype" class="level2">
+<h2 class="anchored" data-anchor-id="referential-load-a-prototype">Referential load, a prototype</h2>
+<p>theory2’s damage has a mechanical trace after all, and it is not in what the sentences contain but in how they refer. Chopping a long sentence apart strands its referents: each new short sentence points backward with a pronoun (“It reads the same stdin”) or presupposes with a definite article a thing never introduced (“The record of completed imports dies with the process” — what record?). Both force the reader to carry state across sentence boundaries, which is exactly the comprehension cost the chopping was supposed to remove. Entity-based coherence models (<a href="https://aclanthology.org/J08-1001/">Barzilay and Lapata 2008</a>, building on centering theory) formalize this: a coherent document introduces an entity openly before referring to it compactly.</p>
+<p>Two counts approximate it. The pronoun rate is the fraction of sentences whose main subject is a pronoun. The cold-definite rate is the fraction of “the X” phrases where X names something never mentioned before in the document (“the same X” excluded, since sameness is the point there, and X-fill tokens excluded). Neither is a rule yet: the cells below measure the samples to see whether the signal separates the drafts before any weight is attached.</p>
+<div id="ee345c96" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> refload(txt):</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>    n_sent <span class="op">=</span> n_pron <span class="op">=</span> n_def <span class="op">=</span> n_cold <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>    seen <span class="op">=</span> <span class="bu">set</span>()</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> d <span class="kw">in</span> (x <span class="cf">for</span> x <span class="kw">in</span> parse_blocks(segment(txt)) <span class="cf">if</span> x <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>):</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> s <span class="kw">in</span> d.sents:</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>            n_sent <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> <span class="bu">any</span>(t.dep_ <span class="kw">in</span> (<span class="st">'nsubj'</span>, <span class="st">'nsubjpass'</span>) <span class="kw">and</span> t.pos_ <span class="op">==</span> <span class="st">'PRON'</span> <span class="kw">and</span> t.head.dep_ <span class="op">==</span> <span class="st">'ROOT'</span> <span class="cf">for</span> t <span class="kw">in</span> s): n_pron <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> t <span class="kw">in</span> d:</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> t.pos_ <span class="kw">not</span> <span class="kw">in</span> (<span class="st">'NOUN'</span>, <span class="st">'PROPN'</span>) <span class="kw">or</span> <span class="bu">len</span>(<span class="bu">set</span>(t.lower_)) <span class="op">==</span> <span class="dv">1</span>: <span class="cf">continue</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>            lem <span class="op">=</span> t.lemma_.lower()</span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>            kids <span class="op">=</span> [c.lower_ <span class="cf">for</span> c <span class="kw">in</span> t.children]</span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> <span class="st">'the'</span> <span class="kw">in</span> kids <span class="kw">and</span> <span class="st">'same'</span> <span class="kw">not</span> <span class="kw">in</span> kids:</span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>                n_def <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> lem <span class="kw">not</span> <span class="kw">in</span> seen: n_cold <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>            seen.add(lem)</span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">dict</span>(sents<span class="op">=</span>n_sent, pron<span class="op">=</span><span class="bu">round</span>(n_pron<span class="op">/</span><span class="bu">max</span>(n_sent, <span class="dv">1</span>), <span class="dv">2</span>), defs<span class="op">=</span>n_def, cold<span class="op">=</span><span class="bu">round</span>(n_cold<span class="op">/</span><span class="bu">max</span>(n_def, <span class="dv">1</span>), <span class="dv">2</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="1bcc1fd4" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>texts <span class="op">=</span> {<span class="ss">f'theory</span><span class="sc">{</span>i<span class="sc">}</span><span class="ss">'</span>: (sd<span class="op">/</span><span class="ss">f'theory</span><span class="sc">{</span>i<span class="sc">}</span><span class="ss">.md'</span>).read_text() <span class="cf">for</span> i <span class="kw">in</span> (<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>)} <span class="op">|</span> <span class="bu">dict</span>(AFTER<span class="op">=</span>AFTER, BEFORE<span class="op">=</span>BEFORE)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>{k: refload(t) <span class="cf">for</span> k,t <span class="kw">in</span> texts.items()}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>{'theory1': {'sents': 23, 'pron': 0.09, 'defs': 34, 'cold': 0.56},
+ 'theory2': {'sents': 33, 'pron': 0.06, 'defs': 35, 'cold': 0.46},
+ 'theory3': {'sents': 35, 'pron': 0.03, 'defs': 40, 'cold': 0.28},
+ 'theory4': {'sents': 33, 'pron': 0.03, 'defs': 23, 'cold': 0.3},
+ 'AFTER': {'sents': 9, 'pron': 0.0, 'defs': 9, 'cold': 0.89},
+ 'BEFORE': {'sents': 9, 'pron': 0.11, 'defs': 14, 'cold': 0.79}}</code></pre>
+</div>
+</div>
+<p>The verdict is mixed, and recording it beats forgetting it. The cold-definite rate orders the rewrites correctly: theory2 at 0.43 against theory3’s 0.30 and theory4’s 0.29, which is the chopping stranding its referents, measured. The pronoun rate fails to separate the rewrites and instead marks the slop drafts, whose subjects are “it” more often than anything named. And the passage pair warns against weighting either number yet: the clean excerpt scores 0.89 cold-definite because its referents were introduced by the surrounding document it was cut from, and the meter saw only the cut. The measure needs whole documents, or it misleads. Referential load therefore ships as a measurement in this notebook and not as a rule, and its calibration waits for a corpus of whole documents scored side by side with human judgments of the same drafts.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/AnswerDotAI\.github\.io\/slopometer");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/AnswerDotAI/slopometer/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

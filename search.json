@@ -1,0 +1,552 @@
+[
+  {
+    "objectID": "core.html",
+    "href": "core.html",
+    "title": "core",
+    "section": "",
+    "text": "slopometer measures prose against the reference-prose rules in aai_coding.write_docs: 26 numbered tells, the named ways reference prose goes wrong. This module defines what every rule shares: the table of tells, the Finding record every detector returns, the registry that rules join at import time, and the registry of tells no deterministic rule can detect.\nfrom fastcore.test import *",
+    "crumbs": [
+      "core"
+    ]
+  },
+  {
+    "objectID": "core.html#the-tells",
+    "href": "core.html#the-tells",
+    "title": "core",
+    "section": "The tells",
+    "text": "The tells\nThe numbers are write_docs’s own, and its docstring stays the source for what each tell means. They are append-only, so a rule bound to a number stays correct across revisions. slopometer names the tells and never restates them. Rules built on write_docs guidance that sits outside the numbered tells, like the banned-word lists and the active-voice preference, carry tell=None and display without a tell clause.",
+    "crumbs": [
+      "core"
+    ]
+  },
+  {
+    "objectID": "core.html#findings",
+    "href": "core.html#findings",
+    "title": "core",
+    "section": "Findings",
+    "text": "Findings\nThe tiers span an order of magnitude on purpose. One kill-on-sight finding outweighs any accumulation of pressure findings. Calibration against the write_docs passage pair will set the exact numbers. The tiers are the commitment.\n\n\nsource\n\nFinding\ndef Finding(\n    rule, # Name of the rule that fired\n    tell, # `write_docs` tell number the rule detects\n    start, # Character offset where the span starts, within the text the detector received\n    end, # Character offset one past the span's end\n    text, # The offending span itself\n    weight, # The rule's tier, escalated where the rule escalates\n    suggestion:NoneType=None, # A mechanical replacement, when one exists\n):\nInitialize self. See help(type(self)) for accurate signature.\n\n\nA Finding is one rule firing on one span. start and end are offsets into the text the detector received. The runner rebases them to file positions when it assembles a report. The span text is stored too, and a finding therefore displays without its source. Here is a finding built by hand, for the sentence the meter exists to catch:\n\ns = \"It isn't just a poller - it's the liveness authority.\"\nFinding('notxbuty', 16, 0, len(s), s, KILL)\n\n[10] notxbuty (tell 16, not-X-but-Y): \"It isn't just a poller - it's the liveness authority.\"",
+    "crumbs": [
+      "core"
+    ]
+  },
+  {
+    "objectID": "core.html#the-rule-registry",
+    "href": "core.html#the-rule-registry",
+    "title": "core",
+    "section": "The rule registry",
+    "text": "The rule registry\n\n\nsource\n\nrule\ndef rule(\n    name, # Rule name, unique within slopometer\n    tell, # `write_docs` tell number the rule detects\n    weight, # Tier the rule's findings carry\n    level, # The unit the detector reads: 'phrase', 'sentence', 'para', or 'doc'\n):\nRegister a detector, a function from its unit’s text to the list of Findings in it\n\n\nRules join rules at import time through the decorator, which stamps the metadata that the runner and the drift test read. A detector receives one unit of text at its level and nothing wider. That locality is a design rule from the PRD: the paragraph is the largest unit of linguistic analysis.\nThe simplest rule in the package needs no parse and no lexicon, and it serves here as the registry’s working example: tell 24, decoration. Reference prose is ASCII. Emoji and ornamental symbols are always wrong in it, which makes this a kill-on-sight rule, and arrow glyphs get a mechanical suggestion. Accented letters are ordinary spelling, not decoration. The em dash is a splice (tell 1), not decoration, and a different rule owns it. Both pass here, and the first line of the example is the precision commitment: clean text must produce no findings.\n\n\nsource\n\nfind_decoration\ndef find_decoration(\n    txt\n):\nFlag emoji and ornamental unicode, suggesting ASCII for arrows\n\n\n\ntest_eq(find_decoration('naïve café — no decoration, only accents'), [])\nfind_decoration('Done ✅ ship it 🚀🎉 then → prod')\n\n[[10] decoration (tell 24, decoration): '✅',\n [10] decoration (tell 24, decoration): '🚀🎉',\n [10] decoration (tell 24, decoration): '→' -&gt; '-&gt;']",
+    "crumbs": [
+      "core"
+    ]
+  },
+  {
+    "objectID": "core.html#what-the-meter-cannot-see",
+    "href": "core.html#what-the-meter-cannot-see",
+    "title": "core",
+    "section": "What the meter cannot see",
+    "text": "What the meter cannot see\nSeven entries record judgment no deterministic rule reaches. Recording them with reasons serves two consumers. The drift test in the scoring notebook asserts that every write_docs tell number maps to a rule or to an entry here, and a tell added to write_docs without a slopometer decision fails it. Readers of check_docs reviews learn what the meter cannot see. Tells 9, 11, and 12 appear in both places on purpose: a rule covers their definable half, and this registry records the rest.",
+    "crumbs": [
+      "core"
+    ]
+  },
+  {
+    "objectID": "syntax.html",
+    "href": "syntax.html",
+    "title": "syntax",
+    "section": "",
+    "text": "The rules that need to know what a sentence is and how its words relate: sentence length, clause count, passive voice, part-of-speech-dependent vocabulary, noun clusters, nominalizations, agent defocusing, and the slop patterns that anchor to sentence starts. spaCy provides the linguistic analysis, and this module also owns getting spaCy’s model onto the machine.\nfrom fastcore.test import *",
+    "crumbs": [
+      "syntax"
+    ]
+  },
+  {
+    "objectID": "syntax.html#getting-the-model",
+    "href": "syntax.html#getting-the-model",
+    "title": "syntax",
+    "section": "Getting the model",
+    "text": "Getting the model\nslopometer uses spaCy’s en_core_web_md pipeline. The lg and md English models share one vocabulary of 684,830 keys and the same tagger and parser architecture. They differ in the vector table: md maps the vocabulary onto 20,000 shared vectors where lg keeps 342,918. That difference mattered when the design called for vector-similarity rules. The para notebook then measured those designs and they failed on real fixtures, for reasons unrelated to vector quality. What survives needs only the vocabulary key set, which the coinage rule reads through is_oov, and md and lg answer that identically. So the small model won: 40MB against 560MB, with nothing shipped that the difference could affect. A future rule that needs calibrated similarity brings the lg question back, and this paragraph is where to reopen it.\nThe model is a wheel that Explosion publishes on GitHub releases, not on PyPI, and published packages cannot carry direct-URL dependencies. So slopometer follows the pattern that huggingface_hub, tiktoken, and playwright settled on for artifacts too big to package: download once into a user cache directory, and load by path. pip install slopometer is complete by itself. The first call on a machine without the model downloads it, says so, and never needs to again. The cache lives outside every virtual environment, one copy serves every project, and environment syncs cannot remove it.\n\n\nsource\n\nget_nlp\ndef get_nlp():\nThe loaded pipeline, one per process\n\n\n\n\nsource\n\nmodel_path\ndef model_path():\nPath of the model data directory: the installed package if present, else the cache, downloading on first call\n\n\n\np = model_path()\np.exists(), p.name\n\n(True, 'en_core_web_md-3.8.0')\n\n\nThe download branch runs only on a machine with neither the package nor the cache, and exercising it costs a 560MB download, so no test pins it. CI restores the cache directory with actions/cache instead. get_nlp loads once per process: the load takes seconds, every later call is free, and the CLI notebook builds on exactly that asymmetry.",
+    "crumbs": [
+      "syntax"
+    ]
+  },
+  {
+    "objectID": "syntax.html#reading-a-parse",
+    "href": "syntax.html#reading-a-parse",
+    "title": "syntax",
+    "section": "Reading a parse",
+    "text": "Reading a parse\nEverything below uses three layers of spaCy’s analysis, and they are worth meeting before any rule uses them. A token is one word or punctuation mark. Its part of speech (pos_) says what kind of word it is: NOUN, VERB, ADJ, ADV. Its lemma (lemma_) is the dictionary form, which is how one rule entry catches “leverages” and “leveraged”. The dependency parse (dep_, head) links every token to the token it modifies, labelled with the grammatical relation: nsubj marks a verb’s subject, dobj its object. Sentence boundaries fall out of the same parse, and every sentence-level rule trusts them rather than splitting on periods, which fail on “e.g.” and “v3.8.0”.\nspaCy’s own spaCy 101 is the practical tour. The label scheme descends from Universal Dependencies, and chapters 17-18 of Jurafsky and Martin’s Speech and Language Processing explain how statistical parsers assign these structures, and why they are occasionally wrong. The rules below treat the parse as evidence, not truth, and each one’s thresholds are set so that a mildly wrong parse produces a missed finding rather than a false one.\n\ndoc = get_nlp()('The gateway never kills an unresponsive kernel.')\nL((t.text, t.pos_, t.lemma_, t.dep_, t.head.text) for t in doc)\n\n[('The', 'DET', 'the', 'det', 'gateway'), ('gateway', 'NOUN', 'gateway', 'nsubj', 'kills'), ('never', 'ADV', 'never', 'neg', 'kills'), ('kills', 'VERB', 'kill', 'ROOT', 'kills'), ('an', 'DET', 'an', 'det', 'kernel'), ('unresponsive', 'ADJ', 'unresponsive', 'amod', 'kernel'), ('kernel', 'NOUN', 'kernel', 'dobj', 'kills'), ('.', 'PUNCT', '.', 'punct', 'kills')]",
+    "crumbs": [
+      "syntax"
+    ]
+  },
+  {
+    "objectID": "syntax.html#sentence-load",
+    "href": "syntax.html#sentence-load",
+    "title": "syntax",
+    "section": "Sentence load",
+    "text": "Sentence load\nASD-STE100 caps sentences at 20 words for procedures and 25 for descriptions, on the evidence that comprehension drops steeply past that. Reference prose is descriptive, and the cap here is 25, counting words rather than punctuation. The weight escalates by one per word over the cap, which makes a 40-word sentence an alarm rather than a nudge. Length alone is not enough: a single-clause sentence past the cap is an enumeration, a list wearing sentence form, and it passes however long it runs. The rule fires only when the sentence also stacks a second clause, using the clause count defined below. Clause count is the same idea measured structurally, and the counting follows what a reader must track rather than raw verb tallies. A subordinate clause (advcl, ccomp) is an idea. A coordinated verb counts only when it brings its own subject: “the kernel gains ports and clients see restarting” stacks two ideas, where “reads the same stdin, writes to the same terminal, sees the same directory” enumerates one. A relative clause completes its noun (“a small program that starts fast”) and does not count at all. Three ideas is ordinary English. The fourth begins the pile-up, and the weight escalates from there.\n\n\nsource\n\nfind_clauses\ndef find_clauses(\n    sent\n):\nSentences stacking four or more idea-bearing clauses, escalating per extra clause\n\n\n\n\nsource\n\nfind_sent_len\ndef find_sent_len(\n    sent\n):\nMulti-clause sentences past 25 words, escalating one weight point per extra word\n\n\n\nlong_sent = list(get_nlp()(\"It terminates and respawns; the kernel gains fresh ports, fresh channels, and a fresh interpreter via the new process, so the channel set is rebuilt and clients simply see restarting then a fresh welcome-backed ready kernel.\").sents)[0]\nenum = list(get_nlp()('Your function gets the same arguments, reads the same stdin, writes to the same terminal, and produces the same exit code.').sents)[0]\nlst = list(get_nlp()(\"Much of the clarity core above is also codified in ASD-STE100: one idea per sentence, active voice with the doer as subject, one meaning per term, and plain words over inflated ones (utilize-&gt;use is a literal STE substitution).\").sents)[0]\ntest_eq(find_clauses(enum), [])\ntest_eq(find_sent_len(lst), [])\nfind_sent_len(long_sent) + find_clauses(long_sent)\n\n[[12] sent_len (tell 1, splices): 'It terminates and respawns; the kernel gains fresh ports, fresh channels, and a fresh interpreter via the new process, so the channel set is rebuilt and clients simply see restarting then a fresh welcome-backed ready kernel.',\n [1] clauses (tell 1, splices): 'It terminates and respawns; the kernel gains fresh ports, fresh channels, and a fresh interpreter via the new process, so the channel set is rebuilt and clients simply see restarting then a fresh welcome-backed ready kernel.']\n\n\nThe phrase-level splice rule cannot judge semicolons, because a semicolon is legitimate punctuation in two shapes: the serial semicolon dividing list items that contain commas, and the citation separator inside parentheses. What makes a semicolon a splice is an independent clause on each side. The parse tells them apart: a side with a finite verb carrying its own subject is a clause, and a side of bare participles or noun phrases is a list item. Semicolons inside parentheses never flag.\n\n\nsource\n\nfind_semi_splice\ndef find_semi_splice(\n    sent\n):\nSemicolons joining two independent clauses; serial semicolons and citations pass\n\n\nThe three fixtures are the exact texts that exposed the old rule: the serial list, the citation, and the one true splice they hid among.\n\nnosemi = ['Decided, dropped, or still open; merged, blocked, or awaiting review; a task with nobody named.',\n    'The dimensions were settled long ago (SummEval; Fabbri et al., 2021).']\nfor s in nosemi: test_eq(find_semi_splice(list(get_nlp()(s).sents)[0]), [])\nfind_semi_splice(list(get_nlp()(\"Say it is open; an honest answer is status too.\").sents)[0])",
+    "crumbs": [
+      "syntax"
+    ]
+  },
+  {
+    "objectID": "syntax.html#passive-voice",
+    "href": "syntax.html#passive-voice",
+    "title": "syntax",
+    "section": "Passive voice",
+    "text": "Passive voice\nwrite_docs prefers active voice everywhere, and its reason is sharper than style: a passive that hides the actor usually hides part of the contract with it. “The file is deleted” leaves the deleter unnamed, and the deleter is what the reader needed. The parse makes the distinction mechanical. A passive subject carries the nsubjpass label, and when the verb also has an agent child, the actor survives in a “by” phrase. An agentless passive weighs more than an agented one, because the agented form at least kept the contract on the page.\nThe label names are an external assumption worth pinning: spaCy’s English models use the ClearNLP label set, not bare Universal Dependencies, and a model change that renamed nsubjpass would silently blind this rule. The assertion below is the tripwire.\n\n\nsource\n\nfind_passive\ndef find_passive(\n    sent\n):\nPassive constructions, weighted higher when no agent survives\n\n\n\nps = list(get_nlp()('The config file is read at startup. The socket was closed by the client.').sents)\ntest_eq([t.dep_ for t in ps[0]][:4], ['det', 'compound', 'nsubjpass', 'auxpass'])\nfind_passive(ps[0]) + find_passive(ps[1])\n\n[[3] passive: 'file is read', [1] passive: 'socket was closed']",
+    "crumbs": [
+      "syntax"
+    ]
+  },
+  {
+    "objectID": "syntax.html#vocabulary-judged-by-the-parse",
+    "href": "syntax.html#vocabulary-judged-by-the-parse",
+    "title": "syntax",
+    "section": "Vocabulary judged by the parse",
+    "text": "Vocabulary judged by the parse\nThe lexicon notebook flags words that are wrong in every part of speech. This rule covers the rest: words that are banned only as verbs. “The impact was small” states a measurement, and “this impacts performance” inflates it. “The fix landed” is the metaphor write_docs calls out by name, and its replacement names what actually happened: merged, committed, released. The parse’s POS tag is the disambiguator, and the lemma catches every inflection. A token preceded by a hyphen is part of a compound like “aviation-shaped” and never flags.\nThe intensifier rule is tell 3’s adverb half. “simply” and “merely” claim an ease the reader cannot verify, and deleting them never changes a contract. “just” stays out on precision grounds: its minimizing sense (“it just works”) and its temporal sense (“just released”) wear the same POS tag, and flagging releases notes for recency would teach readers to ignore the rule.\n\n\nsource\n\nfind_intensifiers\ndef find_intensifiers(\n    sent\n):\nEase-claiming adverbs\n\n\n\n\nsource\n\nfind_verb_banned\ndef find_verb_banned(\n    sent\n):\nWords banned as verbs, caught by lemma and POS\n\n\n\ns1 = list(get_nlp()('The fix landed in main, and clients simply see the new behavior.').sents)[0]\ntest_eq(find_verb_banned(list(get_nlp()('The impact was small.').sents)[0]), [])\ntest_eq(find_verb_banned(list(get_nlp()('These rules are aviation-shaped.').sents)[0]), [])\nfind_verb_banned(s1) + find_intensifiers(s1)\n\n[[10] verb_banned: 'landed',\n [3] intensifiers (tell 3, emphasis devices): 'simply']",
+    "crumbs": [
+      "syntax"
+    ]
+  },
+  {
+    "objectID": "syntax.html#noun-clusters-and-nominalizations",
+    "href": "syntax.html#noun-clusters-and-nominalizations",
+    "title": "syntax",
+    "section": "Noun clusters and nominalizations",
+    "text": "Noun clusters and nominalizations\nASD-STE100 limits noun clusters to three, because “kernel connection state model update” makes the reader do the parser’s job: which noun modifies which is unstated, and every reader guesses alone. The rule counts only common nouns toward its threshold of three, so “New York City subway” passes as a name with one noun while “kernel connection state model” flags as a construction. The weight escalates per extra noun.\nA nominalization buries a verb inside a noun and then needs a light verb to carry the sentence: “make a decision” for “decide”, “perform an assessment” for “assess”. The pattern is a light verb with a derived-noun object, and the suggestion is the buried verb where the mapping is mechanical.\n\n\nsource\n\nfind_nominalization\ndef find_nominalization(\n    sent\n):\nLight verbs carrying a nominalized object\n\n\n\n\nsource\n\nfind_noun_cluster\ndef find_noun_cluster(\n    sent\n):\nRuns of three or more nouns, escalating per extra noun\n\n\n\ns2 = list(get_nlp()('The kernel connection state model update takes a decision about restarts.').sents)[0]\ntest_eq(find_noun_cluster(list(get_nlp()('The New York City subway runs all night.').sents)[0]), [])\nfind_noun_cluster(s2) + find_nominalization(s2)\n\n[[2] noun_cluster: 'kernel connection state model update',\n [3] nominalization: 'takes a decision' -&gt; 'decide']",
+    "crumbs": [
+      "syntax"
+    ]
+  },
+  {
+    "objectID": "syntax.html#agent-defocusing",
+    "href": "syntax.html#agent-defocusing",
+    "title": "syntax",
+    "section": "Agent defocusing",
+    "text": "Agent defocusing\nTells 22 and 23 are two faces of one grammatical device, which Joseph Williams’s Style: Toward Clarity and Grace treats as the central sin of institutional prose: pushing the true actor out of the subject seat. In artifact-as-agent (tell 22), an authored thing takes credit for its author’s deed: “this PR introduces”. In recipient-as-subject (tell 23), the beneficiary takes the seat and the doer hides in a “via” phrase: “the kernel gains fresh ports via the new process”. The passive is the third face, and its rule is above. Williams’s positive principle names the fix: make the doer the subject and the deed the verb.\nBoth rules trade recall for precision. Artifact-as-agent fires only when the subject is an authorship artifact and the verb is a crediting verb, because “the parser rejects malformed input” is a tool doing exactly what it does and must pass. Recipient-as-subject fires on “gain” and “receive” outright, and on “get” only when a “via” or “through” phrase marks the demoted doer.\n\n\nsource\n\nfind_recipient_subject\ndef find_recipient_subject(\n    sent\n):\nBeneficiaries promoted to subject with gain/receive, or get with a via phrase\n\n\n\n\nsource\n\nfind_artifact_agent\ndef find_artifact_agent(\n    sent\n):\nAuthored artifacts credited with their author’s deed\n\n\n\ns3 = list(get_nlp()('This PR introduces retry logic, and the kernel gains fresh ports via the new process.').sents)[0]\ntest_eq(find_artifact_agent(list(get_nlp()('The parser rejects malformed input.').sents)[0]), [])\nfind_artifact_agent(s3) + find_recipient_subject(s3)\n\n[[3] recipient_subject (tell 23, recipient-as-subject): 'gains']",
+    "crumbs": [
+      "syntax"
+    ]
+  },
+  {
+    "objectID": "syntax.html#sentence-anchored-patterns",
+    "href": "syntax.html#sentence-anchored-patterns",
+    "title": "syntax",
+    "section": "Sentence-anchored patterns",
+    "text": "Sentence-anchored patterns\nSeven tells are fixed phrases that live at known positions in a sentence, and sentence boundaries are what the parse contributes: “This section describes” is throat-clearing at a sentence start and ordinary prose in the middle of one (“the part this section describes”). Each rule is a handful of curated phrases with near-zero false-positive rates, and each list is deliberately short: a phrase joins when it is slop wherever it appears in reference prose, and not before. Rhetorical questions (tell 18) need no phrase list at all, since reference prose never asks the reader anything: a sentence ending in a question mark is the finding. Not-X-but-Y (tell 16) is the one kill-on-sight pattern, and its list sticks to the unambiguous “not just/merely/only” skeletons rather than every “not X, but Y”, because “not thread-safe, but lockable” is a contract stating both halves.\n\n\nsource\n\nfind_rhetorical\ndef find_rhetorical(\n    sent\n):\nSentences that ask the reader a question\n\n\n\n\nsource\n\nsent_rule\ndef sent_rule(\n    name, # Rule name, as in `core.rule`\n    tell, # `write_docs` tell number\n    weight, # Tier the findings carry\n    pats, # Phrase list; each becomes a case-insensitive regex alternative\n    anchored:bool=False, # Match only at the sentence start?\n):\nBuild and register a sentence rule that scans pats in the sentence text\n\n\n\nchecks = [\"This section describes how the gateway manages the kernel lifecycle.\",\n    \"So what does restart actually do?\", \"It isn't just a poller - it's the liveness authority.\",\n    \"The distinction is worth being precise about.\", \"The core mechanism: watch.\"]\nfound = L(f for s in checks for sent in get_nlp()(s).sents\n    for f in find_throat(sent)+find_rhetorical(sent)+find_notxbuty(sent)+find_appraisal(sent)+find_announce(sent))\ntest_eq(find_notxbuty(list(get_nlp()('The list is not just names, and callers must not assume order.').sents)[0]), [])\nfound\n\n[[3] throat_clearing (tell 13, throat-clearing): 'This section describes', [3] rhetorical (tell 18, rhetorical questions): 'So what does restart actually do?', [10] notxbuty (tell 16, not-X-but-Y): \"isn't just a\", [3] appraisal (tell 21, appraisal preamble): 'worth being precise', [3] announce (tell 15, announce-then-deliver): 'The core mechanism: ']",
+    "crumbs": [
+      "syntax"
+    ]
+  },
+  {
+    "objectID": "features.html",
+    "href": "features.html",
+    "title": "features",
+    "section": "",
+    "text": "The rules keep only what crosses a bar, and a learned scorer wants the bar removed. This module measures prose as continuous numbers: every rule’s findings as a rate, the sentence and paragraph distributions the thresholds truncate, the parts-of-speech profile, specifics density, referential load, and burstiness. Three of these measures failed earlier as threshold rules, and the para and score notebooks record why. As features they need no threshold, because a learned combiner such as a random forest weighs them against labeled examples. The score stays rule-based and explainable. The feature vector exists for calibration experiments, and anything the experiments validate can graduate into a rule.\nfrom fastcore.test import *\nfrom nbdev.config import get_config",
+    "crumbs": [
+      "features"
+    ]
+  },
+  {
+    "objectID": "features.html#burstiness",
+    "href": "features.html#burstiness",
+    "title": "features",
+    "section": "Burstiness",
+    "text": "Burstiness\nSentence-length variation has a direct measure from the temporal-patterns literature: the Goh-Barabási burstiness parameter, B = (σ − μ)/(σ + μ) over the lengths. Uniform text sits near −1, random variation near 0, heavy mixing above. Low burstiness is the classic signature of machine text, and it is also correct reference prose, which is why this is a feature and not a rule: the register decides its polarity, and the calibration passage is the most uniform document we measure. flattest_window localizes the number for reports, returning the run of sentences where lengths vary least, which paired with a specifics count separates dense contract prose from chopped emptiness.\n\n\nsource\n\nflattest_window\ndef flattest_window(\n    xs, # Sentence lengths, in document order\n    k:int=5, # Window size in sentences\n):\n(start, spread) of the length-k run with the lowest variation, for localizing monotone stretches\n\n\n\n\nsource\n\nburstiness\ndef burstiness(\n    xs\n):\nGoh-Barabasi B over xs: -1 uniform, 0 random, positive bursty\n\n\n\nuniform = [10, 10, 11, 10, 10, 11, 10]\nmixed = [3, 24, 8, 31, 5, 19, 12]\ntest_eq(burstiness(uniform) &lt; -0.7, True)\ntest_eq(burstiness(mixed) &gt; burstiness(uniform), True)\nflattest_window([20, 21, 20, 3, 30, 7, 28, 4], k=3), round(burstiness(mixed), 2)\n\n((0, 0.58), -0.17)",
+    "crumbs": [
+      "features"
+    ]
+  },
+  {
+    "objectID": "features.html#the-feature-vector",
+    "href": "features.html#the-feature-vector",
+    "title": "features",
+    "section": "The feature vector",
+    "text": "The feature vector\nfeatures reduces a document to one flat dict. The first group restates the rules as rates: each rule’s weighted findings per 100 words, plus their total, which equals the report’s density. The rest measure what no threshold sees. Distribution features carry the sentence and paragraph shapes. The POS profile carries adverb and adjective load, noun-to-verb balance, and copula share. Specifics density counts numerals, code spans, and proper nouns per 100 words, which is tell 26’s “depth is specifics” made continuous, and the theory2 detector the rules lack. Referential load returns from the score notebook’s prototype: pronoun-subject share and cold-definite share, failed rules and welcome features. Connective rates close the set. Names stay short because they become dataframe columns.\n\n\nsource\n\nfeatures\ndef features(\n    txt\n):\nContinuous measurements of markdown txt, one flat dict\n\n\n\nsd = get_config().config_path/'samples'\ntexts = {f't{i}': (sd/f'theory{i}.md').read_text() for i in (1, 2, 3, 4)}\nfx = {k: features(t) for k, t in texts.items()}\ncols = ['density', 'slen_mean', 'slen_burst', 'start_div', 'psents_max', 'specifics', 'pron_subj', 'cold', 'cop']\ntest_eq(fx['t2']['specifics'] &lt; fx['t4']['specifics'], True)\n{k: {c: v[c] for c in cols if c in v} for k, v in fx.items()}\n\n{'t1': {'density': 59.6,\n  'slen_mean': 21.9,\n  'slen_burst': -0.047,\n  'start_div': 0.7,\n  'psents_max': 5,\n  'specifics': 3.4,\n  'pron_subj': 0.09,\n  'cold': 0.56,\n  'cop': 0.35},\n 't2': {'density': 5.4,\n  'slen_mean': 10.9,\n  'slen_burst': -0.336,\n  'start_div': 0.48,\n  'psents_max': 6,\n  'specifics': 2.8,\n  'pron_subj': 0.06,\n  'cold': 0.46,\n  'cop': 0.21},\n 't3': {'density': 14.0,\n  'slen_mean': 14.8,\n  'slen_burst': -0.23,\n  'start_div': 0.54,\n  'psents_max': 7,\n  'specifics': 2.5,\n  'pron_subj': 0.03,\n  'cold': 0.28,\n  'cop': 0.09},\n 't4': {'density': 1.5,\n  'slen_mean': 12.4,\n  'slen_burst': -0.26,\n  'start_div': 0.61,\n  'psents_max': 8,\n  'specifics': 9.3,\n  'pron_subj': 0.03,\n  'cold': 0.3,\n  'cop': 0.03}}\n\n\nThe columns tell four stories. Specifics density separates the pair nothing else could: theory2 and theory4 both score low on rules, and theory4 carries more than triple the specifics (9.3 against 2.8), which is the concrete-versus-empty distinction measured at last. Burstiness confirms its prediction: theory2 is the most uniform draft at −0.34, with the lowest opener diversity. The copula rate is the surprise: it falls monotonically through the whole ladder, 0.35 to 0.21 to 0.09 to 0.03, making “is”-heavy definitional prose the cleanest single tracker of the slop-to-reference progression we have measured. And pronoun-subject share halves from slop to reference. None of these carries a weight yet. They wait for labels, and the forest experiment decides which of them earn one.",
+    "crumbs": [
+      "features"
+    ]
+  },
+  {
+    "objectID": "cli.html",
+    "href": "cli.html",
+    "title": "cli",
+    "section": "",
+    "text": "slopometer &lt;file&gt; prints the worst-first report, slopometer alone reads stdin, and --threshold turns the density into an exit code for CI and hooks. Loading the model takes about a second and scoring takes milliseconds, so the command runs through warmpy: the first call starts a background process that loads the model, later calls reuse it, and it exits after thirty idle minutes. The Claude Code stop hook runs this same command with the response text on stdin.\nwarmpy’s contract puts one obligation on this module: it must import fast, because the client process pays this import on every command. So the heavy import happens inside the function body, which only ever runs in the warm background process or in the cold fallback. warm_parse mirrors call_parse: the docments become the --help, and a direct Python call with arguments runs the body in this process, which is what the demo below does.\n\nfrom fastcore.test import *\nfrom nbdev.config import get_config\n\n\n\nsource\n\nmain\ndef main(\n    path:str=None, # File to score; stdin when omitted\n    threshold:float=None, # Exit code 1 when density exceeds this\n    json:bool=False, # Emit the result as JSON instead of the report\n):\nScore markdown against the aai reference-prose rules\n\n\n\nt2 = get_config().config_path/'samples'/'theory2.md'\ntest_eq(main(path=str(t2), threshold=5), 1)\n\n/Users/jhoward/aai-ws/slopometer/samples/theory2.md: density 5.4 (weight 19 on 353 prose words), worst 3\n1|bbfa| [3] coinage (tell 12, audience misjudged): 'warmpy'\n3|1d09| [3] triad (tell 20, forced symmetry): 'directory, same environment, same exit code'\n7|066f| [3] passive: 'socket that does not answer is deleted'\n7|066f| [3] passive: 'server with the wrong version is replaced'\n9|f956| [3] passive: 'life is inferred'\n15|3502| [3] rhetorical (tell 18, rhetorical questions): 'The test for every future decision: can the user tell, except by the clock?'\n11|6894| [1] noun_cluster: 'mutates module state'\n\n\nMachine consumers get --json: density, worst, prose word count, and every finding’s fields, without parsing the report text. The stop hook reads this.\n\nimport json\nfrom io import StringIO\nfrom contextlib import redirect_stdout\n\n\nbuf = StringIO()\nwith redirect_stdout(buf): main(path=str(t2), json=True)\nj = json.loads(buf.getvalue())\ntest_eq(set(j) &gt;= {'density', 'worst', 'words', 'findings'}, True)\nj['density'], j['findings'][0]\n\n(5.4,\n {'rule': 'coinage',\n  'tell': 12,\n  'start': 135,\n  'end': 141,\n  'text': 'warmpy',\n  'weight': 3,\n  'suggestion': None})",
+    "crumbs": [
+      "cli"
+    ]
+  },
+  {
+    "objectID": "segment.html",
+    "href": "segment.html",
+    "title": "segment",
+    "section": "",
+    "text": "Rules read prose, but slopometer’s input is markdown: READMEs, docstrings rendered from notebooks, PR text, chat responses. Segmentation turns a markdown document into typed blocks (heading, list item, prose paragraph) that remember where they came from, discards fenced code entirely, and blanks inline code so that lexical rules never fire on identifiers. Every downstream stage depends on the position bookkeeping here: a finding is only useful if it can point back at the exact file offset it came from.\n\nfrom fastcore.test import *\n\nA README-shaped fixture exercises everything segmentation must handle: headings, prose with inline code, a fenced block that must vanish, and a bullet list. It reappears throughout the later notebooks, and by the scoring notebook the meter reads it end to end.\n\nSAMPLE = \"\"\"# widget\n\nA tool for widgets. Call `enhance()` to start.\n\n```python\nenhance(x)  # code is never scored\n```\n\nInstall it:\n\n    pip install widget\n\n## Features\n\nwidget leverages a robust paradigm to deliver results.\nIt parses the config, then it writes the output.\n\n- fast startup\n- fast shutdown\n- fast restarts\n\"\"\"\n\nSegmentation delegates block recognition to mdhtml, whose blocks function reports each top-level block’s type and source line span. The mapping keeps three kinds. A paragraph becomes prose. A heading keeps its raw line. A list splits into one block per item line. Everything else drops: code blocks and fences, pipe tables, raw HTML, thematic breaks, and block quotes, since a quotation is not the author’s prose. One class of junk needs handling before the parse. The mdhtml dialect renders out-of-subset tags such as iframe as literal text, on purpose, for paste safety. A scorer sees junk where the dialect sees text, and a regex therefore blanks every iframe span first, replacing each character with a space and keeping every newline. Offsets survive both steps. Each block records the offset its text starts at, which makes rebasing a finding onto file positions a single addition.\n\n\nsource\n\nsegment\ndef segment(\n    doc\n):\nSplit markdown doc into typed Blocks that keep their character offsets\n\n\n\n\nsource\n\nBlock\ndef Block(\n    kind, # 'heading', 'item', or 'prose'\n    txt, # The block's text, sliced verbatim from the document after iframe blanking\n    start, # Character offset of the block in the document\n):\nInitialize self. See help(type(self)) for accurate signature.\n\n\n\nblocks = segment(SAMPLE)\nblocks\n\n[&lt;heading @0: '# widget'&gt;, &lt;prose @10: 'A tool for widgets. Call `enhance()` to start.'&gt;, &lt;prose @108: 'Install it:'&gt;, &lt;heading @145: '## Features'&gt;, &lt;prose @158: 'widget leverages a robust paradigm to deliver re'&gt;, &lt;item @263: '- fast startup'&gt;, &lt;item @278: '- fast shutdown'&gt;, &lt;item @294: '- fast restarts'&gt;]\n\n\nThe round-trip property is the contract every later stage leans on: a block’s text is the document’s own text at the block’s offset. The fixture’s fenced block is gone, and nothing else is.\n\nfor b in blocks: test_eq(SAMPLE[b.start:b.start+len(b.txt)], b.txt)\nassert 'enhance(x)' not in ' '.join(blocks.attrgot('txt'))\nassert 'pip install' not in ' '.join(blocks.attrgot('txt'))\nlen(blocks)\n\n8\n\n\nInline code is exempt from every lexical rule: a function named enhance is not a style violation, and write_docs itself requires code symbols in backticks. Deleting the span would shift every offset after it, and that breaks the round-trip property. Filling the span with X characters removes the words and keeps the geometry, and the capitalized dummy token also preserves sentence boundaries: a space-blanked symbol at a sentence start would make the parser merge two sentences. Markdown link targets become spaces, since a URL is an address, not prose, and link text keeps the sentence readable on its own. A finding’s offsets stay valid in the scrubbed text and in the original alike.\n\n\nsource\n\nscrub\ndef scrub(\n    txt\n):\nReplace inline code with X-fill and link targets with spaces, keeping every offset unchanged\n\n\n\nscrubbed = scrub(blocks[1].txt)\nscrubbed\n\n'A tool for widgets. Call XXXXXXXXXXX to start.'\n\n\n\ntest_eq(len(scrubbed), len(blocks[1].txt))\ntest_eq(scrub('`cmd` runs fast.'), 'XXXXX runs fast.')\nassert 'enhance' not in scrubbed\nfind_decoration(scrub('Works → fine `→ but code arrows are exempt →`'))\n\n[[10] decoration (tell 24, decoration): '→' -&gt; '-&gt;']\n\n\n\ntricky = 'Intro prose stays.\\n\\n&lt;iframe srcdoc=\"junk px solid\"&gt;\\nmore junk\\n&lt;/iframe&gt;\\n\\n| a | b |\\n|---|---|\\n| 1 | 2 |\\n\\n&gt; a quoted voice, not the author\\n\\nReal prose after.\\n'\ntb = segment(tricky)\nassert not any('junk' in b.txt or '|' in b.txt or 'quoted' in b.txt for b in tb)\ntb\n\n[&lt;prose @0: 'Intro prose stays.'&gt;, &lt;prose @138: 'Real prose after.'&gt;]\n\n\nTwo counters cover the whole document, and they are the only document-scale analysis in the meter: everything else stops at the paragraph. The over-structuring rule (tell 25) reads them in the scoring notebook.\n\n\nsource\n\nprose_words\ndef prose_words(\n    blocks\n):\nCall self as a function.\n\n\n\n\nsource\n\nn_headings\ndef n_headings(\n    blocks\n):\nCall self as a function.\n\n\n\nn_headings(blocks), prose_words(blocks)\n\n(2, 27)",
+    "crumbs": [
+      "segment"
+    ]
+  },
+  {
+    "objectID": "corpus.html",
+    "href": "corpus.html",
+    "title": "corpus",
+    "section": "",
+    "text": "Training the learned scorer needs labeled text, and no human has labeled any. This module builds the corpus by weak supervision: the rules pick confident slop from my own reply history, human-authored sources supply the clean side, and the ambiguous middle joins neither. The one human-labeled set, replies that drew a complaint in a session, is written separately and reserved for evaluation. Rows carry their source, so any experiment can slice, reweight, or hold out a source later.\nfrom fastcore.test import *",
+    "crumbs": [
+      "corpus"
+    ]
+  },
+  {
+    "objectID": "corpus.html#the-label-side-scorer",
+    "href": "corpus.html#the-label-side-scorer",
+    "title": "corpus",
+    "section": "The label-side scorer",
+    "text": "The label-side scorer\nThe rules select the positives, and the forest’s features must stay independent of that selection. Most features are safe by construction: burstiness, sentence lengths, part-of-speech rates, specifics density, and the referential measures share no vocabulary with any rule. The connective rates do: furthermore sits in both the connective sets and the filler-transitions lexicon. A word in both places would let the label leak into a feature. label_overlap computes the shared words mechanically, and label_density scores with findings on those words dropped. The labels come from label_density; users keep score_text unchanged.\n\n\nsource\n\nlabel_density\ndef label_density(\n    txt\n):\nDensity with findings on label_overlap words dropped: the label-side scorer\n\n\n\n\nsource\n\nlabel_overlap\ndef label_overlap():\nWords shared between the connective feature sets and any rule lexicon\n\n\n\nov = label_overlap()\ns = 'Furthermore, the cache is seamless in some cases.'\nassert 'furthermore' in ov\ntest_eq(label_density(s), score_text(s).density - 300/len(s.split()))\nlabel_density(s), score_text(s).density",
+    "crumbs": [
+      "corpus"
+    ]
+  },
+  {
+    "objectID": "corpus.html#replies-from-the-session-mirror",
+    "href": "corpus.html#replies-from-the-session-mirror",
+    "title": "corpus",
+    "section": "Replies from the session mirror",
+    "text": "Replies from the session mirror\nllmsurgery keeps an ipynb mirror of every session on the machine. Each prompt message carries its reply, and a reply mixes mid-turn notes, tool blocks, and the final message. The user only reacts to the final message, and the labels must attach to what the user read. reply_final therefore keeps the text after the last tool block and drops the rest. mirror_replies walks recent mirrors and yields one row per qualifying final.\n\n\nsource\n\nmirror_replies\ndef mirror_replies(\n    days:int=21, # How far back to walk the mirror\n    min_words:int=50, # Word floor per final\n    path_re:str='-aai-ws', # Mirror filename filter: this machine's workspace projects\n):\nOne (text, source, ref) row per qualifying reply final in recent mirrored sessions\n\n\n\n\nsource\n\nreply_final\ndef reply_final(\n    out\n):\nThe text after the last tool block: the final message the user read\n\n\n\nr = 'Plan first.\\n\\n```json {.tool}\\n{\"name\": \"execute\"}\\n```\\n\\nA mid-turn note.\\n\\n```json {.tool}\\n{\"name\": \"execute\"}\\n```\\n\\nThe final message the user actually read.'\ntest_eq(reply_final(r), 'The final message the user actually read.')\nreply_final(r)\n\nRun on this machine, mirror_replies() returns about 5,400 rows from the last three weeks of workspace sessions. The cell stays unevaluated on the docs build: the mirror is private and machine-local.\n\nreps = mirror_replies()\nlen(reps)",
+    "crumbs": [
+      "corpus"
+    ]
+  },
+  {
+    "objectID": "corpus.html#paragraphs-from-documents",
+    "href": "corpus.html#paragraphs-from-documents",
+    "title": "corpus",
+    "section": "Paragraphs from documents",
+    "text": "Paragraphs from documents\nEvery document source reduces the same way: segment the markdown, keep prose paragraphs over the word floor. doc_paras is that reduction, and each later fetcher wraps it around one source. The ref carries the paragraph’s offset, leading back to its place in the document. readme_paras reads the AnswerDotAI org through the GitHub GraphQL API, batching the README fetches into a few requests. It keeps a repo only when it predates June 2025 (the org’s READMEs are trusted human prose before that date, and AI-assisted afterwards) and is also checked out in the local workspace, which restricts the org’s hundreds of repos to a few dozen libraries.\n\n\nsource\n\nreadme_paras\nasync def readme_paras(\n    org:str='AnswerDotAI', # GitHub org to list\n    before:str='2025-06-01', # Keep repos created before this date\n    root:str='~/aai-ws', # Keep repos also checked out here\n    exclude:tuple=('internal-web', 'answerdotai'), # Repos to drop by name\n    min_words:int=50, # Word floor per paragraph\n):\nRows from the READMEs of org repos created before before and checked out under root\n\n\n\n\nsource\n\ndoc_paras\ndef doc_paras(\n    txt, source, ref, min_words:int=50\n):\nOne row per prose paragraph of min_words+ words in markdown txt\n\n\n\nps = doc_paras('Intro prose.\\n\\nA longer paragraph follows. ' + 'It states one fact and stops. '*20 + '\\n', 'demo', 'demo.md')\nassert all(len(r['text'].split()) &gt;= 50 for r in ps)\nlen(ps), ps[0]['ref']\n\n\nrps = await readme_paras()\nlen(rps)",
+    "crumbs": [
+      "corpus"
+    ]
+  },
+  {
+    "objectID": "corpus.html#the-users-own-requests",
+    "href": "corpus.html#the-users-own-requests",
+    "title": "corpus",
+    "section": "The user’s own requests",
+    "text": "The user’s own requests\nLong typed prompts are in-medium negatives: chat text, same topics, human-authored. Two filters guard the label. Prompts carrying harness markers (hook feedback, command output) were not typed and are skipped. Prompts pasted from AI output are indistinguishable by marker, and the low-density cut in build_corpus is what excludes them.\n\n\nsource\n\nuser_requests\ndef user_requests(\n    days:int=90, # How far back to walk the mirror\n    min_words:int=50, # Word floor per prompt\n    path_re:str='-aai-ws', # Mirror filename filter\n):\nOne row per long typed user prompt in recent mirrored sessions\n\n\n\nur = user_requests()\nlen(ur)",
+    "crumbs": [
+      "corpus"
+    ]
+  },
+  {
+    "objectID": "corpus.html#readmes-from-other-people-before-chatgpt",
+    "href": "corpus.html#readmes-from-other-people-before-chatgpt",
+    "title": "corpus",
+    "section": "READMEs from other people, before ChatGPT",
+    "text": "READMEs from other people, before ChatGPT\nStyle diversity on the negative side needs authors other than one person. GH_REPOS is a judgment call, not a search result: from the 250 most-starred pre-2021 repos, the maintained software projects whose documentation is real English prose, dropping link catalogs, study guides, interview collections, and non-English content. For each, the fetcher takes the README as it stood at the cutoff date. Text written before November 2022 cannot have been written by a chat model, and mid-2022 leaves comfortable margin. The density cut still applies to every admitted paragraph. Repos whose org rejects ordinary personal tokens (a 403) are left off the list.\n\n\nsource\n\ngh_readme_paras\nasync def gh_readme_paras(\n    repos:list=['3b1b/manim', 'BurntSushi/ripgrep', 'FFmpeg/FFmpeg', 'FiloSottile/mkcert', 'Genymobile/scrcpy', 'NationalSecurityAgency/ghidra', 'Textualize/rich', 'alacritty/alacritty', 'angular/angular', 'ansible/ansible', 'apache/superset', 'axios/axios', 'bitcoin/bitcoin', 'caddyserver/caddy', 'chartjs/Chart.js', 'coder/code-server', 'd3/d3', 'denoland/deno', 'django/django', 'elastic/elasticsearch', 'electron/electron', 'excalidraw/excalidraw', 'expressjs/express', 'facebook/docusaurus', 'fastapi/fastapi', 'flutter/flutter', 'gin-gonic/gin', 'git/git', 'godotengine/godot', 'gohugoio/hugo', 'golang/go', 'grafana/grafana', 'hakimel/reveal.js', 'home-assistant/core', 'huggingface/transformers', 'jellyfin/jellyfin', 'jesseduffield/lazygit', 'jquery/jquery', 'junegunn/fzf', 'keras-team/keras', 'kubernetes/kubernetes', 'laravel/laravel', 'laurent22/joplin', 'localstack/localstack', 'lodash/lodash', 'meilisearch/meilisearch', 'mermaid-js/mermaid', 'minio/minio', 'moby/moby', 'mrdoob/three.js', 'mui/material-ui', 'neovim/neovim', 'nestjs/nest', 'netdata/netdata', 'nodejs/node', 'nuxt/nuxt', 'nvm-sh/nvm', 'obsproject/obs-studio', 'ocornut/imgui', 'ohmyzsh/ohmyzsh', 'opencv/opencv', 'pallets/flask', 'pi-hole/pi-hole', 'prometheus/prometheus', 'protocolbuffers/protobuf', 'puppeteer/puppeteer', 'python/cpython', 'pytorch/pytorch', 'rails/rails', 'rclone/rclone', 'react/react', 'redis/redis', 'reduxjs/redux', 'rust-lang/rust', 'scikit-learn/scikit-learn', 'scrapy/scrapy', 'sharkdp/bat', 'socketio/socket.io', 'spring-projects/spring-boot', 'starship/starship', 'storybookjs/storybook', 'strapi/strapi', 'supabase/supabase', 'sveltejs/svelte', 'swiftlang/swift', 'syncthing/syncthing', 'tailwindlabs/tailwindcss', 'tauri-apps/tauri', 'tensorflow/tensorflow', 'tesseract-ocr/tesseract', 'tldr-pages/tldr', 'traefik/traefik', 'twbs/bootstrap', 'typst/typst', 'vercel/next.js', 'vitejs/vite', 'vuejs/vue', 'webpack/webpack', 'yt-dlp/yt-dlp', 'ytdl-org/youtube-dl'],\n    date:str='2022-06-01', min_words:int=50\n):\nRows from the curated repos’ READMEs, as each stood at date\n\n\n\n\nsource\n\ngh_readme_asof\nasync def gh_readme_asof(\n    api, owner, repo, date:str='2022-06-01'\n):\nThe text of owner/repo’s README as of date, or None when none exists",
+    "crumbs": [
+      "corpus"
+    ]
+  },
+  {
+    "objectID": "corpus.html#wikipedia-twice",
+    "href": "corpus.html#wikipedia-twice",
+    "title": "corpus",
+    "section": "Wikipedia, twice",
+    "text": "Wikipedia, twice\nOrdinary Wikipedia supplies competent encyclopedic prose. Simple English Wikipedia supplies the plainest register in any large corpus: short sentences, common words, written under rules close to the ones the meter enforces. Both fetchers take random article intros through the MediaWiki API. wiki_pair fetches the same title from both wikis, giving matched-content pairs that differ only in register.\n\n\nsource\n\nwiki_pair\ndef wiki_pair(\n    title\n):\nThe intro of title from English and Simple English Wikipedia\n\n\n\n\nsource\n\nwiki_paras\ndef wiki_paras(\n    n:int=40, lang:str='en', min_words:int=50\n):\nRows from n random article intros in lang (‘simple’ for Simple English)\n\n\n\nwiki_pair('Photosynthesis')['simple'][:150]",
+    "crumbs": [
+      "corpus"
+    ]
+  },
+  {
+    "objectID": "corpus.html#the-evaluation-labels",
+    "href": "corpus.html#the-evaluation-labels",
+    "title": "corpus",
+    "section": "The evaluation labels",
+    "text": "The evaluation labels\nThe only meter-independent truth is the user’s recorded dissatisfaction: a ; prompt, or a complaint about clarity. complaint_labels finds those prompts and pairs each with the reply final it reacted to, which is the previous reply in the same session. Training never reads these rows. They exist to answer one question: does a scorer rank them above background? The phrase match over-fires, and every hit was read by hand: CL_SKIP holds the ids judged false, complaints about code or tests, requests for new work, and rows from testing the hook itself. New hits join the set only after the same reading.\n\n\nsource\n\ncomplaint_labels\ndef complaint_labels(\n    days:int=90, # How far back to walk the mirror\n    path_re:str='-aai-ws', # Mirror filename filter\n):\nOne row per reply final that drew a ; or a clarity complaint",
+    "crumbs": [
+      "corpus"
+    ]
+  },
+  {
+    "objectID": "corpus.html#assembly",
+    "href": "corpus.html#assembly",
+    "title": "corpus",
+    "section": "Assembly",
+    "text": "Assembly\nbuild_corpus fetches every source, scores each row with label_density, applies the cuts, and writes two files under XDG state: corpus.jsonl for training and eval.jsonl for the complaint labels, which training must never read. The middle band joins neither side. Measured on this machine, reply densities run 31/64/124 at the 10th/50th/90th percentile, and the human sources run far lower but not at zero: your own long requests reach a median of 37, because genuine questions and dash habits fire rules there too. The default cuts come from those distributions and from reading rows at the boundaries: 50 admits seven in ten replies as confident slop, and 30 admits about half of the human paragraphs. Rows carry source, ref, and density, so an experiment can re-cut without refetching.\n\n\nsource\n\nbuild_corpus\nasync def build_corpus(\n    pos_cut:int=50, # Label density at or above which a reply counts as slop\n    neg_cut:int=30, # Label density at or below which a human paragraph counts as clean\n    wiki_n:int=150, # Random articles per wiki\n    out:NoneType=None, # Output directory; default under XDG state\n):\nFetch every source, apply the density cuts, and write corpus.jsonl and eval.jsonl\n\n\n\ncounts = await build_corpus()\ncounts\n\nRun on this machine, the build wrote 4,540 training rows: 3,417 slop from replies, and 1,123 clean split 764 requests, 184 curated-repo README paragraphs, 63 English and 62 Simple English Wikipedia paragraphs, and 50 workspace README paragraphs. The imbalance is roughly three to one. Re-cutting needs no refetch, because every row carries its density. eval.jsonl holds the complaint rows.",
+    "crumbs": [
+      "corpus"
+    ]
+  },
+  {
+    "objectID": "lexicon.html",
+    "href": "lexicon.html",
+    "title": "lexicon",
+    "section": "",
+    "text": "The phrase-level rules: banned vocabulary with plain replacements, hedge phrases, noting fillers, filler transitions, splice punctuation, consequence glue, and markdown emphasis. Each is a regex over a block’s scrubbed text, needs no linguistic analysis, and runs in microseconds.",
+    "crumbs": [
+      "lexicon"
+    ]
+  },
+  {
+    "objectID": "lexicon.html#prose-linters-and-why-this-one-exists",
+    "href": "lexicon.html#prose-linters-and-why-this-one-exists",
+    "title": "lexicon",
+    "section": "Prose linters, and why this one exists",
+    "text": "Prose linters, and why this one exists\nLinting prose with word lists is an established practice. Vale is the mainstream tool: a fast command-line linter that runs YAML-defined style packages, used by the documentation teams at GitLab, Microsoft, and others. write-good checks for passive voice, weasel words, and clichés in English prose. proselint collects usage advice from writers like Strunk, White, and Garner into checks, and its authors describe the approach in their paper “proselint: the linting of science prose, and the science of prose linting”. The GOV.UK style guide maintains the words-to-avoid list that GDS editors apply to a whole government’s content, published under the Open Government Licence v3.\nslopometer does not wrap any of them. It needs weighted findings bound to write_docs tell numbers, character spans that survive into file edits, and one deterministic score, and none of those tools produces that shape. Their curated vocabulary is still valuable: the banned list below merges the write_docs lists with entries adapted from the GOV.UK words-to-avoid list (OGL v3, attributed here). Vale’s engine stays unused, and so do its packages, because every entry we adopt has to pass the same precision bar as our own.\n\nfrom fastcore.test import *",
+    "crumbs": [
+      "lexicon"
+    ]
+  },
+  {
+    "objectID": "lexicon.html#the-lexicon-factory",
+    "href": "lexicon.html#the-lexicon-factory",
+    "title": "lexicon",
+    "section": "The lexicon factory",
+    "text": "The lexicon factory\nFour rules share one mechanism: scan for words or phrases from a vocabulary, and attach the plain replacement as the suggestion where one exists. lex_rule builds and registers such a rule. With suffix=True a key also matches its inflections, which lets one entry catch “streamline”, “streamlines”, and “streamlining”. The fixture sentence from the segmentation notebook shows it at work:\n\n\nsource\n\nlex_rule\ndef lex_rule(\n    name, # Rule name, as in `core.rule`\n    tell, # `write_docs` tell number\n    weight, # Tier the findings carry\n    lex, # Vocabulary: word or phrase -&gt; plain replacement, or None where deletion is the fix\n    suffix:bool=False, # Also match inflected forms of each key?\n):\nBuild and register a phrase rule that scans for lex entries case-insensitively",
+    "crumbs": [
+      "lexicon"
+    ]
+  },
+  {
+    "objectID": "lexicon.html#banned-vocabulary",
+    "href": "lexicon.html#banned-vocabulary",
+    "title": "lexicon",
+    "section": "Banned vocabulary",
+    "text": "Banned vocabulary\nThe entries merge three sources. The write_docs kill-on-sight list and its replacement table come first. Entries adapted from the GOV.UK words-to-avoid list (contains public sector information licensed under the Open Government Licence v3.0) come second: “liaise”, “overarching”, “countless”, “incentivize”. Marketing cliches round it out. Every entry passed one filter: in technical reference prose the word is wrong in effectively every occurrence, whatever its part of speech. Words that are wrong only in one sense or one part of speech (“optimize” when nothing is optimized, “leverage” as a verb, “navigate” outside a UI) wait for the syntax notebook, where the parse can tell the senses apart. “leverage” appears here anyway: its noun sense is finance vocabulary that reference prose about software has no use for.\n\nfind_banned(scrub('widget leverages a robust paradigm to deliver results.'))\n\n[[10] banned: 'leverages' -&gt; 'use',\n [10] banned: 'robust' -&gt; 'strong',\n [10] banned: 'paradigm',\n [10] banned: 'deliver results']",
+    "crumbs": [
+      "lexicon"
+    ]
+  },
+  {
+    "objectID": "lexicon.html#hedges-noting-fillers-and-filler-transitions",
+    "href": "lexicon.html#hedges-noting-fillers-and-filler-transitions",
+    "title": "lexicon",
+    "section": "Hedges, noting fillers, and filler transitions",
+    "text": "Hedges, noting fillers, and filler transitions\nThree more vocabularies use the same factory. Hedging (tell 7) is restricted to phrases that are hedges in every context. The bare modals “may” and “might” stay out: “callers may pass None” grants permission, and telling permission from hedging needs the contract, which no word list holds. Noting fillers (tell 8) and filler transitions (tell 19) carry no such ambiguity, and their entries come straight from the write_docs tell text.\n\ntest_eq(find_hedges(scrub('The result may be `None` when the key is missing.')), [])\nfind_hedges('This could potentially improve performance in some cases.') + \\\n    find_noting(\"It's worth noting that the cache is per-process.\") + \\\n    find_transitions('Furthermore, the config is optional.')\n\n[[3] hedges (tell 7, hedging): 'potentially',\n [3] hedges (tell 7, hedging): 'in some cases',\n [3] noting (tell 8, noting fillers): \"It's worth noting\",\n [3] transitions (tell 19, filler transitions): 'Furthermore' -&gt; 'and']",
+    "crumbs": [
+      "lexicon"
+    ]
+  },
+  {
+    "objectID": "lexicon.html#splice-punctuation-and-consequence-glue",
+    "href": "lexicon.html#splice-punctuation-and-consequence-glue",
+    "title": "lexicon",
+    "section": "Splice punctuation and consequence glue",
+    "text": "Splice punctuation and consequence glue\nTell 1 bans clauses joined instead of separated. Two joins are detectable from characters alone, and each is wrong in reference prose every time: the em dash and its two-hyphen imitation. A spaced single hyphen between word characters is the same habit typed lazily, and it cannot be a markdown bullet here because segmentation gives bullets their own blocks. The colon stays out of this rule: a colon can introduce a list or an example legitimately, and telling that from a clause splice takes the parse, not the characters. Consequence glue (tell 6) is the “, so” join, and write_docs treats every occurrence as wrong. Semicolons are not here: whether a semicolon splices depends on what stands on each side, which takes a parse, and the syntax notebook owns that rule.\n\n\nsource\n\nfind_conseq\ndef find_conseq(\n    txt\n):\nThe ‘, so’ consequence join\n\n\n\n\nsource\n\nfind_splice\ndef find_splice(\n    txt\n):\nEm dashes, two-hyphen dashes, and spaced-hyphen joins\n\n\n\ntest_eq(find_splice('Ranges like 3-5 and compound-words pass.'), [])\ntest_eq(find_splice('Decided, dropped, or open; merged or blocked; unowned.'), [])\nfind_splice(\"It isn't just a poller - it's the liveness authority — or so it claims.\") + \\\n    find_conseq('The cache is warm, so calls are fast.')\n\n[[10] splice (tell 1, splices): ' - ',\n [10] splice (tell 1, splices): '—',\n [10] splice (tell 1, splices): '; ',\n [3] conseq (tell 6, consequence glue): ', so']",
+    "crumbs": [
+      "lexicon"
+    ]
+  },
+  {
+    "objectID": "lexicon.html#markdown-emphasis",
+    "href": "lexicon.html#markdown-emphasis",
+    "title": "lexicon",
+    "section": "Markdown emphasis",
+    "text": "Markdown emphasis\nPosition is the only emphasis mechanism in reference prose (tell 3). Bold and italic markers in running text are the markdown face of the intensifier habit, and this rule catches them where the syntax notebook’s intensifier rule catches the adverbs.\n\n\nsource\n\nfind_emphasis\ndef find_emphasis(\n    txt\n):\nBold and italic markers in running prose\n\n\n\ntest_eq(find_emphasis('Multiplication a*b and glob patterns *.py pass.'), [])\nfind_emphasis(\"This **isn't going to cut it** and it's about *endurance*.\")\n\n[[3] emphasis (tell 3, emphasis devices): \"**isn't going to cut it**\",\n [3] emphasis (tell 3, emphasis devices): '*endurance*']",
+    "crumbs": [
+      "lexicon"
+    ]
+  },
+  {
+    "objectID": "lexicon.html#mined-vocabularies",
+    "href": "lexicon.html#mined-vocabularies",
+    "title": "lexicon",
+    "section": "Mined vocabularies",
+    "text": "Mined vocabularies\nThe prose-linting ecosystem holds decades of curated word lists, and the sources named at the top of this notebook supply candidates: write-good’s weasel words, its too-wordy phrase list, its no-cliches list (all MIT), and the full GOV.UK words-to-avoid entry (OGL v3). Candidates do not enter the lexicons on provenance. Each one must fire on the meter’s actual subjects, which are LLM-written responses, and must stay silent on the clean fixtures. The evidence run below counts each candidate across 5,493 recent assistant replies mined from local session transcripts, against theory4 and two clean READMEs as the false-positive check.\nThe verdicts teach the filter’s value. Weasel words fire constantly on LLM output and never on the clean set, and 22 of 34 join the hedge lexicon. Eight wordy phrases fire and join with their mechanical replacements. The 723 cliches produce two adoptions, because LLMs do not write “a far cry” or “a tough row to hoe”, and a list built for human writers mostly misses the target. Four GOV.UK entries fire and join the banned list; the rest describe failures LLM prose does not commit.\n\n# The evidence run: fetch the source lists, count candidate hits on the reply corpus and the clean fixtures.\n# Network and private transcripts keep this cell out of CI; rerun it when revisiting adoptions.\nimport httpx, re\nfrom ghapi.skill import GhApi\ndef _extract(js): return [w for w in re.findall(r\"'([^']+)'\", js) if not w.startswith('./')]\nlists = {name: _extract(httpx.get(f'https://raw.githubusercontent.com/{o}/{r}/HEAD/{p}').text)\n    for name, o, r, p in [('weasel', 'btford', 'weasel-words', 'weasel.js'),\n        ('wordy', 'duereg', 'too-wordy', 'wordPhrases.js'), ('cliche', 'duereg', 'no-cliches', 'cliches.js')]}\ndef hits(phrase, txt): return len(re.findall(r'\\b' + re.escape(phrase.lower()) + r'\\b', txt))\n# corpus_txt: turn-final reply texts from the llmsurgery mirror; clean_txt: theory4 + clean READMEs\nsorted(((w, hits(w, corpus_txt), hits(w, clean_txt)) for w in lists['weasel']), key=lambda r: -r[1])[:12]\n\n\ntest_eq(find_hedges(scrub('`slopometer` scores each reply in about 30ms.')), [])\nfind_hedges('This is very fast and usually works.') + find_wordy('In order to run all of the tests, allow additional time.')\n\n[[3] hedges (tell 7, hedging): 'very',\n [3] hedges (tell 7, hedging): 'usually',\n [3] wordy: 'In order to' -&gt; 'to',\n [3] wordy: 'all of' -&gt; 'all',\n [3] wordy: 'additional' -&gt; 'more']",
+    "crumbs": [
+      "lexicon"
+    ]
+  },
+  {
+    "objectID": "score.html",
+    "href": "score.html",
+    "title": "score",
+    "section": "",
+    "text": "The meter assembled: one pass that segments a document, runs every registered rule at its level, rebases every finding onto document offsets, and reduces the findings to two numbers. Density is weighted findings per 100 prose words, and the max is the single worst finding. A clean document scores near zero on both. One kill-on-sight finding pushes the max to 10 alone, which is the tiers doing their job.\nfrom fastcore.test import *\nfrom nbdev.config import get_config",
+    "crumbs": [
+      "score"
+    ]
+  },
+  {
+    "objectID": "score.html#over-structuring",
+    "href": "score.html#over-structuring",
+    "title": "score",
+    "section": "Over-structuring",
+    "text": "Over-structuring\nTell 25: headers are navigation, and a document that fits on a screen needs none. The two counters from segmentation make this arithmetic. The rule fires when a document has two or more headings and averages under 40 prose words per heading, which passes a real README with sections and catches the bullet-riddled skeleton whose headers outnumber its sentences.\n\n\nsource\n\nfind_overstructure\ndef find_overstructure(\n    blocks, docs\n):\nMore headings than the prose beneath them justifies",
+    "crumbs": [
+      "score"
+    ]
+  },
+  {
+    "objectID": "score.html#the-runner",
+    "href": "score.html#the-runner",
+    "title": "score",
+    "section": "The runner",
+    "text": "The runner\nDispatch follows each rule’s level. Phrase rules read the scrubbed text of every block, headings and list items included, because a banned word in a heading is still a banned word. Sentence and paragraph rules read parsed prose blocks only. Document rules run once over everything. A finding’s offsets are relative to whatever its rule read, and the runner rebases each one onto document offsets: the block’s start, plus the sentence’s offset within the block for sentence rules. The round-trip property from segmentation is what makes both additions exact.\n\n\nsource\n\nrun_rules\ndef run_rules(\n    txt\n):\nEvery registered rule’s findings for markdown txt, rebased to document offsets",
+    "crumbs": [
+      "score"
+    ]
+  },
+  {
+    "objectID": "score.html#the-result",
+    "href": "score.html#the-result",
+    "title": "score",
+    "section": "The result",
+    "text": "The result\nA result is the findings plus the two numbers, and its display is the report: header line first, then one row per finding, worst first. Rows for a scored file carry lineno|hash| addresses in the exhash format, which drop straight into hash-verified editing tools, so a finding is not just a complaint but an edit-ready location.\n\n\nsource\n\nscore_path\ndef score_path(\n    p\n):\nScore the file at p (expands ~); report rows carry exhash addresses\n\n\n\n\nsource\n\nscore_text\ndef score_text(\n    txt\n):\nScore markdown txt, returning a Result\n\n\n\n\nsource\n\nResult\ndef Result(\n    txt, # The scored document\n    findings, # `Finding`s, worst first\n    words, # Prose word count\n    path:NoneType=None, # Source file, when scoring a file\n):\nInitialize self. See help(type(self)) for accurate signature.\n\n\nScoring many documents at once parallelizes with plain threads, because spaCy’s pipeline spends its time in C operations that release the GIL. Measured on this design: 8 workers score a batch 2.7 times faster than serial, 16 lose ground to contention, and process pools add nothing but memory. score_many records the measured default.\n\n\nsource\n\nscore_many\ndef score_many(\n    txts, n_workers:int=8\n):\nScore texts in parallel threads, returning a Result per text\n\n\n\npair = ['The gateway never kills an unresponsive kernel.', \"It isn't just fast - it's seamless.\"]\ntest_eq([r.density for r in score_many(pair)], [score_text(t).density for t in pair])\n\n\nscore_text('''# widget\n\nA tool for widgets. Call `enhance()` to start.\n\n## Features\n\nwidget leverages a robust paradigm to deliver results.\nIt parses the config, then it writes the output.\n\n- fast startup\n- fast shutdown\n- fast restarts\n''')\n\ndensity 184.0 (weight 46 on 25 prose words), worst 10\n7: [10] banned: 'leverages' -&gt; 'use'\n7: [10] banned: 'robust' -&gt; 'strong'\n7: [10] banned: 'paradigm'\n7: [10] banned: 'deliver results'\n1: [3] overstructure (tell 25, over-structuring): '2 headings on 25 words of prose'\n10: [3] bullet_mold (tell 20, forced symmetry): '- fast startup\\n- fast shutdown\\n- fast restarts'",
+    "crumbs": [
+      "score"
+    ]
+  },
+  {
+    "objectID": "score.html#the-drift-test",
+    "href": "score.html#the-drift-test",
+    "title": "score",
+    "section": "The drift test",
+    "text": "The drift test\nwrite_docs and slopometer can only stay aligned if something fails when they drift. This cell parses the numbered tells out of the live write_docs docstring and asserts that every one maps to a registered rule or to the unscoreable registry. A tell added to write_docs without a slopometer decision fails here. The test needs aai_coding installed, which is true on team machines and false on CI, and it says which case it hit.\n\ntry:\n    import aai_coding.write_docs as _wd\n    doc_tells = {int(n) for n in re.findall(r'^(\\d+)\\.', _wd.__doc__, flags=re.M)}\n    covered = {r.tell for r in rules.values() if r.tell is not None} | set(unscoreable)\n    test_eq(doc_tells - covered, set())\n    print(f'{len(doc_tells)} tells in write_docs, every one mapped to a rule or the registry')\nexcept ImportError: print('aai_coding not installed: drift test skipped, it runs on team machines')\n\naai_coding not installed: drift test skipped, it runs on team machines",
+    "crumbs": [
+      "score"
+    ]
+  },
+  {
+    "objectID": "score.html#calibration",
+    "href": "score.html#calibration",
+    "title": "score",
+    "section": "Calibration",
+    "text": "Calibration\nwrite_docs teaches with a passage pair: the same design-doc section written in register and written as slop, with the slop’s tells marked. The pair is the meter’s calibration set. The after-passage must score near zero, because a meter that flags clean reference prose trains its readers to ignore it. The before-passage must score high, with the kill-tier findings present. The marker numbers are stripped so the meter reads natural text.\n\nAFTER = \"`GatewayKernel` ties the three lower layers together. The ready-wait runs once per kernel, in `start`. `watch` polls the process and the heartbeat. A process that dies unexpectedly broadcasts the synthesized `dead` status. Three missed heartbeats mark the kernel `unresponsive` in its model, with the next echo clearing the mark.\\n\\nThe gateway never kills an unresponsive kernel. A kernel becomes `dead` only when its process exits. `restart` terminates and respawns with fresh ports in a new process. Clients see `restarting`, then `starting` once the new kernel is ready.\"\n\nBEFORE = \"This section describes how `GatewayKernel` manages the kernel lifecycle. `GatewayKernel` ties the three lower layers together, and its `start` is the only place the ready-wait runs: once per kernel, ever. The core mechanism: `watch`. It isn't just a poller - it's the liveness authority. Furthermore, it polls the process and the heartbeat: a process that dies unexpectedly broadcasts the synthesized `dead` status, and three missed beats mark the kernel `unresponsive` in its model. The distinction is worth being precise about. That marking is observational only - only process exit means dead - and it clears itself on the next echo. So what does `restart` actually do? It terminates and respawns; the kernel gains fresh ports, fresh channels, and a fresh interpreter via the new process, so the channel set is rebuilt and clients simply see `restarting` then a fresh welcome-backed ready kernel.\"\n\nra, rb = score_text(AFTER), score_text(BEFORE)\nra\n\ndensity 0.0 (weight 0 on 87 prose words), worst 0\n\n\n\nrb\n\ndensity 70.4 (weight 100 on 142 prose words), worst 12\n1: [12] sent_len (tell 1, splices): 'It terminates and respawns; the kernel gains fresh ports, fresh channels, and a fresh interpreter via the new process, so the channel set is rebuilt and clients simply see `restarting` then a fresh welcome-backed ready kernel.'\n1: [10] notxbuty (tell 16, not-X-but-Y): \"isn't just a\"\n1: [10] splice (tell 1, splices): ' - '\n1: [10] splice (tell 1, splices): ' - '\n1: [10] splice (tell 1, splices): ' - '\n1: [10] splice (tell 1, splices): '; '\n1: [4] sent_len (tell 1, splices): 'Furthermore, it polls the process and the heartbeat: a process that dies unexpectedly broadcasts the synthesized `dead` status, and three missed beats mark the kernel `unresponsive` in its model.'\n1: [3] throat_clearing (tell 13, throat-clearing): 'This section describes'\n1: [3] announce (tell 15, announce-then-deliver): 'The core mechanism: '\n1: [3] transitions (tell 19, filler transitions): 'Furthermore' -&gt; 'and'\n1: [3] variation (tell 4, elegant variation): 'heartbeat ... beats'\n1: [3] appraisal (tell 21, appraisal preamble): 'worth being precise'\n1: [3] rhetorical (tell 18, rhetorical questions): 'So what does `restart` actually do?'\n1: [3] recipient_subject (tell 23, recipient-as-subject): 'gains'\n1: [3] triad (tell 20, forced symmetry): 'ports, fresh channels, and a fresh interpreter'\n1: [3] conseq (tell 6, consequence glue): ', so'\n1: [3] passive: 'set is rebuilt'\n1: [3] intensifiers (tell 3, emphasis devices): 'simply'\n1: [1] clauses (tell 1, splices): 'It terminates and respawns; the kernel gains fresh ports, fresh channels, and a fresh interpreter via the new process, so the channel set is rebuilt and clients simply see `restarting` then a fresh welcome-backed ready kernel.'\n\n\nThe separation is the meter working: 0.0 against 70, and the report reads back the passage’s own margin notes. The assertions pin the properties that must survive rule changes, not the exact numbers: the clean passage stays clean, the slop passage scores past any sane threshold, and the kill-tier tells the passage was built around are all present.\n\ntest_eq(ra.total, 0)\nassert rb.density &gt; 30 and rb.worst &gt;= 10\nhit = {f.tell for f in rb.findings if f.tell is not None}\nassert {1, 13, 16, 18, 19, 21} &lt;= hit\nsorted(hit)\n\n[1, 3, 4, 6, 13, 15, 16, 18, 19, 20, 21, 23]",
+    "crumbs": [
+      "score"
+    ]
+  },
+  {
+    "objectID": "score.html#the-register-measured",
+    "href": "score.html#the-register-measured",
+    "title": "score",
+    "section": "The register, measured",
+    "text": "The register, measured\nThe samples/ directory holds four drafts of one design statement, written in sequence during warmpy’s design: theory1.md is aphorism-heavy slop, theory2.md is the same content mechanically chopped into short sentences, theory3.md is the narrative rewrite a reader actually understood, and theory4.md is that rewrite brought into the reference register. The numbers teach three lessons the passage pair cannot.\ntheory4 shows what clean looks like on real material: its only findings are two sentences slightly past the word cap, one of them a deliberate single-idea enumeration. Reference prose does not require chopping. Its sentences carry their referents with them (“yourcommand becomes a small program that starts fast”), name things by symbol instead of by definite reference, and still score near zero.\ntheory2 beats theory3 on density and loses to theory4. Every theory3 finding is real: its semicolons are splices and its “, so” chains are consequence glue, in the narrative register as much as this one. But theory2’s low score is the blind spot, not a verdict: “the server is a cache, and doubt means disposal” passes every surface rule while saying nothing. Chopped prose smuggles its confusion into what the sentences omit, and omissions have no span to flag. The prototype below measures that omission directly.\n\nsd = get_config().config_path/'samples'\nt1,t2,t3,t4 = (score_path(sd/f'theory{i}.md') for i in (1, 2, 3, 4))\n[(f'theory{i}', r.density, r.worst) for i,r in zip((1, 2, 3, 4), (t1, t2, t3, t4))]\n\n[('theory1', 59.6, 53),\n ('theory2', 5.4, 3),\n ('theory3', 14.0, 12),\n ('theory4', 1.5, 4)]",
+    "crumbs": [
+      "score"
+    ]
+  },
+  {
+    "objectID": "score.html#referential-load-a-prototype",
+    "href": "score.html#referential-load-a-prototype",
+    "title": "score",
+    "section": "Referential load, a prototype",
+    "text": "Referential load, a prototype\ntheory2’s damage has a mechanical trace after all, and it is not in what the sentences contain but in how they refer. Chopping a long sentence apart strands its referents: each new short sentence points backward with a pronoun (“It reads the same stdin”) or presupposes with a definite article a thing never introduced (“The record of completed imports dies with the process” — what record?). Both force the reader to carry state across sentence boundaries, which is exactly the comprehension cost the chopping was supposed to remove. Entity-based coherence models (Barzilay and Lapata 2008, building on centering theory) formalize this: a coherent document introduces an entity openly before referring to it compactly.\nTwo counts approximate it. The pronoun rate is the fraction of sentences whose main subject is a pronoun. The cold-definite rate is the fraction of “the X” phrases where X names something never mentioned before in the document (“the same X” excluded, since sameness is the point there, and X-fill tokens excluded). Neither is a rule yet: the cells below measure the samples to see whether the signal separates the drafts before any weight is attached.\n\ndef refload(txt):\n    n_sent = n_pron = n_def = n_cold = 0\n    seen = set()\n    for d in (x for x in parse_blocks(segment(txt)) if x is not None):\n        for s in d.sents:\n            n_sent += 1\n            if any(t.dep_ in ('nsubj', 'nsubjpass') and t.pos_ == 'PRON' and t.head.dep_ == 'ROOT' for t in s): n_pron += 1\n        for t in d:\n            if t.pos_ not in ('NOUN', 'PROPN') or len(set(t.lower_)) == 1: continue\n            lem = t.lemma_.lower()\n            kids = [c.lower_ for c in t.children]\n            if 'the' in kids and 'same' not in kids:\n                n_def += 1\n                if lem not in seen: n_cold += 1\n            seen.add(lem)\n    return dict(sents=n_sent, pron=round(n_pron/max(n_sent, 1), 2), defs=n_def, cold=round(n_cold/max(n_def, 1), 2))\n\n\ntexts = {f'theory{i}': (sd/f'theory{i}.md').read_text() for i in (1, 2, 3, 4)} | dict(AFTER=AFTER, BEFORE=BEFORE)\n{k: refload(t) for k,t in texts.items()}\n\n{'theory1': {'sents': 23, 'pron': 0.09, 'defs': 34, 'cold': 0.56},\n 'theory2': {'sents': 33, 'pron': 0.06, 'defs': 35, 'cold': 0.46},\n 'theory3': {'sents': 35, 'pron': 0.03, 'defs': 40, 'cold': 0.28},\n 'theory4': {'sents': 33, 'pron': 0.03, 'defs': 23, 'cold': 0.3},\n 'AFTER': {'sents': 9, 'pron': 0.0, 'defs': 9, 'cold': 0.89},\n 'BEFORE': {'sents': 9, 'pron': 0.11, 'defs': 14, 'cold': 0.79}}\n\n\nThe verdict is mixed, and recording it beats forgetting it. The cold-definite rate orders the rewrites correctly: theory2 at 0.43 against theory3’s 0.30 and theory4’s 0.29, which is the chopping stranding its referents, measured. The pronoun rate fails to separate the rewrites and instead marks the slop drafts, whose subjects are “it” more often than anything named. And the passage pair warns against weighting either number yet: the clean excerpt scores 0.89 cold-definite because its referents were introduced by the surrounding document it was cut from, and the meter saw only the cut. The measure needs whole documents, or it misleads. Referential load therefore ships as a measurement in this notebook and not as a rule, and its calibration waits for a corpus of whole documents scored side by side with human judgments of the same drafts.",
+    "crumbs": [
+      "score"
+    ]
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "slopometer",
+    "section": "",
+    "text": "slopometer measures prose against the aai reference-prose rules defined in aai_coding.write_docs. The rules merge GOV.UK/GDS house style with the discipline of ASD-STE100. It covers 26 numbered tells, banned-word lists, and the reference register itself. The meter is for anyone shipping READMEs, docstrings, PR text, or agent responses. It catches slop mechanically, in milliseconds, with no LLM in the loop. Every finding cites a rule, quotes a span, and carries a weight. A document reduces to two numbers: density, the weighted findings per 100 prose words, and the single worst finding.",
+    "crumbs": [
+      "slopometer"
+    ]
+  },
+  {
+    "objectID": "index.html#install",
+    "href": "index.html#install",
+    "title": "slopometer",
+    "section": "Install",
+    "text": "Install\npip install slopometer\nThe first score on a machine downloads spaCy’s en_core_web_md model (about 40MB, once) into ~/.cache/slopometer and loads it by path. The model never enters a virtual environment. One copy serves every project. Environment syncs cannot remove it.",
+    "crumbs": [
+      "slopometer"
+    ]
+  },
+  {
+    "objectID": "index.html#use",
+    "href": "index.html#use",
+    "title": "slopometer",
+    "section": "Use",
+    "text": "Use\n\nfrom slopometer.score import score_text, score_path\n\n\nscore_text(\"This section describes our approach. It isn't just a linter - it's a comprehensive paradigm for quality.\")\n\ndensity 252.9 (weight 43 on 17 prose words), worst 10\n1: [10] notxbuty (tell 16, not-X-but-Y): \"isn't just a\"\n1: [10] splice (tell 1, splices): ' - '\n1: [10] banned: 'comprehensive' -&gt; 'complete'\n1: [10] banned: 'paradigm'\n1: [3] throat_clearing (tell 13, throat-clearing): 'This section describes'\n\n\nscore_path does the same for a file, and its rows carry lineno|hash| addresses in the exhash format, ready for hash-verified editors. The command line wraps both:\nslopometer README.md\ngit log -1 --format=%B | slopometer\nslopometer draft.md --threshold 10\nThe threshold turns the density into an exit code for CI. The command runs warm through warmpy. The first call loads the model in a background process. Later calls answer in milliseconds. After thirty idle minutes the process exits.",
+    "crumbs": [
+      "slopometer"
+    ]
+  },
+  {
+    "objectID": "index.html#what-it-checks-and-what-it-cannot",
+    "href": "index.html#what-it-checks-and-what-it-cannot",
+    "title": "slopometer",
+    "section": "What it checks, and what it cannot",
+    "text": "What it checks, and what it cannot\nThe rules live in notebooks that teach each family beside its code. Each rule states its tell, shows a violating example, and shows the plain rewrite. The lexicon notebook holds the word and phrase rules. The syntax notebook builds sentence rules on spaCy’s parse. The para notebook builds its rules on word vectors. The score notebook assembles the pipeline. A drift test asserts that every write_docs tell maps to a rule or to an explicit unscoreable registry. The meter and the style guide cannot drift apart silently.\nA rule ships only when its false-positive rate on clean reference prose is near zero. The meter scores the style guide’s own clean passage at exactly 0.0. The score notebook measures the blind spot instead of hiding it: mechanically chopped prose passes every surface rule while staying opaque. Agent review (check_docs) and an optional, explicitly invoked Pangram check cover that residue. Vale, write-good, and proselint solve neighboring problems. The lexicon notebook records what came from them. It also credits the GOV.UK words-to-avoid list (OGL v3).",
+    "crumbs": [
+      "slopometer"
+    ]
+  },
+  {
+    "objectID": "para.html",
+    "href": "para.html",
+    "title": "para",
+    "section": "",
+    "text": "The rules that read a whole paragraph: restatement, elegant variation, forced symmetry, and coinage. The first two need a way to measure whether two different word sequences say the same thing, and word vectors provide it. The paragraph is the largest unit any of these rules analyzes, and coinage, which counts across paragraphs, does so with arithmetic alone.\nfrom fastcore.test import *",
+    "crumbs": [
+      "para"
+    ]
+  },
+  {
+    "objectID": "para.html#word-vectors-in-sixty-seconds",
+    "href": "para.html#word-vectors-in-sixty-seconds",
+    "title": "para",
+    "section": "Word vectors in sixty seconds",
+    "text": "Word vectors in sixty seconds\nA word vector is 300 numbers that summarize the contexts a word appears in, learned by counting co-occurrences over billions of words. Words used in similar contexts get similar vectors, and the cosine of the angle between two vectors is a workable measure of how related the words are: 1.0 means interchangeable contexts, near 0 means unrelated. The vectors in en_core_web_md come from the GloVe algorithm (Pennington, Socher, and Manning, 2014), trained on Common Crawl. Chapter 6 of Jurafsky and Martin covers the theory from scratch.\nTwo properties matter for the rules below. Similarity is symmetric and graded, which lets a threshold say “these two words are close enough to be the same concept”. And the vocabulary is finite: a token with no vector (is_oov) is a word the training corpus effectively never saw, which is how the coinage rule recognizes invented terms. spaCy averages token vectors to give spans and sentences a vector too, which is crude, order-blind, and still good enough to catch a sentence that restates its paragraph.\n\nnlp = get_nlp()\nv = nlp.vocab\n[(a, b, round(v[a].similarity(v[b]), 3)) for a,b in [('kernel','interpreter'), ('folder','directory'), ('kernel','pineapple')]] + \\\n    [(w, 'oov', v[w].is_oov) for w in ('heartbeat', 'slopometer', 'exhash')]\n\n[('kernel', 'interpreter', 0.383),\n ('folder', 'directory', 0.323),\n ('kernel', 'pineapple', 0.131),\n ('heartbeat', 'oov', False),\n ('slopometer', 'oov', True),\n ('exhash', 'oov', True)]\n\n\nThe numbers above are a warning as much as a demonstration. “folder” and “directory” reach only 0.32, and “kernel” and “interpreter” score 0.38, because GloVe learned from the general web, where a kernel is corn and an interpreter is a person, and md’s pruned vector table even scrambles the ordering between such pairs. General-purpose vectors under-rate technical synonymy, so a rule that trusted a high similarity threshold to find technical word-swapping would miss most of it. The elegant-variation rule below therefore treats vectors as one signal of three, and the out-of-vocabulary flag, which needs no similarity at all, is exactly reliable for what the coinage rule needs: slopometer is a made-up word and the vocabulary knows it.",
+    "crumbs": [
+      "para"
+    ]
+  },
+  {
+    "objectID": "para.html#restatement",
+    "href": "para.html#restatement",
+    "title": "para",
+    "section": "Restatement",
+    "text": "Restatement\nTell 9’s commonest form is a lead sentence that summarizes the paragraph it starts: delete it and nothing is lost. Averaged sentence vectors can measure this, but averaging flattens everything toward the middle, and every pair of sentences about the same software scores high. What separates restatement from progression is the margin above that baseline, and the margin has to be measured before a threshold means anything. One restating paragraph and one fact-adding paragraph, both in register:\n\nrestating = nlp(\"Failures are visible now too. A startup failure used to print to the server log and leave a half-booted dialog that looked ready. It now raises, and the user sees an error toast and a red status dot.\")\nprogressing = nlp(\"The ready-wait runs once per kernel, in start. watch polls the process and the heartbeat. Three missed heartbeats mark the kernel unresponsive in its model.\")\n\ndef _lead_sim(doc):\n    sents = list(doc.sents)\n    return round(sents[0].similarity(doc[sents[1].start:]), 3)\n\n_lead_sim(restating), _lead_sim(progressing)\n\n(0.857, 0.849)\n\n\nThe design fails, and the numbers above are the evidence: the restating and progressing paragraphs score within a hundredth of each other, and which one ranks higher flips between models. Averaged vectors measure shared topic, not shared claim, and every well-scoped paragraph shares its topic with its own lead. So lead-sentence restatement joins the unscoreable registry, with this measurement as the reason, rather than shipping as a rule that flags good paragraphs. What survives is the heading echo: a section whose first sentence repeats its heading’s words (“## Configuration” followed by “Configuration is stored…”) is detectable by plain lemma overlap, and the overlap is direct repetition, not paraphrase, so vectors are not needed at all.\nThis is the first rule that reads across blocks, and it sets the shape for document-level rules: they receive every block plus the parsed Doc for each prose block, aligned by position, and return findings with offsets already absolute.\n\n\nsource\n\nfind_heading_echo\ndef find_heading_echo(\n    blocks, docs\n):\nA section’s first sentence repeating its heading’s words\n\n\n\n\nsource\n\nparse_blocks\ndef parse_blocks(\n    blocks\n):\nThe spaCy Doc for each prose block, aligned with blocks, None elsewhere\n\n\n\necho_doc = \"## Configuration\\n\\nConfiguration is stored in a single file.\\n\\n## Sockets\\n\\nEach worker owns one socket.\\n\"\nbs = segment(echo_doc)\nres = find_heading_echo(bs, parse_blocks(bs))\ntest_eq(len(res), 1)\nres\n\n[[3] heading_echo (tell 9, restatement): 'Configuration is stored in a single file.']",
+    "crumbs": [
+      "para"
+    ]
+  },
+  {
+    "objectID": "para.html#elegant-variation",
+    "href": "para.html#elegant-variation",
+    "title": "para",
+    "section": "Elegant variation",
+    "text": "Elegant variation\nFowler coined the name for the habit of dressing one concept in different words to avoid repetition: “the heartbeat” in one sentence becomes “beats” in the next, and the reader must decide whether two names mean two things. In reference prose the rule is STE’s: one concept, one name, every time. In coding discussions the correct name is the code symbol when one exists: restart every time, never “the respawn operation” in one sentence and “recycling” in the next, and tell 5 makes the same demand of statuses and values. The tempting detector is vector similarity between distinct nouns in one paragraph, and it fails: cosine similarity measures shared context, and words that co-occur constantly score high whether or not they are interchangeable.\n\n[(a, b, round(v[a].similarity(v[b]), 3)) for a,b in [('client','server'), ('read','write'), ('heartbeat','beat')]]\n\n[('client', 'server', 0.272),\n ('read', 'write', 0.383),\n ('heartbeat', 'beat', 0.187)]\n\n\nThe measurements settle it: “client” and “server” score well above “heartbeat” and “beat”, and a vector threshold would flag client-server paragraphs while missing the canonical variation pair. So vectors stay out of this rule. What remains is precise: a curated list of genuinely interchangeable term pairs, and stem containment, which catches one word embedded in the other (“beats” inside “heartbeats”). The rule flags the second name, which is where the variation happened. A token of one repeated character is excluded, because segmentation X-fills inline code and GloVe happens to know runs of x as real web tokens. The rule does not gate on syntactic role: in the write_docs example the two names appear as object and subject, so a role gate would miss the exact case the tell quotes.\n\n\nsource\n\nfind_variation\ndef find_variation(\n    doc\n):\nTwo names for one concept within a paragraph, by curated pair or shared stem\n\n\n\ntest_eq(find_variation(nlp('The heartbeat channel carries heartbeats only.')), [])\nfind_variation(nlp('Three missed heartbeats mark it unresponsive, and the next beat clears the mark. Put each parameter on its own line, and document every argument.'))\n\n[[3] variation (tell 4, elegant variation): 'heartbeats ... beat',\n [3] variation (tell 4, elegant variation): 'parameter ... argument']",
+    "crumbs": [
+      "para"
+    ]
+  },
+  {
+    "objectID": "para.html#forced-symmetry",
+    "href": "para.html#forced-symmetry",
+    "title": "para",
+    "section": "Forced symmetry",
+    "text": "Forced symmetry\nTell 20 is the AI habit of making material march in step: “fresh ports, fresh channels, and a fresh interpreter”, three pros and three cons, every bullet opening with the same word. Real material is lumpy. Two symmetric shapes are mechanical enough to catch with precision. Inside a paragraph, three or more coordinated nouns each modified by the same adjective lemma is the marked example from the write_docs passage. Across a bullet list, three or more consecutive items opening with the same word is the list forced into one grammatical mold, and list items are their own blocks, so this half reads the document.\n\n\nsource\n\nfind_bullet_mold\ndef find_bullet_mold(\n    blocks, docs\n):\nThree or more consecutive list items opening with the same word\n\n\n\n\nsource\n\nfind_triad\ndef find_triad(\n    doc\n):\nThree or more coordinated nouns sharing one modifier lemma\n\n\n\ntri = find_triad(nlp('The kernel gains fresh ports, fresh channels, and a fresh interpreter.'))\nbs2 = segment('- fast startup\\n- fast shutdown\\n- fast restarts\\n')\ntri + find_bullet_mold(bs2, parse_blocks(bs2))\n\n[[3] triad (tell 20, forced symmetry): 'ports, fresh channels, and a fresh interpreter',\n [3] bullet_mold (tell 20, forced symmetry): '- fast startup\\n- fast shutdown\\n- fast restarts']",
+    "crumbs": [
+      "para"
+    ]
+  },
+  {
+    "objectID": "para.html#the-paragraph-cap",
+    "href": "para.html#the-paragraph-cap",
+    "title": "para",
+    "section": "The paragraph cap",
+    "text": "The paragraph cap\nASD-STE100 caps paragraphs at six sentences. Counting sentences fights the sentence-length rule, though: splitting a long sentence raises the count, punishing the fix the meter itself demands. So the cap counts words instead, at 150, which is six sentences at the sentence cap, escalating per extra 25. An earlier version flagged the meter’s own calibration passage, which was then a single nine-sentence paragraph. That conflict had two possible resolutions, and treating the fixture as untouchable would have picked one silently. Reading the passage settled it the other way: the paragraph really did pack a status contract and a restart story together, write_docs gained a paragraph break, and the rule ships. Nothing in this project is beyond refinement, including the calibration set, and this rule’s history is the proof.\n\n\nsource\n\nfind_para_cap\ndef find_para_cap(\n    doc\n):\nParagraphs past 150 words, escalating per extra 25\n\n\n\ns25 = 'The gateway holds one socket open for every kernel it manages and closes each one when that kernel finally exits. '\ntest_eq(find_para_cap(nlp(s25 * 6)), [])\ntest_eq(find_para_cap(nlp('The server does a thing. ' * 9)), [])\nfind_para_cap(nlp(s25 * 8))\n\n[[1] para_cap: '160-word paragraph']",
+    "crumbs": [
+      "para"
+    ]
+  },
+  {
+    "objectID": "para.html#coinage",
+    "href": "para.html#coinage",
+    "title": "para",
+    "section": "Coinage",
+    "text": "Coinage\nTell 12 has two halves, and one is definable: a locally-invented term dropped without definition. “The carrier” in a design doc cannot be looked up anywhere, and that is what separates a coinage from an established term of art. The vocabulary gives a mechanical proxy for “cannot be looked up”: a word GloVe never saw in billions of web words (is_oov) is not established. The rule flags a lowercase out-of-vocabulary word that recurs outside backticks, and it flags the first occurrence, which is where the definition belonged. Backticked mentions are already invisible here because rules read scrubbed text, and that is the escape hatch working as designed: a coinage named as a code symbol is doing its job. Capitalized words stay out on purpose, since an out-of-vocabulary capitalized word is usually a product or a person, and both are names, not coinages.\n\n\nsource\n\nfind_coinage\ndef find_coinage(\n    blocks, docs\n):\nA recurring out-of-vocabulary term outside backticks\n\n\n\ncoin_doc = 'Each dlgpart holds one message. A dlgpart never owns its buffer.\\n\\nThe `exhash` addresses are separate, and `exhash` recurs freely in backticks.\\n'\nbs3 = segment(coin_doc)\nres = find_coinage(bs3, parse_blocks(bs3))\ntest_eq(len(res), 1)\nres\n\n[[3] coinage (tell 12, audience misjudged): 'dlgpart']",
+    "crumbs": [
+      "para"
+    ]
+  }
+]
