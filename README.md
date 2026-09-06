@@ -30,6 +30,8 @@ score_text("This section describes our approach. It isn't just a linter - it's a
     1: [10] banned: 'paradigm'
     1: [3] throat_clearing (tell 13, throat-clearing): 'This section describes'
 
+Density is weighted findings per 100 words across paragraphs, headings, and list items. Heading and list markers do not count as words. Code blocks and other content excluded from scoring do not enter the denominator.
+
 [`score_path`](https://AnswerDotAI.github.io/slopometer/score.html#score_path) does the same for a file, and its rows carry `lineno|hash|` addresses in the exhash format, ready for hash-verified editors. The command line wraps both:
 
     slopometer README.md
