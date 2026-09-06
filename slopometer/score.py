@@ -58,7 +58,7 @@ class Result:
     def __init__(self,
         txt, # The scored document
         findings, # `Finding`s, worst first
-        words, # Prose word count
+        words, # Word count across all scored blocks
         path=None, # Source file, when scoring a file
     ):
         store_attr()
@@ -80,13 +80,13 @@ class Result:
 
 def score_text(txt):
     "Score markdown `txt`, returning a `Result`"
-    return Result(txt, run_rules(txt), prose_words(segment(txt)))
+    return Result(txt, run_rules(txt), scored_words(segment(txt)))
 
 def score_path(p):
     "Score the file at `p` (expands `~`); report rows carry exhash addresses"
     p = Path(p).expanduser()
     txt = p.read_text()
-    return Result(txt, run_rules(txt), prose_words(segment(txt)), path=p)
+    return Result(txt, run_rules(txt), scored_words(segment(txt)), path=p)
 
 
 # %% ../nbs/05_score.ipynb #0e3b855b
