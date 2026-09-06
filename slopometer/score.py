@@ -60,36 +60,43 @@ class Result:
         findings, # `Finding`s, worst first
         words, # Word count across all scored blocks
         path=None, # Source file, when scoring a file
+        min_words=150, # Minimum scored words; 0 disables the cutoff
     ):
         store_attr()
         for f in findings:
             if len(f.text) == f.end-f.start and '\n' not in txt[f.start:f.end]: f.text = txt[f.start:f.end]
     @property
-    def total(self): return sum(f.weight for f in self.findings)
+    def too_short(self): return self.words < self.min_words
     @property
-    def density(self): return round(100*self.total/max(self.words, 1), 1)
+    def total(self): return None if self.too_short else sum(f.weight for f in self.findings)
     @property
-    def worst(self): return max((f.weight for f in self.findings), default=0)
+    def density(self): return None if self.too_short else round(100*self.total/max(self.words, 1), 1)
+    @property
+    def worst(self): return None if self.too_short else max((f.weight for f in self.findings), default=0)
     def _addr(self, f):
         ln = self.txt[:f.start].count('\n')+1
         return lnhash_at(self.txt, ln) if self.path else f'{ln}:'
     def __repr__(self):
-        hdr = f'density {self.density} (weight {self.total} on {self.words} prose words), worst {self.worst}'
+        if self.too_short: hdr = f'too short to meter ({self.words} scored words; minimum {self.min_words})'
+        else: hdr = f'density {self.density} (weight {self.total} on {self.words} prose words), worst {self.worst}'
         if self.path: hdr = f'{self.path}: {hdr}'
         return '\n'.join([hdr] + [f'{self._addr(f)} {f!r}' for f in self.findings])
 
-def score_text(txt):
-    "Score markdown `txt`, returning a `Result`"
-    return Result(txt, run_rules(txt), scored_words(segment(txt)))
+def score_text(txt, min_words=150):
+    "Score markdown `txt`, skipping rule evaluation below `min_words` scored words"
+    if min_words < 0: raise ValueError('min_words must be non-negative')
+    words = scored_words(segment(txt))
+    return Result(txt, run_rules(txt) if words >= min_words else [], words, min_words=min_words)
 
-def score_path(p):
+def score_path(p, min_words=150):
     "Score the file at `p` (expands `~`); report rows carry exhash addresses"
     p = Path(p).expanduser()
-    txt = p.read_text()
-    return Result(txt, run_rules(txt), scored_words(segment(txt)), path=p)
+    res = score_text(p.read_text(), min_words=min_words)
+    res.path = p
+    return res
 
 
 # %% ../nbs/05_score.ipynb #0e3b855b
-def score_many(txts, n_workers=8):
-    "Score texts in parallel threads, returning a `Result` per text"
-    return parallel(score_text, txts, n_workers=n_workers, threadpool=True)
+def score_many(txts, n_workers=8, min_words=150):
+    "Score texts in parallel threads, applying `min_words` to each text"
+    return parallel(score_text, txts, n_workers=n_workers, threadpool=True, min_words=min_words)

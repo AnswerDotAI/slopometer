@@ -19,8 +19,10 @@ The first score on a machine downloads spaCy’s `en_core_web_md` model (about 4
 from slopometer.score import score_text, score_path
 ```
 
+The default minimum is 150 scored words. Shorter inputs return `too short to meter` with their word count and no numeric score. Set `min_words=0` to meter short examples:
+
 ``` python
-score_text("This section describes our approach. It isn't just a linter - it's a comprehensive paradigm for quality.")
+score_text("This section describes our approach. It isn't just a linter - it's a comprehensive paradigm for quality.", min_words=0)
 ```
 
     density 252.9 (weight 43 on 17 prose words), worst 10
@@ -30,18 +32,24 @@ score_text("This section describes our approach. It isn't just a linter - it's a
     1: [10] banned: 'paradigm'
     1: [3] throat_clearing (tell 13, throat-clearing): 'This section describes'
 
-Density is weighted findings per 100 words across paragraphs, headings, and list items. Heading and list markers do not count as words. Code blocks and other content excluded from scoring do not enter the denominator.
+Density is weighted findings per 100 words across paragraphs, headings, and list items. Heading and list markers do not count as words. Code blocks and other content excluded from scoring do not enter the denominator or count toward the minimum.
 
-[`score_path`](https://AnswerDotAI.github.io/slopometer/score.html#score_path) does the same for a file, and its rows carry `lineno|hash|` addresses in the exhash format, ready for hash-verified editors. The command line wraps both:
+[`score_text`](https://AnswerDotAI.github.io/slopometer/score.html#score_text), [`score_path`](https://AnswerDotAI.github.io/slopometer/score.html#score_path), and [`score_many`](https://AnswerDotAI.github.io/slopometer/score.html#score_many) accept `min_words`, defaulting to 150. A short result has `too_short=True`, an empty findings list, and `None` for `density`, `total`, and `worst`.
 
-    slopometer README.md
-    git log -1 --format=%B | slopometer
-    slopometer draft.md --threshold 10
+[`score_path`](https://AnswerDotAI.github.io/slopometer/score.html#score_path) scores a file. Its rows carry `lineno|hash|` addresses in the exhash format, ready for hash-verified editors. The command line accepts a file or stdin:
 
-The threshold turns the density into an exit code for CI. The command runs warm through `warmpy`. The first call loads the model in a background process. Later calls answer in milliseconds. After thirty idle minutes the process exits.
+    slopometer --path README.md
+    git log -1 --format=%B | slopometer --min-words 0
+    slopometer --path draft.md --threshold 10
+
+`--threshold` returns exit code 1 when a score exceeds the limit. Inputs below `--min-words` print the short-input message and exit successfully without scoring. JSON output marks them with `too_short: true`, includes `min_words`, and uses null scores.
+
+The command runs warm through `warmpy`. The first input long enough to score loads the model in a background process. Later calls answer in milliseconds. After thirty idle minutes the process exits.
 
 ## What it checks, and what it cannot
 
-The rules live in notebooks that teach each family beside its code. Each rule states its tell, shows a violating example, and shows the plain rewrite. The [lexicon notebook](https://AnswerDotAI.github.io/slopometer/lexicon.html) holds the word and phrase rules. The [syntax notebook](https://AnswerDotAI.github.io/slopometer/syntax.html) builds sentence rules on spaCy’s parse. The [para notebook](https://AnswerDotAI.github.io/slopometer/para.html) builds its rules on word vectors. The [score notebook](https://AnswerDotAI.github.io/slopometer/score.html) assembles the pipeline. A drift test asserts that every `write_docs` tell maps to a rule or to an explicit unscoreable registry. The meter and the style guide cannot drift apart silently.
+The rules live in notebooks that teach each family beside its code. Each rule states its tell, shows a violating example, and shows the plain rewrite. The [lexicon notebook](https://AnswerDotAI.github.io/slopometer/lexicon.html) holds the word and phrase rules. The [syntax notebook](https://AnswerDotAI.github.io/slopometer/syntax.html) builds sentence rules on spaCy’s parse. The [para notebook](https://AnswerDotAI.github.io/slopometer/para.html) covers paragraph and document rules and the limits of word-vector heuristics. The [score notebook](https://AnswerDotAI.github.io/slopometer/score.html) assembles the pipeline. A drift test asserts that every `write_docs` tell maps to a rule or to an explicit unscoreable registry. The meter and the style guide cannot drift apart silently.
+
+Vocabulary novelty is not scored. Identifying unexplained terminology requires audience and document context.
 
 A rule ships only when its false-positive rate on clean reference prose is near zero. The meter scores the style guide’s own clean passage at exactly 0.0. The score notebook measures the blind spot instead of hiding it: mechanically chopped prose passes every surface rule while staying opaque. Agent review (`check_docs`) and an optional, explicitly invoked [Pangram](https://www.pangram.com) check cover that residue. Vale, write-good, and proselint solve neighboring problems. The [lexicon notebook](https://AnswerDotAI.github.io/slopometer/lexicon.html) records what came from them. It also credits the [GOV.UK words-to-avoid list](https://www.gov.uk/guidance/style-guide/a-to-z-of-gov-uk-style#words-to-avoid) (OGL v3).

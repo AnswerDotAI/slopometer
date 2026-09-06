@@ -9,7 +9,7 @@
 - [slopometer.corpus](https://AnswerDotAI.github.io/slopometer/corpus.html.md): Build the labeled corpus: weak positives from scored replies, mixed human negatives
 - [slopometer.features](https://AnswerDotAI.github.io/slopometer/features.html.md): Continuous measurements for learned scoring
 - [slopometer.lexicon](https://AnswerDotAI.github.io/slopometer/lexicon.html.md): Word and phrase rules: banned vocabulary, hedges, fillers, and splices
-- [slopometer.para](https://AnswerDotAI.github.io/slopometer/para.html.md): Paragraph rules: restatement, elegant variation, forced symmetry, and coinage
+- [slopometer.para](https://AnswerDotAI.github.io/slopometer/para.html.md): Paragraph rules: restatement, elegant variation, forced symmetry, and length
 - [slopometer.score](https://AnswerDotAI.github.io/slopometer/score.html.md): Run every rule, weigh the findings, and report worst first
 - [slopometer.segment](https://AnswerDotAI.github.io/slopometer/segment.html.md): Markdown becomes typed blocks that keep their file positions
 - [slopometer.syntax](https://AnswerDotAI.github.io/slopometer/syntax.html.md): The spaCy rules: sentences, clauses, passives, and the patterns anchored to them
