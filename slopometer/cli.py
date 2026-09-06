@@ -1,6 +1,6 @@
 """The command line: score a file or stdin, warm
 
-`slopometer <file>` prints the worst-first report, `slopometer` alone reads stdin, and `--threshold` turns the density into an exit code for CI and hooks. Loading the model takes about a second and scoring takes milliseconds, so the command runs through [warmpy](https://github.com/AnswerDotAI/warmpy): the first call starts a background process that loads the model, later calls reuse it, and it exits after thirty idle minutes. The Claude Code stop hook runs this same command with the response text on stdin.
+`slopometer --path <file>` prints the worst-first report, `slopometer` alone reads stdin, and `--threshold` turns the density into an exit code for CI and hooks. Loading the model takes about a second and scoring takes milliseconds, so the command runs through [warmpy](https://github.com/AnswerDotAI/warmpy): the first call starts a background process that loads the model, later calls reuse it, and it exits after thirty idle minutes. The Claude Code stop hook runs this same command with the response text on stdin.
 
 Docs: https://AnswerDotAI.github.io/slopometer/cli.html.md"""
 
@@ -19,13 +19,15 @@ def main(
     path:str=None, # File to score; stdin when omitted
     threshold:float=None, # Exit code 1 when density exceeds this
     json:bool=False, # Emit the result as JSON instead of the report
+    min_words:int=150, # Minimum scored words; 0 disables the cutoff
 ):
     "Score markdown against the aai reference-prose rules"
     from json import dumps
     from slopometer.score import score_path, score_text
-    res = score_path(path) if path else score_text(sys.stdin.read())
+    res = score_path(path, min_words=min_words) if path else score_text(sys.stdin.read(), min_words=min_words)
     if json: print(dumps(dict(density=res.density, worst=res.worst, words=res.words,
+        too_short=res.too_short, min_words=res.min_words,
         findings=[{k: getattr(f, k) for k in ('rule', 'tell', 'start', 'end', 'text', 'weight', 'suggestion')} for f in res.findings])))
     else: print(res)
-    if threshold is not None and res.density > threshold: return 1
+    if threshold is not None and res.density is not None and res.density > threshold: return 1
 

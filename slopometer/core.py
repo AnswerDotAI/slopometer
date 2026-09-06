@@ -76,5 +76,5 @@ unscoreable = {
     9: 'lead-sentence restatement defeats averaged sentence vectors, and only the heading echo is detectable (measured in the para notebook)',
     10: 'a justification rider reads like a stated consequence, and only the domain says which it is',
     11: 'verb texture beyond the banned-verb lexicon is a whiteboard judgment',
-    12: 'matching prose to its audience takes the audience, and the coinage rule covers only the definable half',
+    12: 'matching prose and terminology to the reader requires audience and document context',
     26: 'depth is judged against what the reader already knows',}
