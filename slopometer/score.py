@@ -12,6 +12,7 @@ __all__ = ['find_overstructure', 'run_rules', 'Result', 'score_text', 'score_pat
 # %% ../nbs/05_score.ipynb #68d2aa09
 from fastcore.utils import *
 from fastcore.tools import lnhash_at
+from fastcore.nbio import read_nb
 from .core import *
 from .segment import *
 from .lexicon import *
@@ -61,6 +62,7 @@ class Result:
         words, # Word count across all scored blocks
         path=None, # Source file, when scoring a file
         min_words=150, # Minimum scored words; 0 disables the cutoff
+        cells=None, # Notebook (document offset, cell) pairs; None for plain text
     ):
         store_attr()
         for f in findings:
@@ -73,9 +75,18 @@ class Result:
     def density(self): return None if self.too_short else round(100*self.total/max(self.words, 1), 1)
     @property
     def worst(self): return None if self.too_short else max((f.weight for f in self.findings), default=0)
-    def _addr(self, f):
-        ln = self.txt[:f.start].count('\n')+1
-        return lnhash_at(self.txt, ln) if self.path else f'{ln}:'
+    def location(self, f):
+        "Source line and exhash address; notebooks also include cell ID and zero-based index"
+        txt, off, cell = self.txt, 0, None
+        for start,c in reversed(self.cells or []):
+            if start <= f.start < start + len(c.source):
+                txt, off, cell = c.source, start, c
+                break
+        ln = txt[:f.start-off].count('\n')+1
+        addr = lnhash_at(txt, ln) if self.path else f'{ln}:'
+        if cell is None: return dict(line=ln, address=addr)
+        return dict(cell_id=cell.id, cell_index=cell.idx_, line=ln, address=f'{cell.id}:{addr}')
+    def _addr(self, f): return self.location(f)['address']
     def __repr__(self):
         if self.too_short: hdr = f'too short to meter ({self.words} scored words; minimum {self.min_words})'
         else: hdr = f'density {self.density} (weight {self.total} on {self.words} prose words), worst {self.worst}'
@@ -89,10 +100,19 @@ def score_text(txt, min_words=150):
     return Result(txt, run_rules(txt) if words >= min_words else [], words, min_words=min_words)
 
 def score_path(p, min_words=150):
-    "Score the file at `p` (expands `~`); report rows carry exhash addresses"
+    "Score Markdown or an `.ipynb` file's Markdown cells; report exhash addresses"
     p = Path(p).expanduser()
-    res = score_text(p.read_text(), min_words=min_words)
-    res.path = p
+    cells = None
+    if p.suffix.lower() == '.ipynb':
+        cells, off = [], 0
+        for c in read_nb(p).cells:
+            if c.cell_type != 'markdown': continue
+            cells.append((off, c))
+            off += len(c.source) + 2
+        txt = '\n\n'.join(c.source for _,c in cells)
+    else: txt = p.read_text()
+    res = score_text(txt, min_words=min_words)
+    res.path, res.cells = p, cells
     return res
 
 
