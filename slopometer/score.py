@@ -1,6 +1,8 @@
 """Run every rule, weigh the findings, and report worst first
 
-The meter assembled: one pass that segments a document, runs every registered rule at its level, rebases every finding onto document offsets, and reduces the findings to two numbers. Density is weighted findings per 100 prose words, and the max is the single worst finding. A clean document scores near zero on both. One kill-on-sight finding pushes the max to 10 alone, which is the tiers doing their job.
+`score_text` runs the registered rules on Markdown and returns findings in descending weight order. `score_path` reads a Markdown file or a notebook's Markdown cells.
+
+Density is the total finding weight per 100 scored words. `worst` is the highest individual weight. Both help identify prose to review, but neither establishes whether the explanation is clear or complete.
 
 Docs: https://AnswerDotAI.github.io/slopometer/score.html.md"""
 

@@ -1,6 +1,6 @@
 """Word and phrase rules: banned vocabulary, hedges, fillers, and splices
 
-The phrase-level rules: banned vocabulary with plain replacements, hedge phrases, noting fillers, filler transitions, splice punctuation, consequence glue, and markdown emphasis. Each is a regex over a block's scrubbed text, needs no linguistic analysis, and runs in microseconds.
+These rules match words, phrases, punctuation, and Markdown emphasis in scrubbed text. They cover banned vocabulary, hedges, fillers, splices, and consequence joins. Findings include plain replacements where available. The rules use regexes without linguistic analysis.
 
 Docs: https://AnswerDotAI.github.io/slopometer/lexicon.html.md"""
 
@@ -64,13 +64,13 @@ find_noting = lex_rule('noting', tell=8, weight=SMELL, lex=noting)
 find_transitions = lex_rule('transitions', tell=19, weight=SMELL, lex=transitions)
 
 # %% ../nbs/02_lexicon.ipynb #79549961
-_splice = re.compile(r'—|(?<=\w) -- (?=\w)|(?<=\w) - (?=\w)')
+_splice = re.compile(r'—')
 _conseq = re.compile(r', so\b')
 
-@rule('splice', tell=1, weight=KILL, level='phrase')
+@rule('splice', tell=1, weight=4, level='phrase')
 def find_splice(txt):
-    "Em dashes, two-hyphen dashes, and spaced-hyphen joins"
-    return [Finding('splice', 1, m.start(), m.end(), m.group(), KILL) for m in _splice.finditer(txt)]
+    "Em dashes"
+    return [Finding('splice', 1, m.start(), m.end(), m.group(), 4) for m in _splice.finditer(txt)]
 
 @rule('conseq', tell=6, weight=SMELL, level='phrase')
 def find_conseq(txt):

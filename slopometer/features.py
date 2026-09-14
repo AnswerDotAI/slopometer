@@ -1,6 +1,8 @@
 """Continuous measurements for learned scoring
 
-The rules keep only what crosses a bar, and a learned scorer wants the bar removed. This module measures prose as continuous numbers: every rule's findings as a rate, the sentence and paragraph distributions the thresholds truncate, the parts-of-speech profile, specifics density, referential load, and burstiness. Three of these measures failed earlier as threshold rules, and the para and score notebooks record why. As features they need no threshold, because a learned combiner such as a random forest weighs them against labeled examples. The score stays rule-based and explainable. The feature vector exists for calibration experiments, and anything the experiments validate can graduate into a rule.
+`features` measures prose for experiments with learned scoring. It returns rule-finding rates, sentence and paragraph statistics, grammatical counts, and measures of concrete detail and references.
+
+Some measurements failed as standalone rules in the `para` and `score` notebooks. A model trained on labelled examples could still use them in combination. These experiments do not change slopometer's rule-based score.
 
 Docs: https://AnswerDotAI.github.io/slopometer/features.html.md"""
 

@@ -25,14 +25,15 @@ The default minimum is 150 scored words. Shorter inputs return `too short to met
 score_text("This section describes our approach. It isn't just a linter - it's a comprehensive paradigm for quality.", min_words=0)
 ```
 
-    density 252.9 (weight 43 on 17 prose words), worst 10
+    density 194.1 (weight 33 on 17 prose words), worst 10
     1: [10] notxbuty (tell 16, not-X-but-Y): "isn't just a"
-    1: [10] splice (tell 1, splices): ' - '
     1: [10] banned: 'comprehensive' -> 'complete'
     1: [10] banned: 'paradigm'
     1: [3] throat_clearing (tell 13, throat-clearing): 'This section describes'
 
 Density is weighted findings per 100 words across paragraphs, headings, and list items. Heading and list markers do not count as words. Code blocks and other content excluded from scoring do not enter the denominator or count toward the minimum.
+
+Each em dash adds 4 to the total weight. Semicolons joining independent clauses also add 4. Single and double hyphens, including spaced joins, do not score. Semicolons in lists of noun phrases or inside parentheses do not score.
 
 [`score_text`](https://AnswerDotAI.github.io/slopometer/score.html#score_text), [`score_path`](https://AnswerDotAI.github.io/slopometer/score.html#score_path), and [`score_many`](https://AnswerDotAI.github.io/slopometer/score.html#score_many) accept `min_words`, defaulting to 150. A short result has `too_short=True`, an empty findings list, and `None` for `density`, `total`, and `worst`.
 

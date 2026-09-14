@@ -1,6 +1,6 @@
 """The spaCy rules: sentences, clauses, passives, and the patterns anchored to them
 
-The rules that need to know what a sentence is and how its words relate: sentence length, clause count, passive voice, part-of-speech-dependent vocabulary, noun clusters, nominalizations, agent defocusing, and the slop patterns that anchor to sentence starts. [spaCy](https://spacy.io) provides the linguistic analysis, and this module also owns getting spaCy's model onto the machine.
+This module uses [spaCy](https://spacy.io) to detect long sentences, stacked clauses, passives, and part-of-speech-dependent vocabulary. It also checks noun clusters, nominalizations, actor placement, and phrases whose meaning depends on their position in a sentence. `get_nlp` downloads and loads the spaCy model.
 
 Docs: https://AnswerDotAI.github.io/slopometer/syntax.html.md"""
 
@@ -81,7 +81,7 @@ def _clausal(toks):
     "Do `toks` contain a finite clause: a subject attached to a verb?"
     return any(t.dep_.startswith('nsubj') and t.head.pos_ in ('VERB', 'AUX') for t in toks)
 
-@rule('semi_splice', tell=1, weight=KILL, level='sent')
+@rule('semi_splice', tell=1, weight=4, level='sentence')
 def find_semi_splice(sent):
     "Semicolons joining two independent clauses; serial semicolons and citations pass"
     res, depth = [], 0
@@ -91,7 +91,7 @@ def find_semi_splice(sent):
         elif t.text == ';' and not depth:
             if _clausal([x for x in sent if x.i < t.i]) and _clausal([x for x in sent if x.i > t.i]):
                 o = t.idx - sent.start_char
-                res.append(Finding('semi_splice', 1, o, o+1, ';', KILL))
+                res.append(Finding('semi_splice', 1, o, o+1, ';', 4))
     return res
 
 # %% ../nbs/03_syntax.ipynb #9431332d
