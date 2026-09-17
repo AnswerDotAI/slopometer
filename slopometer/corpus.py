@@ -52,10 +52,10 @@ def _mirror_prompts(days, path_re):
     from aidialog.dlgskill import find_msgs
     from rgapi.skill import fd
     root = index().root
-    cutoff = datetime.now() - timedelta(days=days)
+    cutoff = (datetime.now() - timedelta(days=days)).timestamp()
     for p in fd(root, ext='ipynb', path_re=path_re):
-        if p.mtime <= cutoff: continue
-        yield from ((p, m) for m in find_msgs(msg_type='prompt', context=0, dlg=str(root/p)))
+        if p.stat().st_mtime <= cutoff: continue
+        yield from ((p.relative_to(root), m) for m in find_msgs(msg_type='prompt', context=0, dlg=p))
 
 def mirror_replies(
     days=21, # How far back to walk the mirror
@@ -89,7 +89,7 @@ async def readme_paras(
     gql = GhGql()
     names = [o['name'] async for o in gql.paged(gql.organization(login=org).repositories, 'name createdAt isFork')
         if o['createdAt'][:10] < before and not o['isFork']]
-    names = sorted(set(names) & {p.rstrip('/') for p in ls(root, dirs=True, files=False)} - set(exclude))
+    names = sorted(set(names) & {p.name for p in ls(root, dirs=True, files=False)} - set(exclude))
     txts = await gql.batch(gql.repo(f'{org}/{n}').object(expression='HEAD:README.md')('... on Blob { text }') for n in names)
     return [r for n, t in zip(names, txts) if t for r in doc_paras(t['text'], 'readme', f'{org}/{n}', min_words)]
 
