@@ -37,12 +37,13 @@ Each em dash adds 4 to the total weight. Semicolons joining independent clauses 
 
 [`score_text`](https://AnswerDotAI.github.io/slopometer/score.html#score_text), [`score_path`](https://AnswerDotAI.github.io/slopometer/score.html#score_path), and [`score_many`](https://AnswerDotAI.github.io/slopometer/score.html#score_many) accept `min_words`, defaulting to 150. A short result has `too_short=True`, an empty findings list, and `None` for `density`, `total`, and `worst`.
 
-[`score_path`](https://AnswerDotAI.github.io/slopometer/score.html#score_path) scores Markdown files or the Markdown cells of an `.ipynb` notebook. Notebook cells are joined with blank lines and scored as one document; code cells, outputs, and raw cells are excluded. File reports carry `lineno|hash|` addresses, prefixed with the cell ID for notebooks. `Result.location(finding)` returns the source location. The command line accepts a file or Markdown on stdin:
+[`score_path`](https://AnswerDotAI.github.io/slopometer/score.html#score_path) scores Markdown files, the Markdown cells of an `.ipynb` notebook, or the module docstring of a `.py` file. Notebook cells are joined with blank lines and scored as one document; code cells, outputs, and raw cells are excluded. File reports carry `lineno|hash|` addresses, prefixed with the cell ID for notebooks. For a `.py` file, addresses name lines of that file. `Result.location(finding)` returns the source location. The command line accepts a file or Markdown on stdin:
 
-    slopometer --path README.md
-    slopometer --path nbs/00_core.ipynb
+    slopometer README.md
+    slopometer nbs/00_core.ipynb
+    slopometer pkg/module.py
     git log -1 --format=%B | slopometer --min-words 0
-    slopometer --path draft.md --threshold 10
+    slopometer draft.md --threshold 10
 
 `--threshold` returns exit code 1 when a score exceeds the limit. Inputs below `--min-words` print the short-input message and exit successfully without scoring. JSON output marks them with `too_short: true`, includes `min_words`, and uses null scores. Notebook findings include a `location` object with `cell_id`, zero-based `cell_index`, one-based `line`, and `address`. Their `start` and `end` offsets refer to the combined Markdown, not notebook JSON.
 

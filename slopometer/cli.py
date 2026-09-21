@@ -1,6 +1,6 @@
 """The command line: score a file or stdin, warm
 
-`slopometer --path <file>` prints the worst-first report, `slopometer` alone reads stdin, and `--threshold` turns the density into an exit code for CI and hooks. Loading the model takes about a second and scoring takes milliseconds, so the command runs through [warmpy](https://github.com/AnswerDotAI/warmpy): the first call starts a background process that loads the model, later calls reuse it, and it exits after thirty idle minutes. The Claude Code stop hook runs this same command with the response text on stdin.
+`slopometer <file>` prints the worst-first report, `slopometer` alone reads stdin, and `--threshold` turns the density into an exit code for CI and hooks. Loading the model takes about a second and scoring takes milliseconds, so the command runs through [warmpy](https://github.com/AnswerDotAI/warmpy): the first call starts a background process that loads the model, later calls reuse it, and it exits after thirty idle minutes. The Claude Code stop hook runs this same command with the response text on stdin.
 
 Docs: https://AnswerDotAI.github.io/slopometer/cli.html.md"""
 
@@ -14,21 +14,21 @@ import sys
 from warmpy import warm_parse
 
 # %% ../nbs/06_cli.ipynb #d21704e3
-@warm_parse
+@warm_parse(pos=['path'])
 def main(
-    path:str=None, # Markdown or notebook file to score; stdin when omitted
+    path:str=None, # Markdown, notebook, or `.py` file to score; stdin when omitted
     threshold:float=None, # Exit code 1 when density exceeds this
     json:bool=False, # Emit the result as JSON instead of the report
     min_words:int=150, # Minimum scored words; 0 disables the cutoff
 ):
-    "Score Markdown or notebook prose against the aai reference-prose rules"
+    "Score Markdown, notebook, or module docstring prose against the aai reference-prose rules"
     from json import dumps
     from slopometer.score import score_path, score_text
     res = score_path(path, min_words=min_words) if path else score_text(sys.stdin.read(), min_words=min_words)
     if json:
         findings = [{k: getattr(f, k) for k in ('rule', 'tell', 'start', 'end', 'text', 'weight', 'suggestion')}
             for f in res.findings]
-        if res.cells is not None:
+        if res.cells is not None or res.src is not None:
             for row,f in zip(findings, res.findings): row['location'] = res.location(f)
         print(dumps(dict(density=res.density, worst=res.worst, words=res.words,
             too_short=res.too_short, min_words=res.min_words, findings=findings)))

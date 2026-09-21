@@ -1,6 +1,6 @@
 """Run every rule, weigh the findings, and report worst first
 
-`score_text` runs the registered rules on Markdown and returns findings in descending weight order. `score_path` reads a Markdown file or a notebook's Markdown cells.
+`score_text` runs the registered rules on Markdown and returns findings in descending weight order. `score_path` reads a Markdown file, a notebook's Markdown cells, or a `.py` file's module docstring.
 
 Density is the total finding weight per 100 scored words. `worst` is the highest individual weight. Both help identify prose to review, but neither establishes whether the explanation is clear or complete.
 
@@ -12,6 +12,7 @@ Docs: https://AnswerDotAI.github.io/slopometer/score.html.md"""
 __all__ = ['find_overstructure', 'run_rules', 'Result', 'score_text', 'score_path', 'score_many']
 
 # %% ../nbs/05_score.ipynb #68d2aa09
+import ast
 from fastcore.utils import *
 from fastcore.tools import lnhash_at
 from fastcore.nbio import read_nb
@@ -65,6 +66,8 @@ class Result:
         path=None, # Source file, when scoring a file
         min_words=150, # Minimum scored words; 0 disables the cutoff
         cells=None, # Notebook (document offset, cell) pairs; None for plain text
+        src=None, # Text of the `.py` file that holds the document; None for other sources
+        line0=0, # Lines of `src` before the document's first line
     ):
         store_attr()
         for f in findings:
@@ -85,6 +88,7 @@ class Result:
                 txt, off, cell = c.source, start, c
                 break
         ln = txt[:f.start-off].count('\n')+1
+        if cell is None and self.src is not None: txt, ln = self.src, ln+self.line0
         addr = lnhash_at(txt, ln) if self.path else f'{ln}:'
         if cell is None: return dict(line=ln, address=addr)
         return dict(cell_id=cell.id, cell_index=cell.idx_, line=ln, address=f'{cell.id}:{addr}')
@@ -102,9 +106,9 @@ def score_text(txt, min_words=150):
     return Result(txt, run_rules(txt) if words >= min_words else [], words, min_words=min_words)
 
 def score_path(p, min_words=150):
-    "Score Markdown or an `.ipynb` file's Markdown cells; report exhash addresses"
+    "Score a Markdown file, an `.ipynb` file's Markdown cells, or a `.py` file's module docstring, with exhash addresses"
     p = Path(p).expanduser()
-    cells = None
+    cells,src,line0 = None,None,0
     if p.suffix.lower() == '.ipynb':
         cells, off = [], 0
         for c in read_nb(p).cells:
@@ -112,11 +116,15 @@ def score_path(p, min_words=150):
             cells.append((off, c))
             off += len(c.source) + 2
         txt = '\n\n'.join(c.source for _,c in cells)
+    elif p.suffix.lower() == '.py':
+        src = p.read_text()
+        mod = ast.parse(src)
+        txt = ast.get_docstring(mod, clean=False) or ''
+        if txt: line0 = mod.body[0].lineno - 1
     else: txt = p.read_text()
     res = score_text(txt, min_words=min_words)
-    res.path, res.cells = p, cells
+    res.path, res.cells, res.src, res.line0 = p, cells, src, line0
     return res
-
 
 # %% ../nbs/05_score.ipynb #0e3b855b
 def score_many(txts, n_workers=8, min_words=150):

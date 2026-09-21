@@ -14,7 +14,7 @@ from fastcore.utils import *
 
 # %% ../nbs/00_core.ipynb #5fecc627
 tells = {
-    1: 'splices',              2: 'contract by aside',       3: 'emphasis devices',
+    1: 'splices',              2: 'key rule in an aside',    3: 'emphasis devices',
     4: 'elegant variation',    5: 'flourish over identifier', 6: 'consequence glue',
     7: 'hedging',              8: 'noting fillers',          9: 'restatement',
     10: 'justification rider', 11: 'decorative verbs',       12: 'audience misjudged',
@@ -71,7 +71,7 @@ def find_decoration(txt):
 
 # %% ../nbs/00_core.ipynb #1af3670a
 unscoreable = {
-    2: 'knowing which fact is the contract takes judgment',
+    2: 'knowing which fact is the key rule takes judgment',
     5: "telling a flourish from a real identifier takes the project's vocabulary",
     9: 'lead-sentence restatement defeats averaged sentence vectors, and only the heading echo is detectable (measured in the para notebook)',
     10: 'a justification rider reads like a stated consequence, and only the domain says which it is',
