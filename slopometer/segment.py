@@ -25,7 +25,6 @@ class Block:
 
 _iframe = re.compile(r'<iframe\b.*?</iframe\s*>', re.S | re.I)
 _item = re.compile(r'^\s*(?:[-*+]|\d+[.)]) ')
-_KINDS = dict(paragraph='prose', heading='heading')
 
 def segment(doc):
     "Split markdown `doc` into typed `Block`s that keep their character offsets"
@@ -35,25 +34,27 @@ def segment(doc):
     for l in lines:
         offs.append(n)
         n += len(l) + 1
-    out = []
-    for b in mdhtml.blocks(doc):
-        seg = lines[b['start']:b['end']]
-        if b['type'] == 'list':
-            out += [Block('item', l, offs[b['start']+i]) for i,l in enumerate(seg) if _item.match(l)]
-        elif b['type'] in _KINDS:
-            txt = '\n'.join(seg).strip('\n')
-            if txt.strip(): out.append(Block(_KINDS[b['type']], txt, offs[b['start']]))
+    out, quotes = [], []
+    for b in mdhtml.blocks(doc, nested=True):
+        quotes = [q for q in quotes if q['depth'] < b['depth'] and b['start'] < q['end']]
+        if b['type'] == 'block_quote': quotes.append(b)
+        if quotes or b['type'] not in ('paragraph', 'heading'): continue
+        raw = '\n'.join(lines[b['start']:b['end']])
+        txt = raw.strip()
+        if not txt: continue
+        kind = 'heading' if b['type'] == 'heading' else 'item' if _item.match(txt) else 'prose'
+        out.append(Block(kind, txt, offs[b['start']] + len(raw) - len(raw.lstrip())))
     return L(out)
 
 # %% ../nbs/01_segment.ipynb #6c25fbfe
-_icode = re.compile(r'`[^`\n]+`')
-_ltarget = re.compile(r'\]\([^)\n]+\)')
-
 def scrub(txt):
-    "Replace inline code with X-fill and link targets with spaces, keeping every offset unchanged"
-    txt = _icode.sub(lambda m: 'X'*len(m.group()), txt)
-    return _ltarget.sub(lambda m: ' '*len(m.group()), txt)
-
+    "Keep `txt`'s plain text, fill its inline code with X, and turn all other markup into spaces, keeping every offset unchanged"
+    out = [c if c == '\n' else ' ' for c in txt]
+    for n in mdhtml.inlines(txt):
+        a,b = n['start'], n['end']
+        if n['type'] == 'text': out[a:b] = txt[a:b]
+        elif n['type'] == 'code': out[a:b] = 'X'*(b-a)
+    return ''.join(out)
 
 # %% ../nbs/01_segment.ipynb #6052473a
 def n_headings(blocks): return sum(1 for b in blocks if b.kind=='heading')

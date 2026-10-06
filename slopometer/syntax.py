@@ -1,6 +1,6 @@
 """The spaCy rules: sentences, clauses, passives, and the patterns anchored to them
 
-This module uses [spaCy](https://spacy.io) to detect long sentences, stacked clauses, passives, and part-of-speech-dependent vocabulary. It also checks noun clusters, nominalizations, actor placement, and phrases whose meaning depends on their position in a sentence. `get_nlp` downloads and loads the spaCy model.
+This module uses [spaCy](https://spacy.io) to detect long sentences, stacked clauses, sentences with three or more punctuation-separated sections, passives, and part-of-speech-dependent vocabulary. It also checks noun clusters, nominalizations, actor placement, and phrases whose meaning depends on their position in a sentence. `get_nlp` downloads and loads the spaCy model.
 
 Docs: https://AnswerDotAI.github.io/slopometer/syntax.html.md"""
 
@@ -9,8 +9,9 @@ Docs: https://AnswerDotAI.github.io/slopometer/syntax.html.md"""
 # %% auto #0
 __all__ = ['MODEL', 'MODEL_PKG', 'MODEL_URL', 'find_throat', 'find_todays', 'find_announce', 'find_notxbuty', 'find_teaser',
            'find_appraisal', 'model_path', 'get_nlp', 'find_sent_len', 'find_clauses', 'find_semi_splice',
-           'find_passive', 'find_verb_banned', 'find_intensifiers', 'find_noun_cluster', 'find_nominalization',
-           'find_artifact_agent', 'find_recipient_subject', 'sent_rule', 'find_rhetorical']
+           'find_sections', 'find_and_splice', 'find_passive', 'find_verb_banned', 'find_intensifiers',
+           'find_noun_cluster', 'find_nominalization', 'find_artifact_agent', 'find_recipient_subject',
+           'find_inert_act', 'find_inert_mind', 'sent_rule', 'find_rhetorical']
 
 # %% ../nbs/03_syntax.ipynb #e2b9a004
 import spacy, zipfile, shutil, importlib
@@ -94,17 +95,89 @@ def find_semi_splice(sent):
                 res.append(Finding('semi_splice', 1, o, o+1, ';', 4))
     return res
 
+# %% ../nbs/03_syntax.ipynb #01e48875
+_breaks = {',', ';', ':', '—', '–'}
+
+def _is_break(t):
+    "Does punctuation `t` end a section, counting a spaced hyphen as a dash?"
+    if t.text in ('-', '--'): return bool(t.whitespace_) and t.i > 0 and bool(t.nbor(-1).whitespace_)
+    return t.text in _breaks
+
+def _verbless(toks): return not any(t.pos_ in ('VERB', 'AUX') for t in toks)
+
+def _subject_last(seg):
+    "Does `seg` open with a coordinator whose item spaCy parsed as the sentence's subject, as in 'and prompts work'?"
+    return len(seg) > 1 and seg[0].dep_ == 'cc' and any(t.dep_.startswith('nsubj') and t.left_edge.i == seg[1].i for t in seg)
+
+def _list_commas(toks, brks, parts):
+    "Indexes into `brks` of commas between list items, given the `parts` of the sentence between breaks"
+    segs = parts[1:]
+    fronted = brks and _verbless(parts[0]) and not _verbless(toks[brks[0]:])
+    res, j = set(), 0
+    while j < len(brks):
+        e = j
+        while e < len(brks) and toks[brks[e]].text == ',' and not _clausal(segs[e]): e += 1
+        subj = j == 0 and e < len(brks) and toks[brks[e]].text == ',' and _subject_last(segs[e]) and all(map(_verbless, parts[:e+1]))
+        if j == 0 and fronted and not subj:
+            j = 1
+            continue
+        run = segs[j:e+subj]
+        if subj or any(t.dep_ == 'cc' for s in run for t in s) or len(run) > 1: res.update(range(j, e+subj))
+        j = max(e+subj, j+1)
+    return res
+
+def _n_sections(sent):
+    "How many sections punctuation splits `sent` into, with each list item kept whole"
+    toks = list(sent[:-1] if sent[-1].is_punct else sent)
+    brks, parens, hidden, depth = [], [], set(), 0
+    for k,t in enumerate(toks):
+        if depth or t.text == '(': hidden.add(k)
+        if t.text == ')': depth = max(0, depth-1)
+        elif not depth and t.text == '(': parens.append(k)
+        elif not depth and _is_break(t): brks.append(k)
+        if t.text == '(': depth += 1
+    bounds = [-1] + brks + [len(toks)]
+    parts = [[toks[i] for i in range(a+1, b) if i not in hidden] for a,b in zip(bounds, bounds[1:])]
+    lists, n = _list_commas(toks, brks, parts), 1
+    for j,k in enumerate(brks):
+        if toks[k].text == ';': n += _clausal(toks[:k]) and _clausal(toks[k+1:])
+        elif j not in lists: n += 1
+    for k in parens:
+        j = sum(b < k for b in brks)
+        n += not ({j-1, j} & lists)
+    return n
+
+@rule('sections', tell=1, weight=PRESSURE, level='sentence')
+def find_sections(sent):
+    "Sentences that punctuation splits into three or more sections, escalating per extra section"
+    n = _n_sections(sent)
+    if n < 3: return []
+    return [Finding('sections', 1, 0, len(sent.text), sent.text, PRESSURE*(n-2))]
+
+# %% ../nbs/03_syntax.ipynb #24cb1828
+@rule('and_splice', tell=1, weight=SMELL, level='sentence')
+def find_and_splice(sent):
+    "', and' joining a clause that has its own subject"
+    res = []
+    for t in sent[:-1]:
+        a = t.nbor()
+        if t.text != ',' or a.lower_ != 'and': continue
+        end = next((x.i for x in sent.doc[a.i+1:sent.end] if _is_break(x)), sent.end)
+        if not _clausal(sent.doc[a.i+1:end]): continue
+        s,e = t.idx-sent.start_char, a.idx+len(a.text)-sent.start_char
+        res.append(Finding('and_splice', 1, s, e, sent.text[s:e], SMELL))
+    return res
+
 # %% ../nbs/03_syntax.ipynb #9431332d
-@rule('passive', tell=None, weight=SMELL, level='sentence')
+@rule('passive', tell=None, weight=0, level='sentence')
 def find_passive(sent):
-    "Passive constructions, weighted higher when no agent survives"
+    "Passive constructions, listed without adding to the score"
     res = []
     for t in sent:
         if t.dep_ != 'nsubjpass': continue
         v = t.head
-        agented = any(c.dep_ == 'agent' for c in v.children)
-        span = sent.text[t.idx-sent.start_char:v.idx-sent.start_char+len(v.text)]
-        res.append(Finding('passive', None, t.idx-sent.start_char, v.idx-sent.start_char+len(v.text), span, PRESSURE if agented else SMELL))
+        s,e = t.idx-sent.start_char, v.idx-sent.start_char+len(v.text)
+        res.append(Finding('passive', None, s, e, sent.text[s:e], 0))
     return res
 
 # %% ../nbs/03_syntax.ipynb #6db9f87a
@@ -185,6 +258,73 @@ def find_recipient_subject(sent):
         if t.lemma_ == 'get' and not demoted: continue
         res.append(Finding('recipient_subject', 23, t.idx-sent.start_char, t.idx-sent.start_char+len(t.text), t.text, SMELL))
     return res
+
+# %% ../nbs/03_syntax.ipynb #493c9d5c
+_act_verbs = {  # chkstyle: ignore-node
+    'accomplish', 'achieve', 'add', 'affix', 'arrange', 'assemble', 'assign', 'attach', 'bind', 'bolt', 'brand',
+    'bring', 'build', 'carry', 'clamp', 'coin', 'construct', 'decorate', 'defend', 'deliver', 'detach',
+    'disassemble', 'dismantle', 'distribute', 'download', 'drive', 'emboss', 'ensure', 'exert', 'fabricate',
+    'fasten', 'feed', 'form', 'furnish', 'gather', 'generate', 'give', 'glue', 'grab', 'guard', 'hang', 'hook',
+    'imprint', 'insert', 'inspect', 'invoke', 'keep', 'label', 'land', 'latch', 'leave', 'lock', 'make',
+    'manipulate', 'mark', 'mint', 'modify', 'mount', 'name', 'offer', 'organize', 'pin', 'plug', 'print', 'procure',
+    'produce', 'protect', 'pull', 'push', 'reassemble', 'record', 'release', 'remove', 'render', 'retain', 'ride',
+    'separate', 'serve', 'shape', 'snap', 'stamp', 'stencil', 'stick', 'supply', 'survive', 'tie', 'wire', 'write'}
+_mind_verbs = {  # chkstyle: ignore-node
+    'abandon', 'accuse', 'acknowledge', 'admit', 'advise', 'aim', 'anticipate', 'appreciate', 'argue', 'assume',
+    'attempt', 'believe', 'bother', 'care', 'choose', 'complain', 'comprehend', 'concede', 'consider', 'contend',
+    'convince', 'criticize', 'decide', 'demand', 'deny', 'deserve', 'desire', 'disagree', 'doubt', 'earn',
+    'emphasize', 'encourage', 'endeavour', 'expect', 'feel', 'forbid', 'forget', 'forgive', 'guess', 'hear', 'hope',
+    'ignore', 'imagine', 'insist', 'intend', 'know', 'learn', 'like', 'listen', 'love', 'mind', 'miss', 'opt',
+    'owe', 'own', 'pledge', 'praise', 'prefer', 'presume', 'pretend', 'promise', 'realize', 'reason', 'recognize',
+    'recommend', 'refuse', 'reject', 'remember', 'remind', 'respect', 'seek', 'select', 'sense', 'speak', 'strive',
+    'suppose', 'think', 'trust', 'try', 'understand', 'undertake', 'want', 'wish', 'wonder', 'worry'}
+_people = {  # chkstyle: ignore-node
+    'accountant', 'administrator', 'advisor', 'agent', 'architect', 'assistant', 'associate', 'author', 'blogger',
+    'broker', 'buyer', 'caller', 'coach', 'coder', 'colleague', 'company', 'consultant', 'consumer', 'contractor',
+    'contributor', 'coordinator', 'critic', 'customer', 'department', 'deputy', 'developer', 'director', 'editor',
+    'electrician', 'employee', 'engineer', 'essayist', 'executive', 'filmmaker', 'folks', 'graduate', 'historian',
+    'human', 'individual', 'intern', 'journalist', 'lecturer', 'listener', 'maintainer', 'manager', 'mechanic',
+    'musician', 'novelist', 'officer', 'owner', 'people', 'person', 'playwright', 'poet', 'professor', 'programmer',
+    'proprietor', 'provider', 'publisher', 'reader', 'reporter', 'reviewer', 'scientist', 'screenwriter',
+    'secretary', 'somebody', 'someone', 'songwriter', 'squad', 'staff', 'storyteller', 'supervisor', 'team',
+    'teammate', 'technician', 'trainee', 'user', 'vendor', 'viewer', 'writer'}
+_runners = {  # chkstyle: ignore-node
+    'actuator', 'algorithm', 'analyzer', 'app', 'applet', 'application', 'assembler', 'backend', 'bot', 'browser',
+    'builder', 'call', 'callback', 'cell', 'checker', 'classifier', 'cli', 'client', 'command', 'compiler',
+    'compressor', 'constructor', 'controller', 'converter', 'crawler', 'daemon', 'database', 'debugger',
+    'decorator', 'detector', 'device', 'dispatcher', 'driver', 'engine', 'exporter', 'extension', 'firewall',
+    'formatter', 'framework', 'frontend', 'function', 'gateway', 'generator', 'getter', 'handler', 'harness',
+    'helper', 'hook', 'host', 'importer', 'instance', 'interpreter', 'inverter', 'iterator', 'kernel', 'library',
+    'linter', 'loader', 'loop', 'magic', 'mapper', 'meter', 'method', 'microprocessor', 'mirror', 'model', 'modem',
+    'module', 'operation', 'parser', 'partial', 'plugin', 'preprocessor', 'process', 'program', 'proxy', 'renderer',
+    'router', 'runner', 'scanner', 'scheduler', 'scorer', 'script', 'search', 'selector', 'sensor', 'server',
+    'service', 'shell', 'snippet', 'step', 'subroutine', 'subsystem', 'summarizer', 'system', 'terminal', 'test',
+    'tester', 'thread', 'timer', 'tokenizer', 'tool', 'translator', 'transmitter', 'utility', 'widget', 'worker',
+    'wrapper'}
+
+# %% ../nbs/03_syntax.ipynb #3460be31
+_actors = _people | _runners
+
+def _inert_subj(sent, verbs, name, tell, weight):
+    "Findings for common-noun subjects of a verb in `verbs`, skipping known actors and names capitalised mid-sentence"
+    res = []
+    for t in sent:
+        if t.dep_ != 'nsubj' or t.pos_ != 'NOUN' or set(t.text) == {'X'} or t.lemma_.lower() in _actors: continue
+        if t.head.pos_ != 'VERB' or t.head.lemma_ not in verbs or (t.i > sent.start and t.text[0].isupper()): continue
+        a,b = sorted((t, t.head), key=lambda x: x.i)
+        s,e = a.idx-sent.start_char, b.idx-sent.start_char+len(b.text)
+        res.append(Finding(name, tell, s, e, sent.text[s:e], weight))
+    return res
+
+@rule('inert_act', tell=11, weight=2, level='sentence')
+def find_inert_act(sent):
+    "Subjects that cannot act, given a verb for a physical or deliberate act"
+    return _inert_subj(sent, _act_verbs, 'inert_act', 11, 2)
+
+@rule('inert_mind', tell=22, weight=SMELL, level='sentence')
+def find_inert_mind(sent):
+    "Subjects that cannot act, given a verb that needs a mind"
+    return _inert_subj(sent, _mind_verbs, 'inert_mind', 22, SMELL)
 
 # %% ../nbs/03_syntax.ipynb #69415f9a
 def sent_rule(

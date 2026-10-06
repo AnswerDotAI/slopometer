@@ -41,6 +41,11 @@ def parse_blocks(blocks):
 # %% ../nbs/04_para.ipynb #16ad69f8
 _variant_pairs = [{'folder', 'directory'}, {'method', 'function'}, {'parameter', 'argument'}, {'error', 'exception'}, {'docstring', 'documentation'}]
 
+def _same_word(a, b):
+    "Are lowercase lemmas `a` and `b` the same word, allowing a plural ending that spaCy left on a proper noun?"
+    s,l = sorted((a, b), key=len)
+    return l in (s, s+'s', s+'es')
+
 @rule('variation', tell=4, weight=SMELL, level='para')
 def find_variation(doc):
     "Two names for one concept within a paragraph, by curated pair or shared stem"
@@ -49,7 +54,7 @@ def find_variation(doc):
         if t.pos_ not in ('NOUN', 'PROPN') or not t.is_alpha or len(set(t.lower_)) == 1: continue
         lem = t.lemma_.lower()
         for prev in seen:
-            if prev == lem: continue
+            if _same_word(prev, lem): continue
             pair = any(prev in s and lem in s for s in _variant_pairs)
             stem = (len(min(lem, prev, key=len)) >= 4 and (lem in prev or prev in lem)
                 and not doc.vocab[lem].is_oov and not doc.vocab[prev].is_oov)

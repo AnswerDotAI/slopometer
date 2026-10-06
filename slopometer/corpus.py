@@ -12,7 +12,7 @@ __all__ = ['GH_REPOS', 'CL_SKIP', 'label_overlap', 'label_density', 'reply_final
            'build_corpus']
 
 # %% ../nbs/08_corpus.ipynb #a2a2e052
-import base64, json, httpx
+import base64, json, httpx2
 from collections import Counter
 from datetime import datetime, timedelta
 from fastcore.utils import *
@@ -159,11 +159,11 @@ async def gh_readme_paras(repos=GH_REPOS, date='2022-06-01', min_words=50):
 def _wiki_get(lang, tries=2, **params):
     for i in range(tries):
         try:
-            r = httpx.get(f'https://{lang}.wikipedia.org/w/api.php', follow_redirects=True, timeout=30,
+            r = httpx2.get(f'https://{lang}.wikipedia.org/w/api.php', follow_redirects=True, timeout=30,
                 headers={'User-Agent': 'slopometer/0.1 (https://github.com/AnswerDotAI/slopometer)'},
                 params=dict(action='query', prop='extracts', explaintext=1, exintro=1, format='json', **params))
             return r.json()['query']['pages'].values()
-        except httpx.TimeoutException:
+        except httpx2.TimeoutException:
             if i == tries-1: raise
 
 def wiki_paras(n=40, lang='en', min_words=50):

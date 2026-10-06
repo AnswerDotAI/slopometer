@@ -1,6 +1,6 @@
 """The command line: score a file or stdin, warm
 
-`slopometer <file>` prints the worst-first report, `slopometer` alone reads stdin, and `--threshold` turns the density into an exit code for CI and hooks. Loading the model takes about a second and scoring takes milliseconds, so the command runs through [warmpy](https://github.com/AnswerDotAI/warmpy): the first call starts a background process that loads the model, later calls reuse it, and it exits after thirty idle minutes. The Claude Code stop hook runs this same command with the response text on stdin.
+`slopometer <file>` prints the worst-first report, `slopometer` alone reads stdin, and `--threshold` turns the density into an exit code for CI and hooks. Several files or directories give one report per file, highest density first. `--pangram` scores with Pangram's AI detector instead of the rules. Loading the model takes about a second and scoring takes milliseconds, so the command runs through [warmpy](https://github.com/AnswerDotAI/warmpy): the first call starts a background process that loads the model, later calls reuse it, and it exits after thirty idle minutes. The Claude Code stop hook runs this same command with the response text on stdin.
 
 Docs: https://AnswerDotAI.github.io/slopometer/cli.html.md"""
 
@@ -11,27 +11,31 @@ __all__ = ['main']
 
 # %% ../nbs/06_cli.ipynb #01e3be12
 import sys
+from pathlib import Path
 from warmpy import warm_parse
 
 # %% ../nbs/06_cli.ipynb #d21704e3
-@warm_parse(pos=['path'])
-def main(
-    path:str=None, # Markdown, notebook, or `.py` file to score; stdin when omitted
-    threshold:float=None, # Exit code 1 when density exceeds this
-    json:bool=False, # Emit the result as JSON instead of the report
-    min_words:int=150, # Minimum scored words; 0 disables the cutoff
-):
-    "Score Markdown, notebook, or module docstring prose against the aai reference-prose rules"
-    from json import dumps
-    from slopometer.score import score_path, score_text
-    res = score_path(path, min_words=min_words) if path else score_text(sys.stdin.read(), min_words=min_words)
-    if json:
-        findings = [{k: getattr(f, k) for k in ('rule', 'tell', 'start', 'end', 'text', 'weight', 'suggestion')}
-            for f in res.findings]
-        if res.cells is not None or res.src is not None:
-            for row,f in zip(findings, res.findings): row['location'] = res.location(f)
-        print(dumps(dict(density=res.density, worst=res.worst, words=res.words,
-            too_short=res.too_short, min_words=res.min_words, findings=findings)))
-    else: print(res)
-    if threshold is not None and res.density is not None and res.density > threshold: return 1
+def _as_json(res):
+    "A `Result` as a JSON-ready dict, with each finding's source location"
+    findings = [dict(vars(f), location=res.location(f)) for f in res.findings]
+    return dict(path=res.path and str(res.path), density=res.density, worst=res.worst, words=res.words,
+        too_short=res.too_short, min_words=res.min_words, findings=findings)
 
+@warm_parse
+def main(
+    *paths:str, # Markdown, notebook, or `.py` files, or directories of them; stdin when omitted
+    threshold:float=None, # Exit code 1 when any density exceeds this, which runs from 0 to 100 with `pangram`
+    json:bool=False, # Emit JSON instead of reports: a list with one entry per file
+    min_words:int=150, # Minimum scored words; 0 disables the cutoff
+    pangram:bool=False, # Score with Pangram's AI detector instead of the rules; needs `PANGRAM_API_KEY`
+):
+    "Score Markdown, notebook, or module docstring prose against the aai reference-prose rules, or with Pangram's AI detector"
+    from json import dumps
+    from slopometer.score import score_paths, score_text
+    from slopometer.pangram import pangram_paths, pangram_text
+    sp,st = (pangram_paths,pangram_text) if pangram else (score_paths,score_text)
+    rs = sp(paths, min_words=min_words) if paths else [st(sys.stdin.read(), min_words=min_words)]
+    rs = sorted(rs, key=lambda r: (r.density is not None, r.density or 0), reverse=True)
+    if json: print(dumps([_as_json(r) for r in rs]))
+    else: print('\n\n'.join(map(str, rs)))
+    if threshold is not None and any(r.density is not None and r.density > threshold for r in rs): return 1

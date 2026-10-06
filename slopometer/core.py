@@ -50,7 +50,7 @@ def rule(
     name, # Rule name, unique within slopometer
     tell, # `write_docs` tell number the rule detects
     weight, # Tier the rule's findings carry
-    level, # The unit the detector reads: 'phrase', 'sentence', 'para', or 'doc'
+    level, # The unit the detector reads: 'phrase', 'markdown', 'sentence', 'para', or 'doc'
 ):
     "Register a detector, a function from its unit's text to the list of `Finding`s in it"
     def _f(f):
@@ -75,6 +75,5 @@ unscoreable = {
     5: "telling a flourish from a real identifier takes the project's vocabulary",
     9: 'lead-sentence restatement defeats averaged sentence vectors, and only the heading echo is detectable (measured in the para notebook)',
     10: 'a justification rider reads like a stated consequence, and only the domain says which it is',
-    11: 'verb texture beyond the banned-verb lexicon is a whiteboard judgment',
     12: 'matching prose and terminology to the reader requires audience and document context',
     26: 'depth is judged against what the reader already knows',}

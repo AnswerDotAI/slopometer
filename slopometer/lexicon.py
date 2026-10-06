@@ -12,9 +12,9 @@ __all__ = ['banned', 'find_banned', 'hedges', 'noting', 'transitions', 'find_hed
 
 # %% ../nbs/02_lexicon.ipynb #23bc602c
 from fastcore.utils import *
+from mdhtml import inlines
 from .core import *
 from .segment import *
-
 
 # %% ../nbs/02_lexicon.ipynb #449d550b
 def lex_rule(
@@ -78,12 +78,10 @@ def find_conseq(txt):
     return [Finding('conseq', 6, m.start(), m.end(), m.group(), SMELL) for m in _conseq.finditer(txt)]
 
 # %% ../nbs/02_lexicon.ipynb #8daaf936
-_emph = re.compile(r'\*\*[^*\n]+\*\*|(?<![\w*])\*[^*\s][^*\n]*\*(?![\w*])|(?<![\w_])__[^_\n]+__(?![\w_])')
-
-@rule('emphasis', tell=3, weight=SMELL, level='phrase')
+@rule('emphasis', tell=3, weight=SMELL, level='markdown')
 def find_emphasis(txt):
-    "Bold and italic markers in running prose"
-    return [Finding('emphasis', 3, m.start(), m.end(), m.group(), SMELL) for m in _emph.finditer(txt)]
+    "Bold and italic text in Markdown `txt`"
+    return [Finding('emphasis', 3, n['start'], n['end'], txt[n['start']:n['end']], SMELL) for n in inlines(txt) if n['type'] in ('emph', 'strong')]
 
 # %% ../nbs/02_lexicon.ipynb #cdb0967f
 wordy = {'all of': 'all', 'additional': 'more', 'a number of': 'some', 'along the lines of': 'like',
