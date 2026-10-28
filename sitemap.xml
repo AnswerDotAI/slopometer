@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='utf-8'?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://AnswerDotAI.github.io/slopometer/core.html</loc>
+    <lastmod>2026-10-28T07:22:14.963Z</lastmod>
+  </url>
+  <url>
+    <loc>https://AnswerDotAI.github.io/slopometer/lexicon.html</loc>
+    <lastmod>2026-10-28T07:22:15.004Z</lastmod>
+  </url>
+  <url>
+    <loc>https://AnswerDotAI.github.io/slopometer/para.html</loc>
+    <lastmod>2026-10-28T07:22:16.226Z</lastmod>
+  </url>
+<url>
+    <loc>https://AnswerDotAI.github.io/slopometer/features.html</loc>
+    <lastmod>2026-10-28T07:22:16.338Z</lastmod>
+  </url>
+  <url>
+    <loc>https://AnswerDotAI.github.io/slopometer/pangram.html</loc>
+    <lastmod>2026-10-28T07:22:16.212Z</lastmod>
+  </url>
+  <url>
+    <loc>https://AnswerDotAI.github.io/slopometer/score.html</loc>
+    <lastmod>2026-10-28T07:22:16.324Z</lastmod>
+  </url>
+<url>
+    <loc>https://AnswerDotAI.github.io/slopometer/cli.html</loc>
+    <lastmod>2026-10-28T07:22:16.384Z</lastmod>
+  </url>
+  <url>
+    <loc>https://AnswerDotAI.github.io/slopometer/segment.html</loc>
+    <lastmod>2026-10-28T07:22:14.997Z</lastmod>
+  </url>
+  <url>
+    <loc>https://AnswerDotAI.github.io/slopometer/corpus.html</loc>
+    <lastmod>2026-10-28T07:22:16.484Z</lastmod>
+  </url>
+<url>
+    <loc>https://AnswerDotAI.github.io/slopometer/syntax.html</loc>
+    <lastmod>2026-10-28T07:22:16.361Z</lastmod>
+  </url>
+  <url>
+    <loc>https://AnswerDotAI.github.io/slopometer/index.html</loc>
+    <lastmod>2026-10-28T07:22:16.385Z</lastmod>
+  </url>
+</urlset>
