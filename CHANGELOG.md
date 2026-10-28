@@ -2,6 +2,13 @@
 
 <!-- do not remove -->
 
+## 0.0.5
+
+### New Features
+
+- Rename tell 1 splices to tacked-on clauses (`tacked_dash`/semi/and rules), add per-tell advice to findings, pass fd root by keyword ([#11](https://github.com/AnswerDotAI/slopometer/issues/11))
+
+
 ## 0.0.4
 
 ### New Features
