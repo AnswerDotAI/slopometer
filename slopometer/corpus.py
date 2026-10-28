@@ -53,7 +53,7 @@ def _mirror_prompts(days, path_re):
     from rgapi.skill import fd
     root = index().root
     cutoff = (datetime.now() - timedelta(days=days)).timestamp()
-    for p in fd(root, ext='ipynb', path_re=path_re):
+    for p in fd(root=root, ext='ipynb', path_re=path_re):
         if p.stat().st_mtime <= cutoff: continue
         yield from ((p.relative_to(root), m) for m in find_msgs(msg_type='prompt', context=0, dlg=p))
 

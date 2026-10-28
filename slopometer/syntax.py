@@ -8,8 +8,8 @@ Docs: https://AnswerDotAI.github.io/slopometer/syntax.html.md"""
 
 # %% auto #0
 __all__ = ['MODEL', 'MODEL_PKG', 'MODEL_URL', 'find_throat', 'find_todays', 'find_announce', 'find_notxbuty', 'find_teaser',
-           'find_appraisal', 'model_path', 'get_nlp', 'find_sent_len', 'find_clauses', 'find_semi_splice',
-           'find_sections', 'find_and_splice', 'find_passive', 'find_verb_banned', 'find_intensifiers',
+           'find_appraisal', 'model_path', 'get_nlp', 'find_sent_len', 'find_clauses', 'find_tacked_semi',
+           'find_sections', 'find_tacked_and', 'find_passive', 'find_verb_banned', 'find_intensifiers',
            'find_noun_cluster', 'find_nominalization', 'find_artifact_agent', 'find_recipient_subject',
            'find_inert_act', 'find_inert_mind', 'sent_rule', 'find_rhetorical']
 
@@ -82,8 +82,8 @@ def _clausal(toks):
     "Do `toks` contain a finite clause: a subject attached to a verb?"
     return any(t.dep_.startswith('nsubj') and t.head.pos_ in ('VERB', 'AUX') for t in toks)
 
-@rule('semi_splice', tell=1, weight=4, level='sentence')
-def find_semi_splice(sent):
+@rule('tacked_semi', tell=1, weight=4, level='sentence')
+def find_tacked_semi(sent):
     "Semicolons joining two independent clauses; serial semicolons and citations pass"
     res, depth = [], 0
     for t in sent:
@@ -92,7 +92,7 @@ def find_semi_splice(sent):
         elif t.text == ';' and not depth:
             if _clausal([x for x in sent if x.i < t.i]) and _clausal([x for x in sent if x.i > t.i]):
                 o = t.idx - sent.start_char
-                res.append(Finding('semi_splice', 1, o, o+1, ';', 4))
+                res.append(Finding('tacked_semi', 1, o, o+1, ';', 4))
     return res
 
 # %% ../nbs/03_syntax.ipynb #01e48875
@@ -155,8 +155,8 @@ def find_sections(sent):
     return [Finding('sections', 1, 0, len(sent.text), sent.text, PRESSURE*(n-2))]
 
 # %% ../nbs/03_syntax.ipynb #24cb1828
-@rule('and_splice', tell=1, weight=SMELL, level='sentence')
-def find_and_splice(sent):
+@rule('tacked_and', tell=1, weight=SMELL, level='sentence')
+def find_tacked_and(sent):
     "', and' joining a clause that has its own subject"
     res = []
     for t in sent[:-1]:
@@ -165,7 +165,7 @@ def find_and_splice(sent):
         end = next((x.i for x in sent.doc[a.i+1:sent.end] if _is_break(x)), sent.end)
         if not _clausal(sent.doc[a.i+1:end]): continue
         s,e = t.idx-sent.start_char, a.idx+len(a.text)-sent.start_char
-        res.append(Finding('and_splice', 1, s, e, sent.text[s:e], SMELL))
+        res.append(Finding('tacked_and', 1, s, e, sent.text[s:e], SMELL))
     return res
 
 # %% ../nbs/03_syntax.ipynb #9431332d

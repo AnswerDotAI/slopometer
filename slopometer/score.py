@@ -149,7 +149,7 @@ def _doc_paths(paths):
     res = []
     for p in listify(paths):
         p = Path(p).expanduser()
-        res += sorted(fd(p, ext=['md', 'qmd', 'ipynb', 'py'])) if p.is_dir() else [p]
+        res += sorted(fd(root=p, ext=['md', 'qmd', 'ipynb', 'py'])) if p.is_dir() else [p]
     return res
 
 def score_paths(paths, n_workers=8, min_words=150):

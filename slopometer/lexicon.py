@@ -1,6 +1,6 @@
-"""Word and phrase rules: banned vocabulary, hedges, fillers, and splices
+"""Word and phrase rules: banned vocabulary, hedges, fillers, and tacked-on clauses
 
-These rules match words, phrases, punctuation, and Markdown emphasis in scrubbed text. They cover banned vocabulary, hedges, fillers, splices, and consequence joins. Findings include plain replacements where available. The rules use regexes without linguistic analysis.
+These rules match words, phrases, punctuation, and Markdown emphasis in scrubbed text. They cover banned vocabulary, hedges, fillers, tacked-on clauses, and consequence joins. Findings include plain replacements where available. The rules use regexes without linguistic analysis.
 
 Docs: https://AnswerDotAI.github.io/slopometer/lexicon.html.md"""
 
@@ -8,7 +8,7 @@ Docs: https://AnswerDotAI.github.io/slopometer/lexicon.html.md"""
 
 # %% auto #0
 __all__ = ['banned', 'find_banned', 'hedges', 'noting', 'transitions', 'find_hedges', 'find_noting', 'find_transitions', 'wordy',
-           'find_wordy', 'lex_rule', 'find_splice', 'find_conseq', 'find_emphasis']
+           'find_wordy', 'lex_rule', 'find_tacked_dash', 'find_conseq', 'find_emphasis']
 
 # %% ../nbs/02_lexicon.ipynb #23bc602c
 from fastcore.utils import *
@@ -64,13 +64,13 @@ find_noting = lex_rule('noting', tell=8, weight=SMELL, lex=noting)
 find_transitions = lex_rule('transitions', tell=19, weight=SMELL, lex=transitions)
 
 # %% ../nbs/02_lexicon.ipynb #79549961
-_splice = re.compile(r'—')
+_dash = re.compile(r'—')
 _conseq = re.compile(r', so\b')
 
-@rule('splice', tell=1, weight=4, level='phrase')
-def find_splice(txt):
+@rule('tacked_dash', tell=1, weight=4, level='phrase')
+def find_tacked_dash(txt):
     "Em dashes"
-    return [Finding('splice', 1, m.start(), m.end(), m.group(), 4) for m in _splice.finditer(txt)]
+    return [Finding('tacked_dash', 1, m.start(), m.end(), m.group(), 4) for m in _dash.finditer(txt)]
 
 @rule('conseq', tell=6, weight=SMELL, level='phrase')
 def find_conseq(txt):

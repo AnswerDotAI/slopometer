@@ -6,7 +6,7 @@ Modules:
 - `slopometer.core`: Tells, findings, the rule registry, and what the meter cannot see
 - `slopometer.corpus`: Build the labeled corpus: weak positives from scored replies, mixed human negatives
 - `slopometer.features`: Continuous measurements for learned scoring
-- `slopometer.lexicon`: Word and phrase rules: banned vocabulary, hedges, fillers, and splices
+- `slopometer.lexicon`: Word and phrase rules: banned vocabulary, hedges, fillers, and tacked-on clauses
 - `slopometer.pangram`: Score prose with Pangram's AI detector, as an alternative to the rules
 - `slopometer.para`: Paragraph rules: restatement, elegant variation, forced symmetry, and length
 - `slopometer.score`: Run every rule, weigh the findings, and report worst first
