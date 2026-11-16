@@ -1,0 +1,148 @@
+{"split": "dev", "doc": "08_corpus", "i": 0, "text": "Training the learned scorer needs labeled text, and no human has labeled any.", "para": 0, "group": "B", "jeremy": "ok"}
+{"split": "dev", "doc": "08_corpus", "i": 1, "text": "This module builds the corpus by weak supervision: the rules pick confident slop from my own reply history, human-authored sources supply the clean side, and the ambiguous middle joins neither.", "para": 0, "group": "A"}
+{"split": "dev", "doc": "08_corpus", "i": 2, "text": "The one human-labeled set, replies that drew a complaint in a session, is written separately and reserved for evaluation.", "para": 0, "group": "B"}
+{"split": "dev", "doc": "08_corpus", "i": 3, "text": "Rows carry their source, so any experiment can slice, reweight, or hold out a source later.", "para": 0, "group": "A", "jeremy": "bad"}
+{"split": "dev", "doc": "08_corpus", "i": 4, "text": "The rules select the positives, and the forest's features must stay independent of that selection.", "para": 1, "group": "B"}
+{"split": "dev", "doc": "08_corpus", "i": 5, "text": "Most features are safe by construction: burstiness, sentence lengths, part-of-speech rates, specifics density, and the referential measures share no vocabulary with any rule.", "para": 1, "group": "B"}
+{"split": "dev", "doc": "08_corpus", "i": 6, "text": "The connective rates do: `furthermore` sits in both the connective sets and the filler-transitions lexicon.", "para": 1, "group": "B"}
+{"split": "dev", "doc": "08_corpus", "i": 7, "text": "A word in both places would let the label leak into a feature.", "para": 1, "group": "A"}
+{"split": "dev", "doc": "08_corpus", "i": 8, "text": "`label_overlap` computes the shared words mechanically, and `label_density` scores with findings on those words dropped.", "para": 1, "group": "B"}
+{"split": "dev", "doc": "08_corpus", "i": 9, "text": "The labels come from `label_density`; users keep `score_text` unchanged.", "para": 1, "group": "B"}
+{"split": "dev", "doc": "08_corpus", "i": 10, "text": "`llmsurgery` keeps an ipynb mirror of every session on the machine.", "para": 2, "group": "B"}
+{"split": "dev", "doc": "08_corpus", "i": 11, "text": "Each prompt message carries its reply, and a reply mixes mid-turn notes, tool blocks, and the final message.", "para": 2, "group": "A"}
+{"split": "dev", "doc": "08_corpus", "i": 12, "text": "The user only reacts to the final message, and the labels must attach to what the user read.", "para": 2, "group": null, "jeremy": "not particularly good or bad"}
+{"split": "dev", "doc": "08_corpus", "i": 13, "text": "`reply_final` therefore keeps the text after the last tool block and drops the rest.", "para": 2, "group": "B"}
+{"split": "dev", "doc": "08_corpus", "i": 14, "text": "`mirror_replies` walks recent mirrors and yields one row per qualifying final.", "para": 2, "group": "B"}
+{"split": "dev", "doc": "08_corpus", "i": 15, "text": "Run on this machine, `mirror_replies()` returns about 5,400 rows from the last three weeks of workspace sessions.", "para": 3, "group": "B"}
+{"split": "dev", "doc": "08_corpus", "i": 16, "text": "The cell stays unevaluated on the docs build: the mirror is private and machine-local.", "para": 3, "group": "B"}
+{"split": "dev", "doc": "08_corpus", "i": 17, "text": "Every document source reduces the same way: segment the markdown, keep prose paragraphs over the word floor.", "para": 4, "group": "A"}
+{"split": "dev", "doc": "08_corpus", "i": 18, "text": "`doc_paras` is that reduction, and each later fetcher wraps it around one source.", "para": 4, "group": "A"}
+{"split": "dev", "doc": "08_corpus", "i": 19, "text": "The ref carries the paragraph's offset, leading back to its place in the document.", "para": 4, "group": "A"}
+{"split": "dev", "doc": "08_corpus", "i": 20, "text": "`readme_paras` reads the AnswerDotAI org through the GitHub GraphQL API, batching the README fetches into a few requests.", "para": 4, "group": "B"}
+{"split": "dev", "doc": "08_corpus", "i": 21, "text": "It keeps a repo only when it predates June 2025 (the org's READMEs are trusted human prose before that date, and AI-assisted afterwards) and is also checked out in the local workspace, which restricts the org's hundreds of repos to a few dozen libraries.", "para": 4, "group": "B"}
+{"split": "dev", "doc": "08_corpus", "i": 22, "text": "Long typed prompts are in-medium negatives: chat text, same topics, human-authored.", "para": 5, "group": "B"}
+{"split": "dev", "doc": "08_corpus", "i": 23, "text": "Two filters guard the label.", "para": 5, "group": "A"}
+{"split": "dev", "doc": "08_corpus", "i": 24, "text": "Prompts carrying harness markers (hook feedback, command output) were not typed and are skipped.", "para": 5, "group": "B"}
+{"split": "dev", "doc": "08_corpus", "i": 25, "text": "Prompts pasted from AI output are indistinguishable by marker, and the low-density cut in `build_corpus` is what excludes them.", "para": 5, "group": "B"}
+{"split": "dev", "doc": "08_corpus", "i": 26, "text": "Style diversity on the negative side needs authors other than one person.", "para": 6, "group": "A"}
+{"split": "dev", "doc": "08_corpus", "i": 27, "text": "`GH_REPOS` is a judgment call, not a search result: from the 250 most-starred pre-2021 repos, the maintained software projects whose documentation is real English prose, dropping link catalogs, study guides, interview collections, and non-English content.", "para": 6, "group": "B"}
+{"split": "dev", "doc": "08_corpus", "i": 28, "text": "For each, the fetcher takes the README as it stood at the cutoff date.", "para": 6, "group": "B"}
+{"split": "dev", "doc": "08_corpus", "i": 29, "text": "Text written before November 2022 cannot have been written by a chat model, and mid-2022 leaves comfortable margin.", "para": 6, "group": "A"}
+{"split": "dev", "doc": "08_corpus", "i": 30, "text": "The density cut still applies to every admitted paragraph.", "para": 6, "group": "B"}
+{"split": "dev", "doc": "08_corpus", "i": 31, "text": "Repos whose org rejects ordinary personal tokens (a 403) are left off the list.", "para": 6, "group": "B"}
+{"split": "dev", "doc": "08_corpus", "i": 32, "text": "Ordinary Wikipedia supplies competent encyclopedic prose.", "para": 7, "group": null, "jeremy": "slightly bad"}
+{"split": "dev", "doc": "08_corpus", "i": 33, "text": "Simple English Wikipedia supplies the plainest register in any large corpus: short sentences, common words, written under rules close to the ones the meter enforces.", "para": 7, "group": null, "jeremy": "slightly bad"}
+{"split": "dev", "doc": "08_corpus", "i": 34, "text": "Both fetchers take random article intros through the MediaWiki API.", "para": 7, "group": "B"}
+{"split": "dev", "doc": "08_corpus", "i": 35, "text": "`wiki_pair` fetches the same title from both wikis, giving matched-content pairs that differ only in register.", "para": 7, "group": "B"}
+{"split": "dev", "doc": "08_corpus", "i": 36, "text": "The only meter-independent truth is the user's recorded dissatisfaction: a `;` prompt, or a complaint about clarity.", "para": 8, "group": null, "jeremy": "not particularly good or bad"}
+{"split": "dev", "doc": "08_corpus", "i": 37, "text": "`complaint_labels` finds those prompts and pairs each with the reply final it reacted to, which is the previous reply in the same session.", "para": 8, "group": "B"}
+{"split": "dev", "doc": "08_corpus", "i": 38, "text": "Training never reads these rows.", "para": 8, "group": "A", "jeremy": "bad"}
+{"split": "dev", "doc": "08_corpus", "i": 39, "text": "They exist to answer one question: does a scorer rank them above background?", "para": 8, "group": "B"}
+{"split": "dev", "doc": "08_corpus", "i": 40, "text": "The phrase match over-fires, and every hit was read by hand: `CL_SKIP` holds the ids judged false, complaints about code or tests, requests for new work, and rows from testing the hook itself.", "para": 8, "group": "B"}
+{"split": "dev", "doc": "08_corpus", "i": 41, "text": "New hits join the set only after the same reading.", "para": 8, "group": "A"}
+{"split": "dev", "doc": "08_corpus", "i": 42, "text": "`build_corpus` fetches every source, scores each row with `label_density`, applies the cuts, and writes two files under XDG state: `corpus.jsonl` for training and `eval.jsonl` for the complaint labels, which training must never read.", "para": 9, "group": "B"}
+{"split": "dev", "doc": "08_corpus", "i": 43, "text": "The middle band joins neither side.", "para": 9, "group": "A"}
+{"split": "dev", "doc": "08_corpus", "i": 44, "text": "Measured on this machine, reply densities run 31/64/124 at the 10th/50th/90th percentile, and the human sources run far lower but not at zero: your own long requests reach a median of 37, because genuine questions and dash habits fire rules there too.", "para": 9, "group": "A"}
+{"split": "dev", "doc": "08_corpus", "i": 45, "text": "The default cuts come from those distributions and from reading rows at the boundaries: 50 admits seven in ten replies as confident slop, and 30 admits about half of the human paragraphs.", "para": 9, "group": "A"}
+{"split": "dev", "doc": "08_corpus", "i": 46, "text": "Rows carry source, ref, and density, so an experiment can re-cut without refetching.", "para": 9, "group": "A"}
+{"split": "dev", "doc": "08_corpus", "i": 47, "text": "Run on this machine, the build wrote 4,540 training rows: 3,417 slop from replies, and 1,123 clean split 764 requests, 184 curated-repo README paragraphs, 63 English and 62 Simple English Wikipedia paragraphs, and 50 workspace README paragraphs.", "para": 10, "group": "B"}
+{"split": "dev", "doc": "08_corpus", "i": 48, "text": "The imbalance is roughly three to one.", "para": 10, "group": "B"}
+{"split": "dev", "doc": "08_corpus", "i": 49, "text": "Re-cutting needs no refetch, because every row carries its density.", "para": 10, "group": "A"}
+{"split": "dev", "doc": "08_corpus", "i": 50, "text": "`eval.jsonl` holds the complaint rows.", "para": 10, "group": "B"}
+{"split": "holdout", "doc": "00_core", "i": 0, "text": "slopometer measures prose against the reference-prose rules in `aai_coding.write_docs`: 26 numbered tells, the named ways reference prose goes wrong.", "para": 0, "group": "B"}
+{"split": "holdout", "doc": "00_core", "i": 1, "text": "This module defines what every rule shares: the table of tells, the `Finding` record every detector returns, the registry that rules join at import time, and the registry of tells no deterministic rule can detect.", "para": 0, "group": "B"}
+{"split": "holdout", "doc": "00_core", "i": 2, "text": "The numbers are `write_docs`'s own, and its docstring stays the source for what each tell means.", "para": 1, "group": "B"}
+{"split": "holdout", "doc": "00_core", "i": 3, "text": "They are append-only, so a rule bound to a number stays correct across revisions.", "para": 1, "group": "B"}
+{"split": "holdout", "doc": "00_core", "i": 4, "text": "slopometer names the tells and never restates them.", "para": 1, "group": "B"}
+{"split": "holdout", "doc": "00_core", "i": 5, "text": "Rules built on `write_docs` guidance that sits outside the numbered tells, like the banned-word lists and the active-voice preference, carry `tell=None` and display without a tell clause.", "para": 1, "group": "A"}
+{"split": "holdout", "doc": "00_core", "i": 6, "text": "`advice` holds a short instruction for each tell whose findings agents tend to fix mechanically.", "para": 1, "group": "B"}
+{"split": "holdout", "doc": "00_core", "i": 7, "text": "A finding for that tell carries the instruction and prints it after the flagged text.", "para": 1, "group": "A"}
+{"split": "holdout", "doc": "00_core", "i": 8, "text": "The tiers span an order of magnitude on purpose.", "para": 2, "group": "B"}
+{"split": "holdout", "doc": "00_core", "i": 9, "text": "One kill-on-sight finding outweighs any accumulation of pressure findings.", "para": 2, "group": "B"}
+{"split": "holdout", "doc": "00_core", "i": 10, "text": "Calibration against the `write_docs` passage pair will set the exact numbers.", "para": 2, "group": "A"}
+{"split": "holdout", "doc": "00_core", "i": 11, "text": "The tiers are the commitment.", "para": 2, "group": "A"}
+{"split": "holdout", "doc": "00_core", "i": 12, "text": "A `Finding` is one rule firing on one span.", "para": 3, "group": "B"}
+{"split": "holdout", "doc": "00_core", "i": 13, "text": "`start` and `end` are offsets into the text the detector received.", "para": 3, "group": "B"}
+{"split": "holdout", "doc": "00_core", "i": 14, "text": "The runner rebases them to file positions when it assembles a report.", "para": 3, "group": "B"}
+{"split": "holdout", "doc": "00_core", "i": 15, "text": "The span text is stored too, and a finding therefore displays without its source.", "para": 3, "group": "A"}
+{"split": "holdout", "doc": "00_core", "i": 16, "text": "Here is a finding built by hand, for the sentence the meter exists to catch:", "para": 3, "group": "B"}
+{"split": "holdout", "doc": "00_core", "i": 17, "text": "Rules join `rules` at import time through the decorator, which stamps the metadata that the runner and the drift test read.", "para": 4, "group": "A"}
+{"split": "holdout", "doc": "00_core", "i": 18, "text": "A detector receives one unit of text at its level and nothing wider.", "para": 4, "group": "B"}
+{"split": "holdout", "doc": "00_core", "i": 19, "text": "That locality is a design rule from the PRD: the paragraph is the largest unit of linguistic analysis.", "para": 4, "group": "B"}
+{"split": "holdout", "doc": "00_core", "i": 20, "text": "The simplest rule in the package needs no parse and no lexicon, and it serves here as the registry's working example: tell 24, decoration.", "para": 5, "group": "B"}
+{"split": "holdout", "doc": "00_core", "i": 21, "text": "Reference prose is ASCII.", "para": 5, "group": "B"}
+{"split": "holdout", "doc": "00_core", "i": 22, "text": "Emoji and ornamental symbols are always wrong in it, which makes this a kill-on-sight rule, and arrow glyphs get a mechanical suggestion.", "para": 5, "group": "A"}
+{"split": "holdout", "doc": "00_core", "i": 23, "text": "Accented letters are ordinary spelling, not decoration.", "para": 5, "group": "B"}
+{"split": "holdout", "doc": "00_core", "i": 24, "text": "The em dash marks a tacked-on clause (tell 1), not decoration, and a different rule owns it.", "para": 5, "group": "A"}
+{"split": "holdout", "doc": "00_core", "i": 25, "text": "Both pass here, and the first line of the example is the precision commitment: clean text must produce no findings.", "para": 5, "group": "A"}
+{"split": "holdout", "doc": "00_core", "i": 26, "text": "Six entries record judgment no deterministic rule reaches.", "para": 6, "group": "A"}
+{"split": "holdout", "doc": "00_core", "i": 27, "text": "Recording them with reasons serves two consumers.", "para": 6, "group": "A"}
+{"split": "holdout", "doc": "00_core", "i": 28, "text": "The drift test in the scoring notebook asserts that every `write_docs` tell number maps to a rule or to an entry here, and a tell added to `write_docs` without a slopometer decision fails it.", "para": 6, "group": "B"}
+{"split": "holdout", "doc": "00_core", "i": 29, "text": "Readers of `check_docs` reviews learn what the meter cannot see.", "para": 6, "group": "B"}
+{"split": "holdout", "doc": "00_core", "i": 30, "text": "Tell 9 appears in both places: rules cover some cases, and this registry records the rest.", "para": 6, "group": "B"}
+{"split": "holdout", "doc": "00_core", "i": 31, "text": "Tell 12 requires audience and document context and has no scoring rule.", "para": 6, "group": "B"}
+{"split": "holdout", "doc": "01_segment", "i": 0, "text": "Rules read prose, but slopometer's input is markdown: READMEs, docstrings rendered from notebooks, PR text, chat responses.", "para": 0, "group": "B"}
+{"split": "holdout", "doc": "01_segment", "i": 1, "text": "Segmentation turns a markdown document into typed blocks (heading, list item, prose paragraph) that remember where they came from, discards fenced code entirely, and blanks inline code so that lexical rules never fire on identifiers.", "para": 0, "group": "A"}
+{"split": "holdout", "doc": "01_segment", "i": 2, "text": "Every downstream stage depends on the position bookkeeping here: a finding is only useful if it can point back at the exact file offset it came from.", "para": 0, "group": "B"}
+{"split": "holdout", "doc": "01_segment", "i": 3, "text": "A README-shaped fixture exercises everything segmentation must handle: headings, prose with inline code, a fenced block that must vanish, and a bullet list.", "para": 1, "group": "B"}
+{"split": "holdout", "doc": "01_segment", "i": 4, "text": "It reappears throughout the later notebooks, and by the scoring notebook the meter reads it end to end.", "para": 1, "group": "B"}
+{"split": "holdout", "doc": "01_segment", "i": 5, "text": "Segmentation delegates block recognition to `mdhtml`, whose `blocks` function with `nested=True` reports the type, source line span and depth of every block, including the paragraphs inside list items and other containers.", "para": 2, "group": "B"}
+{"split": "holdout", "doc": "01_segment", "i": 6, "text": "Segmentation keeps headings and paragraphs.", "para": 2, "group": "B"}
+{"split": "holdout", "doc": "01_segment", "i": 7, "text": "A paragraph that starts with a list marker becomes an item.", "para": 2, "group": "B"}
+{"split": "holdout", "doc": "01_segment", "i": 8, "text": "Other paragraphs become prose, including an item's later paragraphs.", "para": 2, "group": "B"}
+{"split": "holdout", "doc": "01_segment", "i": 9, "text": "Everything else drops: code blocks and fences, pipe tables, raw HTML, thematic breaks, and block quotes with everything inside them, since a quotation is not the author's prose.", "para": 2, "group": "B"}
+{"split": "holdout", "doc": "01_segment", "i": 10, "text": "A block's text starts at its first non-space character.", "para": 2, "group": "B"}
+{"split": "holdout", "doc": "01_segment", "i": 11, "text": "Indented paragraphs inside list items therefore keep the round-trip property.", "para": 2, "group": "B"}
+{"split": "holdout", "doc": "01_segment", "i": 12, "text": "One class of junk needs handling before the parse.", "para": 2, "group": "B"}
+{"split": "holdout", "doc": "01_segment", "i": 13, "text": "The `mdhtml` dialect renders out-of-subset tags such as `iframe` as literal text, on purpose, for paste safety.", "para": 2, "group": "B"}
+{"split": "holdout", "doc": "01_segment", "i": 14, "text": "A scorer sees junk where the dialect sees text, and a regex therefore blanks every iframe span first, replacing each character with a space and keeping every newline.", "para": 2, "group": "A"}
+{"split": "holdout", "doc": "01_segment", "i": 15, "text": "Offsets survive both steps.", "para": 2, "group": "A"}
+{"split": "holdout", "doc": "01_segment", "i": 16, "text": "Each block records the offset its text starts at, which makes rebasing a finding onto file positions a single addition.", "para": 2, "group": "B"}
+{"split": "holdout", "doc": "01_segment", "i": 17, "text": "The round-trip property is the contract every later stage leans on: a block's text is the document's own text at the block's offset.", "para": 3, "group": "A"}
+{"split": "holdout", "doc": "01_segment", "i": 18, "text": "The fixture's fenced block is gone, and nothing else is.", "para": 3, "group": "B"}
+{"split": "holdout", "doc": "01_segment", "i": 19, "text": "A list item keeps its wrapped lines and any later paragraphs.", "para": 4, "group": "B"}
+{"split": "holdout", "doc": "01_segment", "i": 20, "text": "A nested item is an item too.", "para": 4, "group": "B"}
+{"split": "holdout", "doc": "01_segment", "i": 21, "text": "A quote inside an item still drops:", "para": 4, "group": "B"}
+{"split": "holdout", "doc": "01_segment", "i": 22, "text": "Inline code is exempt from every lexical rule: a function named `enhance` is not a style violation, and `write_docs` itself requires code symbols in backticks.", "para": 5, "group": "B"}
+{"split": "holdout", "doc": "01_segment", "i": 23, "text": "Deleting the span would shift every offset after it, and that breaks the round-trip property.", "para": 5, "group": "B"}
+{"split": "holdout", "doc": "01_segment", "i": 24, "text": "Filling the span with X characters removes the words and keeps the geometry, and the capitalized dummy token also preserves sentence boundaries: a space-blanked symbol at a sentence start would make the parser merge two sentences.", "para": 5, "group": "A"}
+{"split": "holdout", "doc": "01_segment", "i": 25, "text": "All other markup becomes spaces: emphasis markers, link brackets and targets, HTML tags, footnote labels and math.", "para": 5, "group": "B"}
+{"split": "holdout", "doc": "01_segment", "i": 26, "text": "A URL is an address, not prose, and link text keeps the sentence readable on its own.", "para": 5, "group": "B"}
+{"split": "holdout", "doc": "01_segment", "i": 27, "text": "`mdhtml.inlines` decides which characters are text and which are code, with the parser that renders the document.", "para": 5, "group": "B"}
+{"split": "holdout", "doc": "01_segment", "i": 28, "text": "A finding's offsets stay valid in the scrubbed text and in the original alike.", "para": 5, "group": "B"}
+{"split": "holdout", "doc": "01_segment", "i": 29, "text": "The over-structuring rule (tell 25) uses heading and paragraph-word counts.", "para": 6, "group": "B"}
+{"split": "holdout", "doc": "01_segment", "i": 30, "text": "Density uses `scored_words` instead: words from every scored block, including headings and list items, with their Markdown markers removed.", "para": 6, "group": "B"}
+{"split": "holdout", "doc": "01_segment", "i": 31, "text": "A list item's findings must not enter the numerator without its words entering the denominator.", "para": 6, "group": "B"}
+{"split": "holdout", "doc": "01_segment", "i": 32, "text": "Code and other blocks discarded by segmentation contribute neither findings nor words.", "para": 6, "group": "B"}
+{"split": "holdout", "doc": "06_cli", "i": 0, "text": "`slopometer <file>` prints the worst-first report, `slopometer` alone reads stdin, and `--threshold` turns the density into an exit code for CI and hooks.", "para": 0, "group": "B"}
+{"split": "holdout", "doc": "06_cli", "i": 1, "text": "Several files or directories give one report per file, highest density first.", "para": 0, "group": "B"}
+{"split": "holdout", "doc": "06_cli", "i": 2, "text": "`--pangram` scores with Pangram's AI detector instead of the rules.", "para": 0, "group": "B"}
+{"split": "holdout", "doc": "06_cli", "i": 3, "text": "Loading the model takes about a second and scoring takes milliseconds, so the command runs through [warmpy](https://github.com/AnswerDotAI/warmpy): the first call starts a background process that loads the model, later calls reuse it, and it exits after thirty idle minutes.", "para": 0, "group": "B"}
+{"split": "holdout", "doc": "06_cli", "i": 4, "text": "The Claude Code stop hook runs this same command with the response text on stdin.", "para": 0, "group": "B"}
+{"split": "holdout", "doc": "06_cli", "i": 5, "text": "warmpy puts one obligation on this module.", "para": 1, "group": "A"}
+{"split": "holdout", "doc": "06_cli", "i": 6, "text": "It must import fast, because the client process pays this import on every command.", "para": 1, "group": "A"}
+{"split": "holdout", "doc": "06_cli", "i": 7, "text": "So the heavy import happens inside the function body, which only ever runs in the warm background process or in the cold fallback.", "para": 1, "group": "B"}
+{"split": "holdout", "doc": "06_cli", "i": 8, "text": "`warm_parse` mirrors `call_parse`:", "para": 1, "group": "B"}
+{"split": "holdout", "doc": "06_cli", "i": 9, "text": "the docments become the `--help`, and a direct Python call with arguments runs the body in this process, which is what the demo below does.", "para": 1, "group": "B"}
+{"split": "holdout", "doc": "06_cli", "i": 10, "text": "With `PANGRAM_API_KEY` set, `pangram=True` (`--pangram` on the command line) scores the same file with Pangram.", "para": 2, "group": "B"}
+{"split": "holdout", "doc": "06_cli", "i": 11, "text": "The score runs from 0 to 100:", "para": 2, "group": "B"}
+{"split": "holdout", "doc": "06_cli", "i": 12, "text": "Machine consumers get `--json`: a list with one entry per file, or a single entry for stdin.", "para": 3, "group": "A"}
+{"split": "holdout", "doc": "06_cli", "i": 13, "text": "Each entry has the file's `path` (null for stdin), density, worst, scored word count, and every finding's fields with its `location`.", "para": 3, "group": "B"}
+{"split": "holdout", "doc": "06_cli", "i": 14, "text": "A location gives the one-based `line` and exhash `address` of the finding's first character, and `end_line` and `end_address` for its last.", "para": 3, "group": "B"}
+{"split": "holdout", "doc": "06_cli", "i": 15, "text": "Results also include `too_short` and `min_words`.", "para": 3, "group": "B"}
+{"split": "holdout", "doc": "06_cli", "i": 16, "text": "Below the cutoff, `too_short` is true, numeric scores are null, and findings are empty.", "para": 3, "group": "B"}
+{"split": "holdout", "doc": "06_cli", "i": 17, "text": "Short inputs do not fail `--threshold` checks.", "para": 3, "group": "B"}
+{"split": "holdout", "doc": "06_cli", "i": 18, "text": "Use `--min-words 0` to score short text deliberately.", "para": 3, "group": "B"}
+{"split": "holdout", "doc": "06_cli", "i": 19, "text": "Several paths, or a directory, give one report per file, with the highest density first.", "para": 4, "group": "B"}
+{"split": "holdout", "doc": "06_cli", "i": 20, "text": "`--threshold` exits with code 1 when any file exceeds it.", "para": 4, "group": "B"}
+{"split": "holdout", "doc": "06_cli", "i": 21, "text": "Each JSON entry names its file:", "para": 4, "group": "B"}
+{"split": "holdout", "doc": "06_cli", "i": 22, "text": "Every JSON finding has a `location` with its start and end lines and exhash addresses.", "para": 5, "group": "B"}
+{"split": "holdout", "doc": "06_cli", "i": 23, "text": "The worst finding in the densest draft is a long sentence:", "para": 5, "group": "B"}
+{"split": "holdout", "doc": "06_cli", "i": 24, "text": "An `.ipynb` path scores Markdown cells only.", "para": 6, "group": "A"}
+{"split": "holdout", "doc": "06_cli", "i": 25, "text": "In notebook JSON, `location` also gives the cell ID and zero-based cell index.", "para": 6, "group": "B"}
+{"split": "holdout", "doc": "06_cli", "i": 26, "text": "Its lines count within the cell.", "para": 6, "group": "A"}
+{"split": "holdout", "doc": "06_cli", "i": 27, "text": "Its addresses take the form `cell_id:lineno|hash|`.", "para": 6, "group": "B"}
+{"split": "holdout", "doc": "06_cli", "i": 28, "text": "Finding `start` and `end` remain offsets into the concatenated Markdown, not the notebook JSON.", "para": 6, "group": "B"}
+{"split": "holdout", "doc": "06_cli", "i": 29, "text": "A `.py` path scores the module docstring only.", "para": 7, "group": "A"}
+{"split": "holdout", "doc": "06_cli", "i": 30, "text": "Its JSON `location` lines and addresses refer to the `.py` file.", "para": 7, "group": "B"}
+{"split": "holdout", "doc": "06_cli", "i": 31, "text": "Finding `start` and `end` remain offsets into the docstring, not the file.", "para": 7, "group": "B"}

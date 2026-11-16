@@ -15,7 +15,10 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
 ]
-dependencies = ["fastcore", "spacy", "mdhtml>=0.1.40", "httpx2", "warmpy>=0.1.1", "rgapi>=0.1.27"]
+dependencies = ["fastcore", "spacy", "mdhtml>=0.1.40", "httpx2", "warmpy>=0.1.1", "rgapi>=0.1.27", "fastgit>=0.1.6"]
+
+[project.optional-dependencies]
+ai = ["fastllm"]
 
 [project.urls]
 Repository = "https://github.com/AnswerDotAI/slopometer"
@@ -32,5 +35,8 @@ version = {attr = "slopometer.__version__"}
 
 [tool.setuptools.packages.find]
 include = ["slopometer"]
+
+[tool.setuptools.package-data]
+slopometer = ["*.txt"]
 
 [tool.nbdev]

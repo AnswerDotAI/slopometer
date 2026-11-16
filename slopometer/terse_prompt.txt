@@ -1,0 +1,100 @@
+# What makes a reference line good
+
+This document is a reference page in the terse style of the APL, J and K manuals. Its reader knows the language and looks up one fact. Keep that style. Never turn a terse line into a longer sentence.
+
+A good line gives the form, what it returns, and the exceptions. It has no connecting prose, no reasons, and no words that repeat the example under it.
+
+A fragment or a labelled list is fine when its meaning is plain, as in "Not found: `≢X`."
+
+A short line still says what literally happens. A function or an operator does things. A fill, an axis, a count or a seed does not. When a line gives such a thing a verb that it cannot do, say what the function does, in no more words. Do not open with the arguments when the form already shows them.
+
+Every name is one that the page or its glossary defines. One thing keeps one name. The name of a function has a capital letter: Take, Replicate, Mix.
+
+A rewrite is never longer than the original, unless the original cannot be understood without the extra words. When a line can lose words and keep every fact, the shorter line is better.
+
+Most lines on a page like this are already right. Answer them with `-`.
+
+# Lines rewritten to be clearer
+
+Before: A pervasive call fills where one argument lacks a key that the other has. Take fills past the end of an axis, replicate at a negative count, expand at the items it inserts, and mix where it pads an item. Index and pick fill at a position outside its axis or not a whole number.
+After: Fill applies to: pervasive calls, keys one argument lacks; Take, past the end; Replicate, negative counts; Expand, inserted items; Mix, padding; Index and Pick, positions outside the axis or not whole.
+
+Before: The fill reaches a primitive through a bound argument, as in `3↑`, and through an axis operand, as in `↑⍠1`, including axes that a function gives, as in `↑⍠{0}`.
+After: Also through a bound argument (`3↑`) or an axis (`↑⍠1`, `↑⍠{0}`).
+
+Before: Integers, Booleans and characters need a fill that they hold exactly. Under dynamic kinds, ordinary integers widen to hold one.
+After: Integers, Booleans, characters: the fill must be exact. Under dynamic kinds, ordinary integers are widened to fit.
+
+Before: For example, axis 1 views a vector of shape `[2]` as `[2 1]`.
+After: With axis 1, shape `[2]` is treated as `[2 1]`.
+
+Before: Its one option, `fill`, gives the item that `f` reads at each position that it fills, in place of the fill that the data's prototype gives.
+After: `fill`: the item for each filled position, replacing the prototype's fill.
+
+Before: A call checks the fill when it starts, against each argument that it could fill, even where it fills no position. For a pervasive call, those are the arguments with a keyed axis.
+After: Fill is checked before the call, even if no position is filled, against every fillable argument (pervasive: those with a keyed axis).
+
+Before: An atom has no axes, so selecting axis 0 first makes a length-1 vector.
+After: On an atom, axis 0 first makes a length-1 vector.
+
+# Lines a reader cannot understand from the page
+
+Line: With two data arguments, existing mixed-rank agreement still applies when the selected axes exist in the higher-rank argument.
+Answer: ? what is mixed-rank agreement
+
+Line: Reduction returns the accumulator.
+Answer: ? what is the accumulator
+
+# Lines to cut, and facts that a rewrite lost
+
+Line: The example below shows Take with a negative count.
+Answer: ? cut: the example shows it
+
+Line: `#/` and `#⁻` rebuild `Y`.
+Answer: ? lost: the earlier version says that `#⁻` lets Under change the runs
+
+# Lines that are already right
+
+Overtake inserts fill.
+`N↑Y` takes leading items; negative `N` takes from the end.
+Not found: `≢X`.
+An empty axis reduces to `f`'s identity.
+Empty reductions return the seed.
+`ιN` generates `0…N-1`.
+`f/⍠K` selects the axis.
+`↑⁻Y` encloses `Y`.
+Vector counts apply to successive leading axes.
+`⌽₀` reverses the first axis; `⌽₋₁` reverses the last, as plain `⌽` does.
+Cells pair using leading agreement of the frames, as for Rank.
+Axes count from 0, and negative axes count from the end.
+A fill given to them through `⍠` raises DOMAIN.
+Unselected axes retain their order and keys.
+
+# Rewrites that are no better
+
+Before: Overtake inserts fill.
+Bad rewrite: When `|N` exceeds the length of the axis, `N↑Y` pads with fill.
+The original was clear. The rewrite is three times as long.
+
+Before: `N↑Y` takes leading items; negative `N` takes from the end.
+Bad rewrite: `N↑Y` takes leading items from `Y` when `N` is positive and items from the end when `N` is negative.
+The rewrite spells out what the form already shows.
+
+Before: Empty reductions return the seed.
+Bad rewrite: When the reduced axis is empty, `S f/ Y` returns `S`.
+The original was clear. A line need not repeat the form that its paragraph gives.
+
+Before: Axes count from 0, and negative axes count from the end.
+Bad rewrite: Axes count from 0. Negative axes count from the end.
+Splitting a line in two does not make it clearer.
+
+# An example answer
+
+1 -
+2 -
+3-5 Fill applies to: Take, past the end; Replicate, negative counts; Mix, padding.
+6 ? what is mixed-rank agreement
+7 Under dynamic kinds, ordinary integers are widened to fit.
+8 -
+9 ? lost: the earlier version says that `#⁻` lets Under change the runs
+

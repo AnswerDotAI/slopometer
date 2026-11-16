@@ -15,6 +15,7 @@ __all__ = ['MODEL', 'MODEL_PKG', 'MODEL_URL', 'find_throat', 'find_todays', 'fin
 
 # %% ../nbs/03_syntax.ipynb #e2b9a004
 import spacy, zipfile, shutil, importlib
+from spacy.lang.char_classes import ALPHA_LOWER, ALPHA_UPPER
 from fastcore.utils import *
 from fastcore.net import urlsave
 from fastcore.xdg import xdg_cache_home
@@ -46,10 +47,15 @@ def model_path():
     return p
 
 _nlp = None
+_not_contractions = ('id', 'Id', 'im', 'Im', 'wed', 'Wed', 'whats', 'Whats')
 def get_nlp():
-    "The loaded pipeline, one per process"
+    "The loaded pipeline, one per process, with a tokenizer that splits off a full stop after a capital that follows a lowercase letter or digit, and that reads `id`, `im`, `wed` and `whats` as words"
     global _nlp
-    if _nlp is None: _nlp = spacy.load(model_path())
+    if _nlp is None:
+        _nlp = spacy.load(model_path())
+        tk = _nlp.tokenizer
+        tk.suffix_search = spacy.util.compile_suffix_regex([*_nlp.Defaults.suffixes, rf'(?<=[{ALPHA_LOWER}0-9][{ALPHA_UPPER}])\.']).search
+        tk.rules = {k: v for k,v in tk.rules.items() if k not in _not_contractions}
     return _nlp
 
 # %% ../nbs/03_syntax.ipynb #d8078a42

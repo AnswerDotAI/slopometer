@@ -1,0 +1,270 @@
+You will read a technical document as a numbered list of sentences. Find the sentences that can be rewritten to be clearer, and rewrite them.
+
+Answer with one line for each sentence, in order:
+
+- `7 -` when the sentence is already clear.
+- `7 <the clearer sentence>` when you can say the same thing more clearly.
+- `7-8 <the clearer text>` when two or more sentences are better rewritten together. A sentence that only repeats its neighbour is removed this way.
+- `7 ? <the question a reader would ask>` when the document does not tell you what the sentence means.
+- `7 ? cut: <why>` when the reader needs nothing from the sentence, because another sentence says it or the reader knows it already.
+- `7 ? lost: <the fact>` when an earlier version of the document follows it, and that version has a fact, rule, reason or qualifier that this one lacks. Answer on the nearest sentence.
+
+A rewrite must state the same fact as the original. Use only what the document says. If you would have to guess, answer with `?`. Do not change formatting, such as quote marks or dashes.
+
+# What makes a sentence easy to read
+
+A clear sentence says what literally happens, in the words a person would normally use for that fact.
+
+The reader can tell who or what does each thing. A program, a function or a person that really does something is a good subject. An instruction speaks to the reader. When it does not matter who does something, a passive sentence is fine.
+
+Every name in the sentence is one the reader has already met, or one the sentence explains.
+
+Each rule has a sentence of its own. Nothing the reader must know sits in an aside or in brackets.
+
+One thing keeps one name all the way through. States, values and functions go by their real names, the ones the reader will see in the code and in logs.
+
+Each fact is stated once. The sentence tells readers something they do not already know. It says what the code does and does not argue for it.
+
+A docstring is read on its own, in an editor or in generated documentation, so it must make sense without the text around it.
+
+When two statements are joined by "and", "so" or "which", the clear version is one sentence built around how they are connected.
+
+A sentence that is already clear should stay as it is.
+
+# Sentences rewritten to be clearer
+
+Before: Rows carry their source.
+After: Each row has a `source` field.
+
+Before: These rows load at startup, and training never reads them.
+After: These rows are loaded at startup and are never read during training.
+
+Before: `skillOverrides` hides bundled skills.
+After: Enable `skillOverrides` to hide bundled skills.
+
+Before: The fonts load when the page opens.
+After: A background worker loads the fonts when the page opens.
+
+Before: In notebook JSON, `location` also gives the cell ID. Its lines count within the cell.
+After: In notebook JSON, `location` also gives the cell ID. Line numbers in `location` start at 1 for the first line of the cell.
+
+Before: The positions decide the result's shape.
+After: Pass `np.take` an array of indices. It returns an array with the same shape as the indices.
+
+Before: Startup latency demands a warm process.
+After: We keep one process warm so that the command starts quickly.
+
+Before: 0.8 keeps roughly a third of the candidates, where 0.5 keeps half.
+After: About a third of the candidates surpass a threshold of 0.8, whereas half surpass 0.5.
+
+Before: The quiet path skips validation.
+After: When `quiet` is set, `load` skips validation.
+
+Before: Trust lives in the signature check.
+After: We trust a file only after `verify` checks its signature.
+
+Before: Tell 12 requires audience and document context and has no scoring rule.
+After: Tell 12 has no scoring rule, because it cannot be detected without knowing the audience and the document.
+
+Before: Every document source reduces the same way: segment the markdown, keep prose paragraphs over the word floor. `doc_paras` is that reduction.
+After: `doc_paras` turns the text of any document source into rows. It segments the Markdown and keeps each prose paragraph of at least 50 words.
+
+Before: The span text is stored too, and a finding therefore displays without its source.
+After: Because a finding stores its span text, it can be displayed without its source.
+
+Before: The numbers are `write_docs`'s own, and its docstring stays the source for what each tell means.
+After: slopometer takes each tell's number and meaning from the `write_docs` docstring.
+
+Before: The ambiguous middle joins neither.
+After: Rows that score between the two cuts are left out of both sets.
+
+Before: 50 admits seven in ten replies as confident slop.
+After: With a cut of 50, seven in ten replies are labelled as slop.
+
+Before: Each event knows its own timestamp.
+After: Each event has a `timestamp` field.
+
+Before: The index wants sorted keys.
+After: Sort the keys before you build the index.
+
+Before: The config travels with the job.
+After: We send the config with each job.
+
+Before: Failures are visible now too. A startup failure used to print to the server log and leave a half-booted dialog that looked ready.
+After: A startup failure used to print to the server log and leave a half-booted dialog that looked ready.
+
+Before: CI runs on Ubicloud's runner, which the speed budgets come from.
+After: The speed budgets are set for the Ubicloud runner that CI uses.
+
+Before: The getter returns a copy, so to edit, modify the copy and assign it back.
+After: To edit, modify the copy that the getter returns and assign it back.
+
+Before: That marking is observational only - only process exit means dead - and it clears itself on the next echo.
+After: The gateway clears the mark when the next echo arrives. The gateway never kills an unresponsive kernel. A kernel becomes `dead` only when its process exits.
+
+Before: Uploads go to the staging bucket (the tool never writes to production) and are checked there.
+After: Uploads go to the staging bucket and are checked there. The tool never writes to production.
+
+Before: `watch` polls the process and the heartbeat. Three missed beats mark the kernel `unresponsive`.
+After: `watch` polls the process and the heartbeat. After three missed heartbeats, the gateway marks the kernel `unresponsive`.
+
+Before: Create a folder for the logs. The tool clears the directory on each run.
+After: Create a folder for the logs. The tool clears that folder on each run.
+
+Before: Clients see `restarting`, then a fresh welcome-backed ready kernel.
+After: Clients see `restarting`, then `starting` once the new kernel is ready.
+
+Before: The index is rebuilt every night. Queries during the rebuild use the old index. In short, the index is refreshed nightly.
+After: The index is rebuilt every night. Queries during the rebuild use the old index.
+
+Before: The link is an empty anchor, which a browser displays as nothing.
+After: The link is an empty anchor.
+
+Before: Store the settings as JSON, a text format for structured data.
+After: Store the settings as JSON.
+
+Before: The parameters are kind-sorted so a collector stays legal wherever it came from.
+After: The parameters are sorted by kind.
+
+Before: `read_flags` parses bools so flag values test correctly.
+After: `read_flags` parses bools.
+
+Before: This block's refresh token is not one OpenAI issued, so the vendor rejects it: the turn fails, the subscription records the reason, and its card asks for a new sign-in:
+After: OpenAI rejects this block's refresh token, which it did not issue. When a refresh is rejected, the turn fails, the reason is saved in the subscription's `error`, and the card asks for a new sign-in:
+
+Before: `md_prose` renders markdown as an article marked `prose`, so the base stylesheet sets its measure, rhythm and colours.
+After: `md_prose` renders Markdown as an `article` with the `prose` attribute. This attribute sets the line width, spacing and colours of the article.
+
+Before: This behavioral prompt lives at ~/.claude/sysp, a symlink into the aai-coding checkout, so an edit here changes the team's shared copy for the person to review and commit. You may edit it when the person explicitly requests a change, and never otherwise.
+After: This behavioral prompt, ~/.claude/sysp, is a symlink to the team's shared copy in the aai-coding checkout. The person reviews and commits each edit to it. Edit it only when the person explicitly requests a change.
+
+Before: It is named and described as the model's web search, so the model treats it as its own, and its schema is the same whichever agent answers.
+After: The model sees one function tool, `web_search`. Its name, description and schema do not depend on which agent answers.
+
+Before: `search_agent` picks the agent: the `backend` argument, else the `WEB_SEARCH_BACKEND` setting, else Gemini.
+After: `search_agent` returns the agent named by `backend`. When `backend` is not given, it uses the `WEB_SEARCH_BACKEND` environment variable, which defaults to Gemini.
+
+Before: Bare autolinks are off: every link in these documents is written out, and the autolinker mistakes a link whose text is a URL for a bare one.
+After: `md_prose` turns bare autolinks off, because these documents write every link out as a Markdown link, and the autolinker would mistake a link whose text is a URL for a bare URL.
+
+Before (docstring): "Mark cache breakpoints at the newest history positions of Anthropic turns; clients mark their own stable prefixes"
+After: "Set `cache_idxs` to `[-3, -2]` in the request's `body`, setting cache breakpoints on those messages"
+
+Before: The startup wait checks Docker's `running` status and the port 5001 mapping.
+After: `make` waits until Docker reports the container as `running` and port 5001 is mapped.
+
+Before: When no user is provided, a 401 should be returned
+After: A request with no user gets a 401:
+
+Before: Each rule answers with its message, and a valid pair answers `None`:
+After: An error message is returned for each failed check, and `None` for a valid name and port:
+
+Before: The auth service has its own landing, terms, and privacy pages on the `auth.` host:
+After: The auth service has landing, terms, and privacy pages on the `auth.` host:
+
+Before: The numbers are the ones `review_apply` takes.
+After: `review_apply` takes those numbers as its keys.
+
+Before: With `types` set, a fill that doesn't keep its value in its column's type is a `DOMAIN` error.
+After: With `types` set, `•csv` raises a `DOMAIN` error when the column's type cannot hold the fill exactly.
+
+Before: For a vector `ω`, a positive count `α` takes its first `α` items.
+After: For a vector `ω` and a positive count `α`, [Take](glyphs/up-arrow.qmd) returns the first `α` items of `ω`.
+
+Before: A dfn names its argument `ω`.
+After: In a dfn (a function written in braces), `ω` is the argument.
+
+# Sentences a reader cannot understand from the document
+
+Sentence: Under dynamic kinds, ordinary integers widen to hold one.
+Answer: ? widen to hold one what
+
+Sentence: The fill reaches a primitive through a bound argument.
+Answer: ? what does it mean for a fill to reach a primitive
+
+Sentence: It reappears throughout the later notebooks, and by the scoring notebook the meter reads it end to end.
+Answer: ? what is the meter, and what does it mean to read something by a notebook
+
+Sentence: Assignments are shy: the `m←` line printed nothing.
+Answer: ? what does "shy" mean
+
+# Sentences to cut, and facts that a rewrite lost
+
+Sentence: The README documents each feature.
+Answer: ? cut: readers take this for granted
+
+Sentence: `PortForm` renders the form for both adding and editing a port mapping.
+Answer: ? lost: the earlier version says why one form serves both, so that both are entered the same way
+
+# Sentences that are already clear
+
+`list_pyskills()` shows the available tooling.
+Training the learned scorer needs labeled text.
+`⌽₀` reverses the first axis; `⌽₋₁` reverses the last, as plain `⌽` does.
+Cells pair using leading agreement of the frames, as for Rank.
+The parser rejects malformed input.
+The server listens on port 8080.
+`sorted()` returns a new list.
+Enable `strict` to reject unknown keys.
+Pass `np.take` an array of indices.
+Sort the keys before building the index.
+The error rate is about two percent.
+An entry can be shown without its attachment.
+I read every match by hand and removed the false ones.
+Because the file is read once at startup, later edits have no effect until you restart the server.
+When the config file is missing, the loader reads its settings from `defaults.toml`.
+
+# Rewrites that are no better
+
+Before: An entry can be shown without its attachment.
+Bad rewrite: The app can show an entry without its attachment.
+The original was clear. The rewrite adds a subject that the reader does not need.
+
+Before: Axes count from 0, and negative axes count from the end.
+Bad rewrite: Axes count from 0. Negative axes count from the end.
+Splitting a sentence in two at "and" does not make it clearer.
+
+Before: Let's create a dummy route so we can test `User.__from_request__`.
+Bad rewrite: `test_user_rt` is a dummy route for testing `User.__from_request__`:
+The original was clear. "Let's" and "we" are the author's voice in a tutorial, and the rewrite removes it.
+
+Before: To make route testing easy let's wrap Starlette's TestClient so that we can easily call routes as specific users and inspect the underlying session.
+Bad rewrite: `AuthClient` wraps Starlette's `TestClient` so tests can call routes as a specific user and inspect the session.
+The original was clear. The rewrite replaces the author's voice with a description of the function.
+
+Before: Flipping the switch posts the form at once.
+Bad rewrite: Toggling the switch submits the form immediately.
+The original was clear. The rewrite swaps plain words for longer ones.
+
+Before (docstring): "A DeepSeek FIM request for the gap between `prompt` and `suffix`"
+Bad rewrite: "Build a DeepSeek FIM request body for the gap between `prompt` and `suffix`"
+A docstring that names what the function returns does not need a verb in front of it.
+
+Before: Bare numbers are approximate.
+Bad rewrite: Numbers written without a suffix are approximate.
+"Bare number" is a term that the documentation defines. Keep a defined term.
+
+Before: Rounds up to an exact integer.
+Bad rewrite: `⌈` rounds up to an exact integer.
+The caption sits under a heading that names the function, so it needs no subject.
+
+Before: The switch's label shows its state, On or Off, because the setting is displayed in the card header.
+Bad rewrite: The switch's label shows its state, On or Off.
+The rewrite leaves out why the label is only On or Off.
+
+# An example answer
+
+1 -
+2-3 Line numbers in `location` start at 1 for the first line of the cell.
+4 -
+5 Each event has a `timestamp` field.
+6 ? widen to hold one what
+7-8 A startup failure used to print to the server log and leave a half-booted dialog that looked ready.
+9 ? cut: readers take this for granted
+10 ? lost: the earlier version says why one form serves both
+
+# The document
+
+Lines without a number, and lines marked `[-]`, are headings, quotations, code, tables, labels and reference text. They are there for context and need no answer. A numbered sentence that starts with `>` is the document's description. Listings show it on its own, so keep it as a sentence of its own. A `{name}` in braces stands for text that is kept elsewhere, and the line under it gives that text when it is known. Keep each `{name}` as it is.
+
+{document}

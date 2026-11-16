@@ -1,0 +1,170 @@
+# For this document, a clear line is a dense one
+
+Document: for an LLM reader; loaded whole, every session; every word costs every time. Model: Arthur Whitney's k docs, rows below.
+
+- rewrite: when the facts fit in far fewer words: take the information, not the sentences; write how he'd get it across. `- label: fact` rows, Markdown tables (3+ columns), `condition → action` lists, shared labels beat sentences. A sentence shaved of its articles is still a sentence: rewrite it whole
+- `-`: when your version saves only a word or two, or only reorders, relabels, repunctuates or abbreviates
+- keep: every fact, rule, reason, qualifier, example, identifier; a judgement (usually, prefer, can, nearly always) stays a judgement: hardened into always, never or must, it is lost
+- answer: final: no working, no second thoughts
+
+- `7-9 <dense text>`: lines that share a subject or a structure share words; only when shorter than those lines.
+- `7-9 <one line>`: a row or sentence continued over several lines: join into one; never break a line yourself.
+- `7 ? cut: <why>`: reader would do it untold, or another line says it.
+- Earlier version follows the document → document is a conversion of it. Check each line against it: `7 ? lost: <the fact>` for every fact, rule, reason or qualifier dropped, or judgement made absolute, so that a reader of this version would act differently. Every word can survive while the meaning moves. Same meaning in fewer words: nothing lost.
+
+Abbreviations save letters, not tokens: `pkgs` costs 2, `packages` 1; most words are 1 token whole.
+
+`|` for "or" saves nothing: the word after it loses its leading space; `question|objection` costs 4 tokens, `question or objection` 3.
+
+Leave as written: text quoted as an example of speech or prose for a person; the line "NB: this file is designed for an LLM reader, not a human. Add it to your LLM's context and ask it to explain."
+
+Whitney, Shakti card and changelog:
+
+verb|dyad|monad
+-|-|-
+`+`|add|flip
+`-`|subtract|negate
+`*`|multiply|first
+`#`|take|count
+
+- aggr: count first last min max sum avg var dev med
+- `{a:2}`: instead of `[a:2]`
+- `f#d`: domain error if f missing
+- `!-n`: identity matrix
+
+ngn/k help:
+
+- notation: [c]har [i]nt [n]umber(int|float|char) [s]ymbol [a]tom [d]ict
+- x~y match: `2 3~2 3`→1; `"4"~4`→0; `0~0.0`→0
+- i?x deal: `-3?1000`→`11 398 293` /guaranteed distinct
+
+Goal help:
+
+- close h: flush any buffered data, then close handle h
+- mkdir s: create new directory named s (parent must already exist)
+- env s: value of environment variable s, or error if unset; s~"": dict of whole environment
+
+# Prose ⇒ dense
+
+- Before: In partner mode you treat the person's half-formed ideas as leads to pull rather than claims to check, and defer expensive confirmation until a direction is picked together.
+- After: Half-formed ideas: leads, not claims. Costly checks wait for agreed direction.
+
+- Before: Iota is BPL's index generator. Given a positive whole number, it returns the whole numbers from zero up to one less than that number. Iota also accepts a negative argument, in which case the result is reversed.
+- After: iota: `ι3`→`0 1 2`; `ι¯3`→`2 1 0`.
+
+- Before: For Python, `py` (ipymini) is required. Start the kernel with `create(kernel="py")`. Never request `python3` (ipykernel) or another Python kernelspec.
+- After: `create(kernel="py")` (ipymini) only; never `python3` (ipykernel), other kernelspecs.
+
+- Before: Run `ws-sync`. Restart solve-lp after changing its code. In lightweight mode, restart `solveit/start.py` after changing Solveit. In full mode, rebuild with `docker/build.sh --local` after changing Solveit or its dependencies, then stop and reopen instances from the dashboard.
+- After, 4 rows:
+- always: ws-sync
+- solve-lp code changed: restart solve-lp
+- Solveit changed, lightweight: restart solveit/start.py
+- Solveit or deps changed, full: docker/build.sh --local; stop, reopen instances from dashboard
+
+# Wrong
+
+- Before: In partner mode you treat the person's half-formed ideas as leads to pull rather than claims to check, and defer expensive confirmation until a direction is picked together.
+- Bad rewrite: treat person's half-formed ideas as leads to pull, not claims to check; defer expensive confirmation until a direction is picked together
+- Sentence shaved, not rewritten.
+
+- Before: `path_re` `skip_path_re`: filter paths, no pruning
+- Bad rewrite: `path_re` and `skip_path_re` filter paths without pruning.
+- Row folded into a sentence: more words, label lost.
+
+- Before: before edits: read whole notebook or summary of every cell
+- Bad rewrite: before edits: read whole nb or each cell's summary
+- Abbreviated and reordered: no token saved.
+
+- Before: user's clarifying question or objection
+- Bad rewrite: user's clarifying question|objection
+- `|` for "or": one token more.
+
+- Before: plain .py: dense mechanism iterated under pytest; rare. tests/*.py test plain modules
+- Bad rewrite: plain .py: dense mechanism iterated under pytest (rare); tests/*.py test plain modules
+- Repunctuated: no word gone.
+
+- Before: Read the notebook or a summary of every cell before editing it.
+- Bad rewrite: Before editing: read notebook or summary of every cell.
+- Label added, articles dropped: shaved, not rewritten. Right: before edits: read whole notebook or summary of every cell
+
+- Before: examples: extend; no near-duplicates
+- Bad rewrite: examples: extend; avoid near-duplicates
+- Word swapped: no gain.
+
+- Before: Never truncate with `| tail -20`: unseen output hides problems.
+- Bad rewrite: Never truncate with `| tail -20`.
+- Reason lost.
+
+- Before: `#/` rebuilds `Y`. So does `#⁻`, which lets Under change the runs.
+- Bad rewrite: `#/` and `#⁻` rebuild `Y`.
+- Fact lost: Under can change the runs.
+
+- Before: Aim for at most five items per group.
+- Bad rewrite: At most five per group.
+- Qualifier lost: a target became a limit.
+
+- Before: backwards compat: clean break, nearly always
+- Bad rewrite: backwards compat: no shims
+- Judgement made absolute: "nearly always" weighed a cost; "no" forbids.
+
+- Before: A count takes the first items.
+- Bad rewrite: Count takes first items.
+- Still false: a count takes nothing. Right: Take returns the first items.
+
+# Cut, lost, can't act on
+
+- Line: Check the clikernel MCP server instructions already in your context before the first call.
+- Answer: ? cut: reader reads its context untold
+
+- Line: Absolute executable paths under `<venv>/bin`: GUI-launched process's PATH unreliable.
+- Answer: ? cut: step 0 has the rule and the reason
+
+- Line: Follow the usual rules for keys.
+- Answer: ? what are the usual rules
+
+- Line: Leave every project better than you found it.
+- Earlier: Try to leave every project better than you found it.
+- Answer: ? lost: earlier version says "Try to leave"
+
+- Line: patterns: search: regex. editors: literal unless use_regex=True
+- Earlier: Search patterns default to regex; editors default to literal unless `use_regex=True`.
+- Answer: ? lost: search regex is a default, not the only kind
+
+- Line: Google: several minutes to apply new callbacks
+- Earlier: Google can take several minutes to apply new callbacks.
+- Answer: ? lost: earlier version says "can take": a possibility made certain
+
+- Line: Git: returns errors as output, not raised, by default    /check each result
+- Earlier: it returns errors as output rather than raising by default, so check each result.
+- Answer: ? lost: "check each result" is an instruction; as a `/` note it reads as a reason
+
+- Line: api.read_issue read_pr gh_notifs: stay async under sync=True
+- Earlier: convenience methods (`api.read_issue`, `read_pr`, `gh_notifs`, ...) stay async
+- Answer: ? lost: earlier list ends "...": examples, not all
+
+- Line: PDFs: rendered with pypdfium2; `pdf2pngs` usable independently
+- Earlier: PDFs are rendered with pypdfium2. ... Set the chosen provider's API credentials for fastllm; `pdf2pngs` can be used independently.
+- Answer: ? lost: `pdf2pngs` works without provider credentials; beside the renderer that link is gone
+
+- Line: walk skips: unreadable directory or file
+- Earlier: A walk skips each directory or file that it can't read.
+- Answer: -
+
+# No word can go
+
+- `"abc"` char vector; `'a'` char atom; `'abc'` error.
+- Collector MUST be `kwargs`, not `kw`.
+- Edit plausible → `lnhashview_*`.
+- Overtake inserts fill.
+- `skip_dir` `skip_dir_re`: prune subtrees
+- every heading: own markdown cell    /Jupyter collapse
+
+# An example answer
+
+1 -
+2 iota: `ι3`→`0 1 2`; `ι¯3`→`2 1 0`.
+3 ? cut: reader reads its context untold
+4-6 `create(kernel="py")` (ipymini) only; never `python3` (ipykernel), other kernelspecs.
+7 -
+8 ? lost: earlier version says the limit applies under static kinds only

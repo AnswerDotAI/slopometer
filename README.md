@@ -46,12 +46,63 @@ Each em dash adds 4 to the total weight. Semicolons joining independent clauses 
     git log -1 --format=%B | slopometer --min-words 0
     slopometer draft.md --threshold 10
     slopometer draft.md --pangram
+    slopometer nbs/ README.md --vs HEAD
 
 `--threshold` returns exit code 1 when any file’s score exceeds the limit. Several paths or a directory give one report per file, highest density first. JSON output is a list with one entry per file. Each entry includes its `path`, which is null for stdin. Inputs below `--min-words` print the short-input message and exit successfully without scoring. JSON output marks them with `too_short: true`, includes `min_words`, and uses null scores. Every JSON finding includes a `location` object with one-based `line`, `address`, `end_line` and `end_address`. The end fields locate the finding’s last character. Notebook locations add `cell_id` and zero-based `cell_index`. Finding `start` and `end` offsets refer to the combined Markdown, not notebook JSON.
 
 `--pangram`, [`pangram_text`](https://AnswerDotAI.github.io/slopometer/pangram.html#pangram_text), [`pangram_path`](https://AnswerDotAI.github.io/slopometer/pangram.html#pangram_path) and [`pangram_paths`](https://AnswerDotAI.github.io/slopometer/pangram.html#pangram_paths) score with [Pangram](https://www.pangram.com)’s AI detector instead of the rules. Each finding is a window of text that Pangram scored. Density runs from 0 (human) to 100 (AI). `--threshold` compares against the same scale. Each request sends the text to Pangram’s servers and costs about \$0.05 per 100 words. The API key comes from `PANGRAM_API_KEY`.
 
+`--vs HEAD`, or [`score_vs`](https://AnswerDotAI.github.io/slopometer/score.html#score_vs) with a git revision, prints each file’s prose words and density at that revision and now, with a line of word totals. A file outside git, or missing from the revision, shows its current counts only.
+
 The command runs warm through `warmpy`. The first input long enough to score loads the model in a background process. Later calls answer in milliseconds. After thirty idle minutes the process exits.
+
+## Rewriting with two models
+
+`slopometer.rewrite` asks two language models to suggest clearer wording for a document, and leaves each choice to you. It numbers the sentences of a Markdown file, of a Python file’s docstrings, or of a notebook’s Markdown cells and docstrings. Gemini Carbon at low effort and GPT Sol at medium effort each answer every number. Install the extra and set both keys:
+
+    pip install slopometer[ai]
+    export GEMINI_API_KEY=... OPENAI_API_KEY=...
+
+Review a file, then apply the changes you choose:
+
+``` python
+from slopometer.rewrite import *
+print(await rewrite_review('README.md'))
+review_apply('README.md', {12: 'New text.', (14, 15): 'One sentence for two.'})
+print(review_diff('README.md'))
+```
+
+[`rewrite_review`](https://AnswerDotAI.github.io/slopometer/rewrite.html#rewrite_review) changes nothing in the file. It returns a comparison. For each run of sentences that a model changed, the comparison gives the number, the line address, the original and each model’s answer. A model answers each number in one of five ways:
+
+- `-` keeps the sentence.
+- Any other text is a rewrite.
+- `? question` asks what the sentence means.
+- `? cut: reason` says the reader needs nothing from it.
+- `? lost: fact` names a fact that an earlier version has and this version lacks.
+
+On a file’s first review, [`rewrite_review`](https://AnswerDotAI.github.io/slopometer/rewrite.html#rewrite_review) saves its original under XDG state. Each later review passes that original to the models as the earlier version. [`review_pending`](https://AnswerDotAI.github.io/slopometer/rewrite.html#review_pending) lists the suggestions that nobody has acted on. [`review_passed`](https://AnswerDotAI.github.io/slopometer/rewrite.html#review_passed) lists the sentences that no model flagged. Read those too, because the models miss some.
+
+Pick the prompt that suits the document’s reader:
+
+| Reader | Prompt |
+|----|----|
+| People reading explanation or reference prose | the default |
+| People reading a reference page of short lines, such as one page per primitive | `template=prompt('terse')` |
+| A language model, as with `llms.txt`, skills, system prompts and pyskill docstrings | `template=prompt('llm')` |
+
+For a pyskill, pass `mod_only=True`. Only the module docstring is then numbered, since it is the skill’s text. `skip=` takes a regex for paragraphs that the models read and do not number, such as a template line that every page shares.
+
+Treat the models’ rewrites as suggestions. On text that is already dense, refuse the ones that only swap a word, abbreviate one, or fold aligned rows back into a sentence. If an agent applies the review, tell it to bring each new kind of rewrite to the document’s owner. It should not refuse a new kind on its own judgement.
+
+### Converting a file for a language model
+
+`prompt('llm')` checks a file that has already been rewritten for a model. The models propose denser rows in the style of Arthur Whitney’s k reference cards. They also name any fact that the rewrite has lost. A rewrite that only shaves words off each sentence saves about a sixth and still reads like the original. A rewrite of the whole file from its information saved a third to a half. Its rows give a label, the fact and a short reason. Prompts that describe behaviour shrank most. Files of commands, paths and settings shrank least.
+
+1.  Copy the original to a place outside the review folder.
+2.  Rewrite the whole file from its information, not sentence by sentence. Keep every fact, rule, reason and qualifier.
+3.  Review the result against the copy, with `rewrite_review(path, template=prompt('llm'), earlier=copy)`.
+4.  Fix each `? lost:` answer that is real. Most real losses are a hedge or a default made absolute, as when “search patterns default to regex” becomes “search: regex”, or a word whose referent the rewrite dropped.
+5.  Compare each section with the original yourself. The models miss changes where every word survives and the meaning moves, such as an instruction turned into a reason, or “signs include” turned into a colon that makes a list look complete.
 
 ## What it checks, and what it cannot
 

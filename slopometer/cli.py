@@ -1,6 +1,6 @@
 """The command line: score a file or stdin, warm
 
-`slopometer <file>` prints the worst-first report, `slopometer` alone reads stdin, and `--threshold` turns the density into an exit code for CI and hooks. Several files or directories give one report per file, highest density first. `--pangram` scores with Pangram's AI detector instead of the rules. Loading the model takes about a second and scoring takes milliseconds, so the command runs through [warmpy](https://github.com/AnswerDotAI/warmpy): the first call starts a background process that loads the model, later calls reuse it, and it exits after thirty idle minutes. The Claude Code stop hook runs this same command with the response text on stdin.
+`slopometer <file>` prints the worst-first report, `slopometer` alone reads stdin, and `--threshold` turns the density into an exit code for CI and hooks. Several files or directories give one report per file, highest density first. `--pangram` scores with Pangram's AI detector instead of the rules. `--ai` asks a language model which sentences have a subject that does not do what its verb says, and lists them. With file paths, `--ai` reviews tracked files with staged or unstaged git changes and excludes untracked files. All reported paths are relative to the working directory. `--vs HEAD` shows each file's prose words and density at that git revision and now. Loading the model takes about a second and scoring takes milliseconds, so the command runs through [warmpy](https://github.com/AnswerDotAI/warmpy): the first call starts a background process that loads the model, later calls reuse it, and it exits after thirty idle minutes. The Claude Code stop hook runs this same command with the response text on stdin.
 
 Docs: https://AnswerDotAI.github.io/slopometer/cli.html.md"""
 
@@ -10,7 +10,7 @@ Docs: https://AnswerDotAI.github.io/slopometer/cli.html.md"""
 __all__ = ['main']
 
 # %% ../nbs/06_cli.ipynb #01e3be12
-import sys
+import os, sys
 from pathlib import Path
 from warmpy import warm_parse
 
@@ -21,21 +21,49 @@ def _as_json(res):
     return dict(path=res.path and str(res.path), density=res.density, worst=res.worst, words=res.words,
         too_short=res.too_short, min_words=res.min_words, findings=findings)
 
+def _counts(res):
+    "Words and density of a `Result`, or None"
+    return res and dict(words=res.words, density=res.density)
+
+def _changed_paths(paths):
+    "Tracked files in `paths` with staged or unstaged changes"
+    from fastgit import Git
+    from slopometer.score import _doc_paths
+    return [p for p in _doc_paths(paths)
+        if Git(p.parent).status(porcelain=True, untracked_files='no', __=[p.name], mute_errors=True)]
+
 @warm_parse
 def main(
     *paths:str, # Markdown, notebook, or `.py` files, or directories of them; stdin when omitted
-    threshold:float=None, # Exit code 1 when any density exceeds this, which runs from 0 to 100 with `pangram`
+    threshold:float=None, # Exit code 1 when any density exceeds this, which runs from 0 to 100 with `pangram` or `ai`
     json:bool=False, # Emit JSON instead of reports: a list with one entry per file
-    min_words:int=150, # Minimum scored words; 0 disables the cutoff
+    min_words:int=150, # Minimum scored words for the rules and Pangram; 0 disables the cutoff
     pangram:bool=False, # Score with Pangram's AI detector instead of the rules; needs `PANGRAM_API_KEY`
+    ai:bool=False, # Judge sentences in git-changed tracked files (or stdin); needs `slopometer[ai]` and `GEMINI_API_KEY`
+    vs:str=None, # Git revision, such as `HEAD`: show each file's prose words and density then and now, in place of findings
 ):
-    "Score Markdown, notebook, or module docstring prose against the aai reference-prose rules, or with Pangram's AI detector"
+    "Score Markdown, notebook, or module docstring prose against the aai reference-prose rules, with Pangram's AI detector, or with a language model"
     from json import dumps
-    from slopometer.score import score_paths, score_text
-    from slopometer.pangram import pangram_paths, pangram_text
-    sp,st = (pangram_paths,pangram_text) if pangram else (score_paths,score_text)
-    rs = sp(paths, min_words=min_words) if paths else [st(sys.stdin.read(), min_words=min_words)]
+    if vs:
+        from slopometer.score import score_vs
+        if not paths: raise SystemExit('--vs compares files: give paths')
+        cs = score_vs(paths, rev=vs, min_words=min_words)
+        for c in cs: c.path = Path(os.path.relpath(c.path))
+        if json: print(dumps([dict(path=str(c.path), old=_counts(c.old), new=_counts(c.new)) for c in cs]))
+        else: print(cs)
+        return
+    if ai:
+        import asyncio
+        from slopometer.ai import ai_paths, ai_texts
+        rs = asyncio.run(ai_paths(_changed_paths(paths)) if paths else ai_texts([sys.stdin.read()]))
+    else:
+        from slopometer.score import score_paths, score_text
+        from slopometer.pangram import pangram_paths, pangram_text
+        sp,st = (pangram_paths,pangram_text) if pangram else (score_paths,score_text)
+        rs = sp(paths, min_words=min_words) if paths else [st(sys.stdin.read(), min_words=min_words)]
+    for r in rs:
+        if r.path: r.path = Path(os.path.relpath(r.path))
     rs = sorted(rs, key=lambda r: (r.density is not None, r.density or 0), reverse=True)
     if json: print(dumps([_as_json(r) for r in rs]))
-    else: print('\n\n'.join(map(str, rs)))
+    elif rs: print('\n\n'.join(map(str, rs)))
     if threshold is not None and any(r.density is not None and r.density > threshold for r in rs): return 1

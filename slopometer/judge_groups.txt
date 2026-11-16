@@ -1,0 +1,82 @@
+# Grammar group A
+
+50 admits seven in ten replies as confident slop.
+A source records what was said and in what order.
+After the dough has doubled in size, the second proof rewards patience.
+Because the two offices close at different times, the late shift inherits whatever the morning forgot.
+Each event knows its timestamp.
+Every document source reduces the same way.
+Headers ride along with each request to the upstream server.
+If the coach has chosen three forwards, possession tells the midfield where to stand.
+It reappears throughout the later notebooks, and by the scoring notebook the meter reads it end to end.
+Its lines count within the cell.
+Ninety catches nearly every late payment.
+One class of junk needs handling before the parse.
+Ordinary Wikipedia supplies competent encyclopedic prose.
+Rainfall argues for an earlier harvest.
+Readers who skipped the third chapter struggle with the appendix that answers to it.
+Rows carry their source.
+Settings load at startup.
+Startup latency demands a warm process on every build machine.
+Tell 12 requires audience and document context and has no scoring rule.
+The ambiguous middle joins neither.
+The budget speaks first at every planning meeting.
+The diagnosis travels with the patient.
+The fallback tier mops up the stragglers that the first two tiers could not place.
+The index wants sorted keys.
+The lawyers argued for a week, although caution wrote the second half of the contract.
+The minutes compress a day of committee discussion into a few pages.
+The numbers are `write_docs`'s own, and its docstring stays the source for what each tell means.
+The quiet path skips validation.
+The short route borrows an hour from the afternoon, which most walkers would rather spend at the summit.
+The span text is stored too, and a finding therefore displays without its source.
+The twenty-minute methodology digression that changed nothing gets the longest stretch.
+The upper bracket swallows the bonus before you see any of it.
+Training never reads these rows.
+Trust lives in the signature check.
+We tested several limits on the staging cluster, where two hundred loses about one request in fifty.
+When the clerk has no reply after thirty days, silence signs the agreement.
+`skillOverrides` hides bundled skills.
+
+# Grammar group B
+
+A background worker loads the fonts when the page opens.
+A cracked rim cannot be found without removing the tyre.
+A logbook contains every reading, in the order it was taken.
+An entry can be shown without its attachment.
+Applicants who score between the two cut-offs are placed in neither class.
+Because the file is read once at startup, later edits have no effect until you restart the server.
+Did you lock the back door?
+Each invoice has a field for the customer's tax number.
+Each request includes its headers.
+Enable `strict` to reject unknown keys.
+Every sample is prepared in the same way.
+Heavy rain delayed the match by an hour, which gave the ground staff time to clear the pitch.
+I bid you a good morning.
+I read every match by hand and removed the false ones.
+If the river floods the valley again this spring, the council will move the market to higher ground.
+In the final lesson, the students run the complete pipeline on one file.
+My grandmother baked bread every Saturday, long before any of us were old enough to help.
+Pages are numbered from the start of each chapter.
+Pass `np.take` an array of indices.
+Proofing the dough needs a warm room.
+Remove the staples before you scan the pages.
+Rent is due on the first of the month.
+Sort the keys before building the index.
+Stir the sauce until it thickens.
+That doesn't look right at all!
+The clinic uses the hospital's patient numbers and does not issue its own.
+The committee voted against the proposal because nobody could say what it would cost.
+The council gave its largest grant to a project that finished late.
+The error rate is about two percent.
+The guards never use the spare key during a normal shift.
+The nurse checked his pulse twice before she called the doctor.
+The parser rejects malformed input.
+The server listens on port 8080.
+The survey team condensed three years of field notes into one report.
+The thermostat switches the heater off at 21 degrees.
+The train to Leeds departs from platform four, although the board still shows platform two.
+We took the plain-language examples from a children's encyclopedia.
+When the config file is missing, the loader reads its settings from `defaults.toml`.
+With a limit of 30 km/h, about one driver in five is fined.
+`sorted()` returns a new list.
