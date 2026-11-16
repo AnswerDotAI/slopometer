@@ -2,6 +2,13 @@
 
 <!-- do not remove -->
 
+## 0.0.6
+
+### New Features
+
+- Add rewrite module for two-model sentence review, --ai sentence judging, --vs git revision comparison, TypeSafe Jev client, tokenizer fixes ([#12](https://github.com/AnswerDotAI/slopometer/issues/12))
+
+
 ## 0.0.5
 
 ### New Features
