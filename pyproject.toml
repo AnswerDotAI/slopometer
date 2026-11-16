@@ -18,7 +18,7 @@ classifiers = [
 dependencies = ["fastcore", "spacy", "mdhtml>=0.1.40", "httpx2", "warmpy>=0.1.1", "rgapi>=0.1.27", "fastgit>=0.1.5"]
 
 [project.optional-dependencies]
-ai = ["fastllm"]
+ai = ["python-fastllm"]
 
 [project.urls]
 Repository = "https://github.com/AnswerDotAI/slopometer"
