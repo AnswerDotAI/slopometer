@@ -16,4 +16,6 @@ Modules:
 - `slopometer.syntax`: The spaCy rules: sentences, clauses, passives, and the patterns anchored to them
 - `slopometer.typesafe`: Ask TypeSafe's Jev model yes/no questions about text"""
 
-__version__ = "0.0.8"
+__version__ = "0.0.9"
+
+
