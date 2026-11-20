@@ -1,9 +1,12 @@
 # Grammar group A
 
 50 admits seven in ten replies as confident slop.
+A dialog can fit more cards by tightening its gaps.
+A rung with constant chroma ships one number.
 A source records what was said and in what order.
 After the dough has doubled in size, the second proof rewards patience.
 Because the two offices close at different times, the late shift inherits whatever the morning forgot.
+Chroma must respect the gamut boundary.
 Each event knows its timestamp.
 Every document source reduces the same way.
 Headers ride along with each request to the upstream server.
@@ -27,11 +30,13 @@ The index wants sorted keys.
 The lawyers argued for a week, although caution wrote the second half of the contract.
 The minutes compress a day of committee discussion into a few pages.
 The numbers are `write_docs`'s own, and its docstring stays the source for what each tell means.
+The parent owns the row gap.
 The quiet path skips validation.
 The short route borrows an hour from the afternoon, which most walkers would rather spend at the summit.
 The span text is stored too, and a finding therefore displays without its source.
 The twenty-minute methodology digression that changed nothing gets the longest stretch.
 The upper bracket swallows the bonus before you see any of it.
+The visibility class does not invent a new display value.
 Training never reads these rows.
 Trust lives in the signature check.
 We tested several limits on the staging cluster, where two hundred loses about one request in fifty.
@@ -46,6 +51,7 @@ A logbook contains every reading, in the order it was taken.
 An entry can be shown without its attachment.
 Applicants who score between the two cut-offs are placed in neither class.
 Because the file is read once at startup, later edits have no effect until you restart the server.
+Chroma cannot exceed the gamut boundary.
 Did you lock the back door?
 Each invoice has a field for the customer's tax number.
 Each request includes its headers.
@@ -60,15 +66,19 @@ My grandmother baked bread every Saturday, long before any of us were old enough
 Pages are numbered from the start of each chapter.
 Pass `np.take` an array of indices.
 Proofing the dough needs a warm room.
+Reduce a dialog's gaps to fit more cards.
 Remove the staples before you scan the pages.
 Rent is due on the first of the month.
+Set the row gap on the parent container.
 Sort the keys before building the index.
 Stir the sauce until it thickens.
 That doesn't look right at all!
+The browser keeps the element's existing display value.
 The clinic uses the hospital's patient numbers and does not issue its own.
 The committee voted against the proposal because nobody could say what it would cost.
 The council gave its largest grant to a project that finished late.
 The error rate is about two percent.
+The generator emits one number for a rung with constant chroma.
 The guards never use the spare key during a normal shift.
 The nurse checked his pulse twice before she called the doctor.
 The parser rejects malformed input.

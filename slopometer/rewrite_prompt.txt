@@ -174,6 +174,30 @@ After: For a vector `ω` and a positive count `α`, [Take](glyphs/up-arrow.qmd) 
 Before: A dfn names its argument `ω`.
 After: In a dfn (a function written in braces), `ω` is the argument.
 
+Before: The parent owns the row gap.
+After: Set the row gap on the parent container.
+
+Before: A rung with constant chroma ships one number.
+After: The generator emits one number for a rung with constant chroma.
+
+Before: A `[ui]` region can change the bases without adding a second stylesheet.
+After: You can override the base custom properties on a `[ui]` region without adding a second stylesheet.
+
+Before: A dialog can fit more cards by tightening its gaps.
+After: Reduce a dialog's gaps to fit more cards.
+
+Before: Set `--font-heading` for a region that wants Plex Serif headings.
+After: Set `--font-heading` on a region to use Plex Serif for its headings.
+
+Before: A brief help section reads as paragraphs with closely related headings.
+After: A brief help section consists of paragraphs and closely related headings.
+
+Before: Fonts are optional assets, not dependencies of layout or scale.
+After: Layout and scale do not depend on these optional fonts.
+
+Before (description): > Arrange the relationships between children, not the children themselves.
+After: > Layout attributes and utilities for spacing and alignment on parent containers.
+
 # Sentences a reader cannot understand from the document
 
 Sentence: Under dynamic kinds, ordinary integers widen to hold one.
@@ -187,6 +211,9 @@ Answer: ? what is the meter, and what does it mean to read something by a notebo
 
 Sentence: Assignments are shy: the `m←` line printed nothing.
 Answer: ? what does "shy" mean
+
+Sentence: A raised rim is light above and dark below; the well flips it.
+Answer: ? what is "the well"
 
 # Sentences to cut, and facts that a rewrite lost
 

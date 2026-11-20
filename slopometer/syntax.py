@@ -270,19 +270,19 @@ _act_verbs = {  # chkstyle: ignore-node
     'accomplish', 'achieve', 'add', 'affix', 'arrange', 'assemble', 'assign', 'attach', 'bind', 'bolt', 'brand',
     'bring', 'build', 'carry', 'clamp', 'coin', 'construct', 'decorate', 'defend', 'deliver', 'detach',
     'disassemble', 'dismantle', 'distribute', 'download', 'drive', 'emboss', 'ensure', 'exert', 'fabricate',
-    'fasten', 'feed', 'form', 'furnish', 'gather', 'generate', 'give', 'glue', 'grab', 'guard', 'hang', 'hook',
-    'imprint', 'insert', 'inspect', 'invoke', 'keep', 'label', 'land', 'latch', 'leave', 'lock', 'make',
+    'fasten', 'feed', 'flip', 'form', 'furnish', 'gather', 'generate', 'give', 'glue', 'grab', 'guard', 'hang', 'hook',
+    'imprint', 'inflate', 'insert', 'inspect', 'invoke', 'keep', 'label', 'land', 'latch', 'leave', 'lock', 'make',
     'manipulate', 'mark', 'mint', 'modify', 'mount', 'name', 'offer', 'organize', 'pin', 'plug', 'print', 'procure',
     'produce', 'protect', 'pull', 'push', 'reassemble', 'record', 'release', 'remove', 'render', 'retain', 'ride',
-    'separate', 'serve', 'shape', 'snap', 'stamp', 'stencil', 'stick', 'supply', 'survive', 'tie', 'wire', 'write'}
+    'separate', 'serve', 'shape', 'ship', 'snap', 'stamp', 'stencil', 'stick', 'supply', 'survive', 'tie', 'tighten', 'wire', 'write'}
 _mind_verbs = {  # chkstyle: ignore-node
     'abandon', 'accuse', 'acknowledge', 'admit', 'advise', 'aim', 'anticipate', 'appreciate', 'argue', 'assume',
     'attempt', 'believe', 'bother', 'care', 'choose', 'complain', 'comprehend', 'concede', 'consider', 'contend',
     'convince', 'criticize', 'decide', 'demand', 'deny', 'deserve', 'desire', 'disagree', 'doubt', 'earn',
     'emphasize', 'encourage', 'endeavour', 'expect', 'feel', 'forbid', 'forget', 'forgive', 'guess', 'hear', 'hope',
-    'ignore', 'imagine', 'insist', 'intend', 'know', 'learn', 'like', 'listen', 'love', 'mind', 'miss', 'opt',
+    'ignore', 'imagine', 'insist', 'intend', 'invent', 'know', 'learn', 'like', 'listen', 'love', 'mind', 'miss', 'opt',
     'owe', 'own', 'pledge', 'praise', 'prefer', 'presume', 'pretend', 'promise', 'realize', 'reason', 'recognize',
-    'recommend', 'refuse', 'reject', 'remember', 'remind', 'respect', 'seek', 'select', 'sense', 'speak', 'strive',
+    'recommend', 'refuse', 'reject', 'rely', 'remember', 'remind', 'respect', 'respond', 'seek', 'select', 'sense', 'speak', 'strive',
     'suppose', 'think', 'trust', 'try', 'understand', 'undertake', 'want', 'wish', 'wonder', 'worry'}
 _people = {  # chkstyle: ignore-node
     'accountant', 'administrator', 'advisor', 'agent', 'architect', 'assistant', 'associate', 'author', 'blogger',
@@ -304,7 +304,7 @@ _runners = {  # chkstyle: ignore-node
     'linter', 'loader', 'loop', 'magic', 'mapper', 'meter', 'method', 'microprocessor', 'mirror', 'model', 'modem',
     'module', 'operation', 'parser', 'partial', 'plugin', 'preprocessor', 'process', 'program', 'proxy', 'renderer',
     'router', 'runner', 'scanner', 'scheduler', 'scorer', 'script', 'search', 'selector', 'sensor', 'server',
-    'service', 'shell', 'snippet', 'step', 'subroutine', 'subsystem', 'summarizer', 'system', 'terminal', 'test',
+    'service', 'shell', 'snippet', 'subroutine', 'subsystem', 'summarizer', 'system', 'terminal', 'test',
     'tester', 'thread', 'timer', 'tokenizer', 'tool', 'translator', 'transmitter', 'utility', 'widget', 'worker',
     'wrapper'}
 
@@ -312,12 +312,14 @@ _runners = {  # chkstyle: ignore-node
 _actors = _people | _runners
 
 def _inert_subj(sent, verbs, name, tell, weight):
-    "Findings for common-noun subjects of a verb in `verbs`, skipping known actors and names capitalised mid-sentence"
+    "Findings for common-noun subjects of a verb in `verbs` (including `that`/`who` relative clauses), skipping known actors and names capitalised mid-sentence"
     res = []
     for t in sent:
-        if t.dep_ != 'nsubj' or t.pos_ != 'NOUN' or set(t.text) == {'X'} or t.lemma_.lower() in _actors: continue
-        if t.head.pos_ != 'VERB' or t.head.lemma_ not in verbs or (t.i > sent.start and t.text[0].isupper()): continue
-        a,b = sorted((t, t.head), key=lambda x: x.i)
+        if t.dep_ != 'nsubj': continue
+        subj = t.head.head if t.pos_ == 'PRON' and t.lemma_ in ('that', 'who') and t.head.dep_ == 'relcl' else t
+        if subj.pos_ != 'NOUN' or set(subj.text) == {'X'} or subj.lemma_.lower() in _actors: continue
+        if t.head.pos_ != 'VERB' or t.head.lemma_ not in verbs or (subj.i > sent.start and subj.text[0].isupper()): continue
+        a,b = sorted((subj, t.head), key=lambda x: x.i)
         s,e = a.idx-sent.start_char, b.idx-sent.start_char+len(b.text)
         res.append(Finding(name, tell, s, e, sent.text[s:e], weight))
     return res
