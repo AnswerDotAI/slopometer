@@ -2,6 +2,13 @@
 
 <!-- do not remove -->
 
+## 0.0.8
+
+### New Features
+
+- Resolve that/who relative clauses to head noun in inert-subject rules; add act/mind verbs, drop step from runners, extend judge/rewrite examples ([#14](https://github.com/AnswerDotAI/slopometer/issues/14))
+
+
 ## 0.0.7
 
 ### New Features
