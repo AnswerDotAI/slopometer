@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.11.9">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Number the sentences of a Markdown file, a notebook or a Python file’s docstrings for language models, compare the rewrites they suggest, and put rewrites into the file">
+
+<title>rewrite – slopometer</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/scrollable-regions/scrollable-regions.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-f803fa4e565d46961d2a1845e6c2e3f5.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="rewrite – slopometer">
+<meta property="og:description" content="Number the sentences of a Markdown file, a notebook or a Python file’s docstrings for language models, compare the rewrites they suggest, and put rewrites into the file">
+<meta property="og:site_name" content="slopometer">
+<meta name="twitter:title" content="rewrite – slopometer">
+<meta name="twitter:description" content="Number the sentences of a Markdown file, a notebook or a Python file’s docstrings for language models, compare the rewrites they suggest, and put rewrites into the file">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light"><a id="quarto-skip-link" class="visually-hidden-focusable" href="#quarto-document-content">Skip to main content</a>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark" aria-label="Site">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">slopometer</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav" aria-label="Toolbar">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="Breadcrumbs"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./rewrite.html">rewrite</a></li></ol></nav>
+        <a class="flex-grow-1" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto" aria-label="Section">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">slopometer</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./core.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">core</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./segment.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">segment</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./lexicon.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">lexicon</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./syntax.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">syntax</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./para.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">para</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./score.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">score</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pangram.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pangram</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cli.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">cli</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./features.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">features</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./corpus.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">corpus</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./judge.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">judge</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./typesafe.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">typesafe</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ai.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ai</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rewrite.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">rewrite</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" aria-labelledby="toc-title" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#markdown-in-reading-order" id="toc-markdown-in-reading-order" class="nav-link active" data-scroll-target="#markdown-in-reading-order">Markdown in reading order</a></li>
+  <li><a href="#docstrings-in-a-python-file" id="toc-docstrings-in-a-python-file" class="nav-link" data-scroll-target="#docstrings-in-a-python-file">Docstrings in a Python file</a></li>
+  <li><a href="#the-input-for-the-model" id="toc-the-input-for-the-model" class="nav-link" data-scroll-target="#the-input-for-the-model">The input for the model</a></li>
+  <li><a href="#the-models-answer" id="toc-the-models-answer" class="nav-link" data-scroll-target="#the-models-answer">The model’s answer</a></li>
+  <li><a href="#putting-the-rewrites-into-the-source" id="toc-putting-the-rewrites-into-the-source" class="nav-link" data-scroll-target="#putting-the-rewrites-into-the-source">Putting the rewrites into the source</a></li>
+  <li><a href="#notebooks" id="toc-notebooks" class="nav-link" data-scroll-target="#notebooks">Notebooks</a></li>
+  <li><a href="#rewriting-a-file" id="toc-rewriting-a-file" class="nav-link" data-scroll-target="#rewriting-a-file">Rewriting a file</a></li>
+  <li><a href="#two-models-read-by-a-person" id="toc-two-models-read-by-a-person" class="nav-link" data-scroll-target="#two-models-read-by-a-person">Two models, read by a person</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/AnswerDotAI/slopometer/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div><div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="rewrite.html.md"><i class="bi bi-file-code"></i>Markdown</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content" tabindex="-1">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">rewrite</h1>
+</div>
+
+<div>
+  <div class="description">
+    Number the sentences of a Markdown file, a notebook or a Python file’s docstrings for language models, compare the rewrites they suggest, and put rewrites into the file
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<p>NB: this file is designed for an LLM reader, not a human. Add it to your LLM’s context and ask it to explain.</p>
+<ul>
+<li>numbered: sentences, every newline ends one: <code>.md</code> whole text; <code>.py</code> docstrings; <code>.ipynb</code> Markdown cells, code-cell docstrings; headings, quotes, code, code cells, tables, front matter: unnumbered context</li>
+<li><code>await rewrite_review(path)</code>: two models suggest rewrites, file untouched; you choose: <code>review_apply(path, {n: 'new text'})</code> or edit by hand</li>
+<li><code>review_passed(path)</code>: sentences no model flagged: read them too /models miss some</li>
+<li><code>template=</code>: <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#prompt"><code>prompt()</code></a> prose for people; <code>prompt('terse')</code> short reference lines, e.g.&nbsp;a page per primitive; <code>prompt('llm')</code> files an LLM reads</li>
+<li>needs <code>pip install slopometer[ai]</code></li>
+</ul>
+<div id="df32f8f5" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:40.923403+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:40.924450+00:00&quot;,&quot;total&quot;:0.0010493830000015691}}" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> fastcore.test <span class="im">import</span> <span class="op">*</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> nbdev.config <span class="im">import</span> get_config</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> fastcore.nbio <span class="im">import</span> new_nb, mk_cell</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> tempfile</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="markdown-in-reading-order" class="level2">
+<h2 class="anchored" data-anchor-id="markdown-in-reading-order">Markdown in reading order</h2>
+<p>A docstring is Markdown. <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#md_parts"><code>md_parts</code></a> lists what a reader of its prose sees, in order, as pairs. Each sentence of a paragraph or list item comes as a <a href="https://AnswerDotAI.github.io/slopometer/ai.html#sent"><code>Sent</code></a> paired with the list marker in front of it, such as <code>-</code> or <code>2.</code>. The marker is an empty string when the sentence does not start a list item. A heading, block quote, code block or table comes as None paired with its text. The model needs these to follow the document, but it is not asked to rewrite them.</p>
+<div id="81234866" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:40.929523+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:41.013839+00:00&quot;,&quot;total&quot;:0.08432009900000281}}" data-execution_count="5">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/rewrite.py#L56" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="md_parts" class="level3">
+<h3 class="anchored" data-anchor-id="md_parts">md_parts</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> md_parts(</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    txt</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Markdown <code>txt</code> in reading order as pairs: a <a href="https://AnswerDotAI.github.io/slopometer/ai.html#sent"><code>Sent</code></a> with its list marker, or None with the text of a heading, block quote, code block, table or YAML front matter</em></p>
+</section>
+</div>
+<p>This docstring text has a heading, a block quote, a numbered list with a two-line item, a link, and a fenced block:</p>
+<div id="5f634d22" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>MD <span class="op">=</span> <span class="st">"""Widgets for the shop floor.</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="st"># Shipping</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="st">&gt; Ship it today.</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="st">1. Pack the widget.</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="st">   Tape the box shut.</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="st">2. Call [`ship`](api.md#ship)</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="st">```python</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="st">ship(w)</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="st">```</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>parts <span class="op">=</span> md_parts(MD)</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>parts</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Each <a href="https://AnswerDotAI.github.io/slopometer/ai.html#sent"><code>Sent</code></a> has the offsets of its sentence in the text. A newline always ends a sentence. <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#md_parts"><code>md_parts</code></a> keeps the spacing inside a line, which preserves the columns in a file of aligned rows. <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#md_parts"><code>md_parts</code></a> keeps each link, emphasis, HTML tag and formula whole inside its sentence, even a link target with spaces in it. The model sees them and can keep them in its rewrite:</p>
+<div id="2c24fdea" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>FENCE <span class="op">=</span> <span class="st">'`'</span><span class="op">*</span><span class="dv">3</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>test_eq([(s <span class="kw">and</span> s.text, t) <span class="cf">for</span> s,t <span class="kw">in</span> parts], [(<span class="st">'Widgets for the shop floor.'</span>, <span class="st">''</span>), (<span class="va">None</span>, <span class="st">'# Shipping'</span>), (<span class="va">None</span>, <span class="st">'&gt; Ship it today.'</span>),</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    (<span class="st">'Pack the widget.'</span>, <span class="st">'1. '</span>), (<span class="st">'Tape the box shut.'</span>, <span class="st">''</span>), (<span class="st">'Call [`ship`](api.md#ship)'</span>, <span class="st">'2. '</span>), (<span class="va">None</span>, FENCE<span class="op">+</span><span class="st">'python</span><span class="ch">\n</span><span class="st">ship(w)</span><span class="ch">\n</span><span class="st">'</span><span class="op">+</span>FENCE)])</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>tape <span class="op">=</span> parts[<span class="dv">4</span>][<span class="dv">0</span>]</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>test_eq(MD[tape.start:tape.end], <span class="st">'Tape the box shut.'</span>)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>test_eq([s.text <span class="cf">for</span> s,_ <span class="kw">in</span> md_parts(<span class="st">'fork    exact clone</span><span class="ch">\n</span><span class="st">agent   starts with nothing</span><span class="ch">\n</span><span class="st">'</span>)], [<span class="st">'fork    exact clone'</span>, <span class="st">'agent   starts with nothing'</span>])</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>sp <span class="op">=</span> <span class="st">'Open [My Report.md](&lt;/a/My Project/My Report.md:3&gt;)</span><span class="ch">\n</span><span class="st">&lt;span class="x"&gt;Then&lt;/span&gt; close it.'</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>test_eq([s.text <span class="cf">for</span> s,_ <span class="kw">in</span> md_parts(sp)], [<span class="st">'Open [My Report.md](&lt;/a/My Project/My Report.md:3&gt;)'</span>, <span class="st">'&lt;span class="x"&gt;Then&lt;/span&gt; close it.'</span>])</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>test_eq([s.text <span class="cf">for</span> s,_ <span class="kw">in</span> md_parts(<span class="st">'</span><span class="ch">\\</span><span class="st">(x + y</span><span class="ch">\\</span><span class="st">) is positive.</span><span class="ch">\n</span><span class="st">The total is </span><span class="ch">\\</span><span class="st">(a + b</span><span class="ch">\\</span><span class="st">)</span><span class="ch">\n</span><span class="st">'</span>)], [<span class="st">'</span><span class="ch">\\</span><span class="st">(x + y</span><span class="ch">\\</span><span class="st">) is positive.'</span>, <span class="st">'The total is </span><span class="ch">\\</span><span class="st">(a + b</span><span class="ch">\\</span><span class="st">)'</span>])</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>test_eq(md_parts(<span class="st">'# Sum </span><span class="ch">\\</span><span class="st">(a + b</span><span class="ch">\\</span><span class="st">)</span><span class="ch">\n</span><span class="st">It grows.'</span>)[<span class="dv">0</span>], (<span class="va">None</span>, <span class="st">'# Sum </span><span class="ch">\\</span><span class="st">(a + b</span><span class="ch">\\</span><span class="st">)'</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="docstrings-in-a-python-file" class="level2">
+<h2 class="anchored" data-anchor-id="docstrings-in-a-python-file">Docstrings in a Python file</h2>
+<p>This source has a module docstring with a heading, a block quote and a numbered list. It also has a function with a one-line docstring, a method with an indented docstring of two paragraphs, and a method with none:</p>
+<div id="6f856543" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>SRC <span class="op">=</span> <span class="vs">r'''"""Widgets for the shop floor</span><span class="dv">.</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Shipping</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="vs">`make` builds a widget</span><span class="dv">.</span><span class="vs"> Finished widgets ride to the customer with `ship`</span><span class="dv">.</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="vs">&gt; Ship it today</span><span class="dv">.</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="vs">1</span><span class="dv">.</span><span class="vs"> Pack the widget</span><span class="dv">.</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="vs">2</span><span class="dv">.</span><span class="vs"> Call `ship`</span><span class="dv">.</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="vs">"""</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="vs">def make</span><span class="kw">(</span><span class="vs">spec</span><span class="kw">)</span><span class="vs">:</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="vs">    "Build a widget from `spec`"</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="vs">    return Widget</span><span class="kw">(</span><span class="vs">spec</span><span class="kw">)</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="vs">class Widget:</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="vs">    def __init__</span><span class="kw">(</span><span class="vs">self, spec</span><span class="kw">)</span><span class="vs">: self</span><span class="dv">.</span><span class="vs">spec = spec</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="vs">    def ship</span><span class="kw">(</span><span class="vs">self, addr</span><span class="kw">)</span><span class="vs">:</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="vs">        r"""Post the widget to `addr`</span><span class="dv">.</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="vs">        The label carries the order number</span><span class="dv">.</span><span class="vs"> It raises `ValueError` when `addr` is empty</span><span class="dv">.</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a><span class="vs">        """</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a><span class="vs">        if not addr: raise ValueError</span><span class="kw">(</span><span class="vs">addr</span><span class="kw">)</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a><span class="vs">'''</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The docstrings to find belong to the module, its functions and its classes. <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#_named"><code>_named</code></a> walks the syntax tree and gives each function and class a dotted name, such as <code>Widget.ship</code> for a method. <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#_doclit"><code>_doclit</code></a> returns the string literal that is a node’s docstring, or None when the node has no docstring.</p>
+<div id="9835f254" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>tree <span class="op">=</span> ast.parse(SRC)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>test_eq([nm <span class="cf">for</span> nm,_ <span class="kw">in</span> _named(tree)], [<span class="st">'make'</span>, <span class="st">'Widget'</span>, <span class="st">'Widget.__init__'</span>, <span class="st">'Widget.ship'</span>])</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>[(nm, <span class="bu">bool</span>(_doclit(n))) <span class="cf">for</span> nm,n <span class="kw">in</span> _docnodes(tree)]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#py_docstrings"><code>py_docstrings</code></a> returns each docstring of a Python source as a name, the text, and the offset of that text in the source. The module docstring comes first, with the name None. Each function and class follows in source order. A method has a dotted name such as <code>Widget.ship</code>. The text is taken from the file as written, between the quotes, because a rewrite is later put back at the same offsets.</p>
+<div id="bacdc483" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:41.018074+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:41.021155+00:00&quot;,&quot;total&quot;:0.003083406000001787}}" data-execution_count="8">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/rewrite.py#L100" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="py_docstrings" class="level3">
+<h3 class="anchored" data-anchor-id="py_docstrings">py_docstrings</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> py_docstrings(</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    src</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Each docstring in Python source <code>src</code> as (name, text, offset): the module’s first, with name None, then each function’s and class’s</em></p>
+</section>
+</div>
+<div id="8789e762" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>ds <span class="op">=</span> py_docstrings(SRC)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> nm,t,o <span class="kw">in</span> ds: test_eq(SRC[o:o<span class="op">+</span><span class="bu">len</span>(t)], t)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>[(nm, t) <span class="cf">for</span> nm,t,o <span class="kw">in</span> ds]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The later lines of a docstring are usually indented to match the code around them. Markdown would read a paragraph indented by four spaces as code. <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#_dedent"><code>_dedent</code></a> removes the indentation that those lines share. It also returns a function that turns an offset in the result into the offset of the same character in the original:</p>
+<div id="5a54e253" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>d,back <span class="op">=</span> _dedent(<span class="st">'First.</span><span class="ch">\n\n</span><span class="st">    Second line.</span><span class="ch">\n</span><span class="st">    '</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>test_eq(d, <span class="st">'First.</span><span class="ch">\n\n</span><span class="st">Second line.</span><span class="ch">\n</span><span class="st">'</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>test_eq(back(d.index(<span class="st">'Second'</span>)), <span class="dv">12</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>d</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#py_docs"><code>py_docs</code></a> splits each docstring into the parts that <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#md_parts"><code>md_parts</code></a> returns. The offsets of each sentence are positions in the whole source.</p>
+<div id="8bfcb271" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:41.024276+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:41.026833+00:00&quot;,&quot;total&quot;:0.0025593760000006682}}" data-execution_count="11">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/rewrite.py#L127" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="py_docs" class="level3">
+<h3 class="anchored" data-anchor-id="py_docs">py_docs</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> py_docs(</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    src</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Each docstring of Python source <code>src</code> as (name, parts): parts are as <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#md_parts"><code>md_parts</code></a> returns, with sentence offsets that are positions in <code>src</code></em></p>
+</section>
+</div>
+<div id="d088a9e9" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>docs <span class="op">=</span> py_docs(SRC)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>docs</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The second paragraph of the method’s docstring is found, though the file indents it. The offsets of each <a href="https://AnswerDotAI.github.io/slopometer/ai.html#sent"><code>Sent</code></a> are positions in the source file:</p>
+<div id="3e60ba85" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>test_eq([nm <span class="cf">for</span> nm,_ <span class="kw">in</span> docs], [<span class="va">None</span>, <span class="st">'make'</span>, <span class="st">'Widget.ship'</span>])</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>raises <span class="op">=</span> docs[<span class="dv">2</span>][<span class="dv">1</span>][<span class="dv">2</span>][<span class="dv">0</span>]</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>test_eq(raises.text, <span class="st">'It raises `ValueError` when `addr` is empty.'</span>)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>test_eq(SRC[raises.start:raises.end], <span class="st">'It raises `ValueError` when `addr` is empty.'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="the-input-for-the-model" class="level2">
+<h2 class="anchored" data-anchor-id="the-input-for-the-model">The input for the model</h2>
+<p><a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#rewrite_input"><code>rewrite_input</code></a> writes the text that the model reads. Each docstring starts with a line that names it: <code>Module docstring:</code>, or the name of the function or class. Prose that is not a docstring has the name <code>''</code>. It gets no such line in a Markdown file. A notebook’s code cells have the name <code>CODE</code>. Each is shown as fenced code with no number, and a <code>Markdown cell:</code> line marks the prose that follows it. Every sentence has a number in square brackets. The numbers do not restart for each docstring, because an answer names a sentence by its number alone. A list marker stays in front of the number of the sentence that starts the item. A line indented further than the first line of its paragraph is shown with that extra indentation after its number. Aligned rows then keep their columns. Headings, block quotes, code blocks and tables have no number.</p>
+<p>A module can keep part of its docstring elsewhere and leave a <code>{name}</code> placeholder for it, as <code>aai_coding.write_docs</code> does. Pass that text in <code>fills</code>. The line after each sentence with a placeholder then gives the text that the placeholder stands for.</p>
+<div id="bf08e765" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:41.029829+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:41.033732+00:00&quot;,&quot;total&quot;:0.0039051720000031764}}" data-execution_count="13">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/rewrite.py#L141" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="rewrite_input" class="level3">
+<h3 class="anchored" data-anchor-id="rewrite_input">rewrite_input</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> rewrite_input(</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    docs, <span class="co"># (name, parts) pairs, as `file_docs` returns</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    fills:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Text that each `{name}` placeholder in the sentences stands for</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    skip:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Regex; a paragraph or list item that it matches gets `[-]` in place of each number</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    nums:<span class="bu">bool</span><span class="op">=</span><span class="va">True</span>, <span class="co"># Number the sentences? False gives the same text with no numbers, as `_related` shows an earlier version</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    mod_only:<span class="bu">bool</span><span class="op">=</span><span class="va">False</span>, <span class="co"># Give `[-]` to the docstrings of functions and classes? For a pyskill, whose module docstring is the skill's text</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The text a model reads for <code>docs</code>: every sentence numbered unless <code>skip</code> matches its paragraph or <code>mod_only</code> excludes its docstring, with each docstring under a line that names it, and each code cell shown as context</em></p>
+</section>
+</div>
+<div id="bbc29aaa" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>inp <span class="op">=</span> rewrite_input(docs)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(inp)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="80e7c6aa" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> o <span class="kw">in</span> (<span class="st">'Module docstring:'</span>, <span class="st">'# Shipping'</span>, <span class="st">'&gt; Ship it today.'</span>, <span class="st">'2. [4] Call `ship`.'</span>, <span class="st">'Docstring of `Widget.ship`:'</span>, <span class="st">'[8] It raises `ValueError` when `addr` is empty.'</span>):</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> o <span class="kw">in</span> inp.splitlines()</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>test_eq(rewrite_input([(<span class="st">''</span>, parts)]).splitlines()[<span class="dv">0</span>], <span class="st">'[0] Widgets for the shop floor.'</span>)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>filled <span class="op">=</span> rewrite_input([(<span class="st">''</span>, md_parts(<span class="st">'Avoid these.</span><span class="ch">\n\n</span><span class="st">1. </span><span class="sc">{hedging}</span><span class="st">'</span>))], <span class="bu">dict</span>(hedging<span class="op">=</span><span class="st">'Hedging. Say what is true.'</span>))</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>test_eq(filled.splitlines()[<span class="op">-</span><span class="dv">2</span>:], [<span class="st">'1. [1] </span><span class="sc">{hedging}</span><span class="st">'</span>, <span class="st">'  (</span><span class="sc">{hedging}</span><span class="st"> stands for: Hedging. Say what is true.)'</span>])</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>test_eq(rewrite_input([(<span class="st">''</span>, md_parts(<span class="st">'fork    exact clone</span><span class="ch">\n</span><span class="st">        tell: its part</span><span class="ch">\n</span><span class="st">'</span>))]).splitlines(), [<span class="st">'[0] fork    exact clone'</span>, <span class="st">'[1]         tell: its part'</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Some lines are reference text that no model should rewrite, such as the line of key bindings at the top of each page of a manual. Pass <code>skip</code>, a regex, to leave them unnumbered. A paragraph or list item that <code>skip</code> matches gets <code>[-]</code> in place of each number, so the model reads it and has no number to answer with. The other sentences keep their numbers:</p>
+<div id="fb5518c1" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>skipped <span class="op">=</span> rewrite_input([(<span class="st">''</span>, parts)], skip<span class="op">=</span><span class="vs">r'</span><span class="dv">^</span><span class="vs">Pack'</span>).splitlines()</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> o <span class="kw">in</span> (<span class="st">'1. [-] Pack the widget.'</span>, <span class="st">'[-] Tape the box shut.'</span>, <span class="st">'2. [3] Call [`ship`](api.md#ship)'</span>): <span class="cf">assert</span> o <span class="kw">in</span> skipped</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>skipped</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>A pyskill’s module docstring is the text of the skill, and its other docstrings document code. <code>mod_only=True</code> gives the sentences of those other docstrings <code>[-]</code>, so the model reads them and does not rewrite them. <code>nums=False</code> leaves out every number. <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#_related"><code>_related</code></a> uses it to show an earlier version of a file in the same form as the document:</p>
+<div id="66c7187c" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>mo <span class="op">=</span> rewrite_input(docs, mod_only<span class="op">=</span><span class="va">True</span>).splitlines()</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> o <span class="kw">in</span> (<span class="st">'[0] Widgets for the shop floor.'</span>, <span class="st">'[-] Build a widget from `spec`'</span>, <span class="st">'[-] The label carries the order number.'</span>): <span class="cf">assert</span> o <span class="kw">in</span> mo</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>plain <span class="op">=</span> rewrite_input(docs, nums<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'</span><span class="ch">\n</span><span class="st">1. Pack the widget.'</span> <span class="kw">in</span> plain <span class="kw">and</span> <span class="st">'['</span> <span class="kw">not</span> <span class="kw">in</span> plain</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(plain)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="the-models-answer" class="level2">
+<h2 class="anchored" data-anchor-id="the-models-answer">The model’s answer</h2>
+<p>The prompt asks for one answer per sentence. <code>7 -</code> keeps sentence 7. <code>7 &lt;text&gt;</code> replaces it. <code>7-8 &lt;text&gt;</code> replaces sentences 7 and 8 together. <code>7 ? &lt;question&gt;</code> asks what the sentence means. <code>7 ? cut: &lt;why&gt;</code> and <code>7 ? lost: &lt;fact&gt;</code> are questions too, so they need no parsing of their own. <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#parse_rewrites"><code>parse_rewrites</code></a> reads those answers into (first, last, text) triples. It accepts the number with or without brackets. A line that starts with neither a number nor a space belongs to no answer, and it is skipped.</p>
+<div id="6d5d3bf5" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:41.036312+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:41.039191+00:00&quot;,&quot;total&quot;:0.002881408000000363}}" data-execution_count="15">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/rewrite.py#L170" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="parse_rewrites" class="level3">
+<h3 class="anchored" data-anchor-id="parse_rewrites">parse_rewrites</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> parse_rewrites(</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    reply</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The answers of <code>reply</code> as (first, last, text) triples: text is <code>-</code> to keep the sentences, starts with <code>?</code> for a question, and is otherwise the rewrite, without the <code>&gt;</code> that a model may repeat from a description; indented lines under an answer are rows of its text</em></p>
+</section>
+</div>
+<div id="e7bd159f" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>reply <span class="op">=</span> <span class="st">"""0 -</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="st">1 -</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="st">2 Call `ship` to post a finished widget to the customer.</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="st">[3] -</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="st">4 -</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="st">5 -</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="st">6 -</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a><span class="st">7 The order number is printed on the label.</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a><span class="st">8 ? what does it do when `addr` is only spaces"""</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>ans <span class="op">=</span> parse_rewrites(reply)</span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>test_eq(ans[<span class="dv">2</span>:<span class="dv">4</span>], [(<span class="dv">2</span>, <span class="dv">2</span>, <span class="st">'Call `ship` to post a finished widget to the customer.'</span>), (<span class="dv">3</span>, <span class="dv">3</span>, <span class="st">'-'</span>)])</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>test_eq(parse_rewrites(<span class="st">'Here are my answers.</span><span class="ch">\n</span><span class="st">5-6 One sentence for two.'</span>), [(<span class="dv">5</span>, <span class="dv">6</span>, <span class="st">'One sentence for two.'</span>)])</span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>ans[<span class="op">-</span><span class="dv">2</span>:]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>A model can answer a run with rows, when a table or a list says it better than a sentence. It writes the number, then each row on a line of its own, indented. <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#parse_rewrites"><code>parse_rewrites</code></a> keeps those lines in the answer. With no text beside the number, the rows are the whole answer:</p>
+<div id="5157c50a" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>rows <span class="op">=</span> parse_rewrites(<span class="st">"""3 -</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="st">4-6 Read through the kernel:</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="st">    file    `view_file`</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="st">    search  `rg`</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="st">7-8</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="st">    always        `ws-sync`</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="st">    code changed  restart</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a><span class="st">9 -"""</span>)</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>test_eq(rows[<span class="dv">1</span>], (<span class="dv">4</span>, <span class="dv">6</span>, <span class="st">'Read through the kernel:</span><span class="ch">\n</span><span class="st">    file    `view_file`</span><span class="ch">\n</span><span class="st">    search  `rg`'</span>))</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>test_eq(rows[<span class="dv">2</span>], (<span class="dv">7</span>, <span class="dv">8</span>, <span class="st">'always        `ws-sync`</span><span class="ch">\n</span><span class="st">code changed  restart'</span>))</span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>rows[<span class="dv">1</span>:<span class="dv">3</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="putting-the-rewrites-into-the-source" class="level2">
+<h2 class="anchored" data-anchor-id="putting-the-rewrites-into-the-source">Putting the rewrites into the source</h2>
+<p>A rewrite must not damage the file. <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#same_code"><code>same_code</code></a> makes a check for that. The check compares the syntax tree of a new source with the original’s and ignores what the docstrings say. A quotation mark that ends a docstring early is one way to fail it:</p>
+<div id="6237fe89" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:41.040729+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:41.043009+00:00&quot;,&quot;total&quot;:0.002282779000005064}}" data-execution_count="17">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/rewrite.py#L190" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="same_code" class="level3">
+<h3 class="anchored" data-anchor-id="same_code">same_code</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> same_code(</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>    src</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>A function that tells whether another source has the same code as Python source <code>src</code>, whatever its docstrings say</em></p>
+</section>
+</div>
+<div id="98861ce7" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>ok <span class="op">=</span> same_code(SRC)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> ok(SRC.replace(<span class="st">'Build a widget'</span>, <span class="st">'Make one widget'</span>))</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="kw">not</span> ok(SRC.replace(<span class="st">'return Widget(spec)'</span>, <span class="st">'return None'</span>))</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="kw">not</span> ok(SRC.replace(<span class="st">'Build a widget'</span>, <span class="st">'Build a "widget"'</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#rewrites"><code>Rewrites</code></a> applies the answers. Its <code>new</code> attribute is the source with each rewrite in place of the old sentence. <code>rows</code> lists every rewrite and question as (first, last, kind, old text, new text), for a person to review. <code>missing</code> counts the sentences that got no answer line. An answer that repeats its sentence unchanged counts as <code>-</code>.</p>
+<div id="690ca203" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:41.048221+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:41.052194+00:00&quot;,&quot;total&quot;:0.003975484000001472}}" data-execution_count="19">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/rewrite.py#L215" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="rewrites" class="level3">
+<h3 class="anchored" data-anchor-id="rewrites">Rewrites</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> Rewrites(</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>    src, <span class="co"># The text that the sentence offsets are positions in</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    docs, <span class="co"># (name, parts) pairs, as `py_docs` returns</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>    answers, <span class="co"># (first, last, text) triples, as `parse_rewrites` returns</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>    valid:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Called with the source after each rewrite; a false result leaves that rewrite out</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+</div>
+<p>With the answers above, two sentences are rewritten. The rest of the file is as it was:</p>
+<div id="3920eafa" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>r <span class="op">=</span> Rewrites(SRC, docs, ans, valid<span class="op">=</span>same_code(SRC))</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>test_eq([(a, kind) <span class="cf">for</span> a,_,kind,<span class="op">*</span>_ <span class="kw">in</span> r.rows], [(<span class="dv">2</span>, <span class="st">'AFTER'</span>), (<span class="dv">7</span>, <span class="st">'AFTER'</span>), (<span class="dv">8</span>, <span class="st">'QUESTION'</span>)])</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'`make` builds a widget. Call `ship` to post a finished widget to the customer.</span><span class="ch">\n</span><span class="st">'</span> <span class="kw">in</span> r.new</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'        The order number is printed on the label. It raises `ValueError` when `addr` is empty.</span><span class="ch">\n</span><span class="st">'</span> <span class="kw">in</span> r.new</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> same_code(SRC)(r.new)</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(r.new)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>of</code> returns the rows of one kind. The display gives the counts, then each row as the old text and the new:</p>
+<div id="59aad306" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:41.054173+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:41.057020+00:00&quot;,&quot;total&quot;:0.002849539000003176}}" data-execution_count="21">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/rewrite.py#L249" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="rewrites.__repr__" class="level3">
+<h3 class="anchored" data-anchor-id="rewrites.__repr__">Rewrites.__repr__</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> <span class="fu">__repr__</span>():</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Return repr(self).</em></p>
+</section>
+</div>
+<div id="cbd9d174" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:41.057109+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:41.059411+00:00&quot;,&quot;total&quot;:0.002304389000002516}}" data-execution_count="22">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/rewrite.py#L244" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="rewrites.of" class="level3">
+<h3 class="anchored" data-anchor-id="rewrites.of">Rewrites.of</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> of(</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>    kind</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The rows of one kind: ‘AFTER’ for a rewrite made, ‘QUESTION’, or ‘LEFT OUT’ for a rewrite not made</em></p>
+</section>
+</div>
+<div id="e96afe7b" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>test_eq(<span class="bu">len</span>(r.of(<span class="st">'AFTER'</span>)), <span class="dv">2</span>)</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>r</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#rewrites"><code>Rewrites</code></a> leaves a rewrite out in three cases. Its range runs across two docstrings or two paragraphs. Another rewrite already covers one of its sentences. Or the <code>valid</code> check fails. Here the first answer joins a list item of the module docstring to the docstring of <code>make</code>, the second puts a double quotation mark into a docstring that double quotation marks enclose, and the last two both cover sentence 2:</p>
+<div id="2d0da78e" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>out <span class="op">=</span> Rewrites(SRC, docs, [(<span class="dv">4</span>, <span class="dv">5</span>, <span class="st">'Call `ship` and build a widget.'</span>), (<span class="dv">5</span>, <span class="dv">5</span>, <span class="st">'Build a "widget" from `spec`'</span>), (<span class="dv">2</span>, <span class="dv">2</span>, <span class="st">'Use `ship`.'</span>), (<span class="dv">1</span>, <span class="dv">2</span>, <span class="st">'Use `make` and `ship`.'</span>)],</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>    valid<span class="op">=</span>same_code(SRC))</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>test_eq([(a, b, kind) <span class="cf">for</span> a,b,kind,<span class="op">*</span>_ <span class="kw">in</span> out.rows], [(<span class="dv">1</span>, <span class="dv">2</span>, <span class="st">'LEFT OUT'</span>), (<span class="dv">2</span>, <span class="dv">2</span>, <span class="st">'AFTER'</span>), (<span class="dv">4</span>, <span class="dv">5</span>, <span class="st">'LEFT OUT'</span>), (<span class="dv">5</span>, <span class="dv">5</span>, <span class="st">'LEFT OUT'</span>)])</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>test_eq(out.missing, <span class="dv">5</span>)</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>out</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="notebooks" class="level2">
+<h2 class="anchored" data-anchor-id="notebooks">Notebooks</h2>
+<p>A notebook holds prose in its Markdown cells and docstrings in its code cells. <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#nb_docs"><code>nb_docs</code></a> reads both in cell order. A Markdown cell gives its prose under the name <code>''</code>. A code cell gives two things. Its whole source comes first under the name <code>CODE</code>, as context that the model reads and does not answer. The docstring of each function and class in it follows, numbered. A code cell that Python cannot parse, such as one with a magic, gives its source only. Raw cells and empty cells give nothing.</p>
+<p>In an nbdev notebook the block quote under the title is the module’s description. <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#nb_docs"><code>nb_docs</code></a> numbers its sentences so that the model reviews them, though other block quotes are context only. A description keeps its <code>&gt;</code> marker in the model’s input. The prompt tells the model to keep such a sentence apart from the text after it, because listings show the description on its own.</p>
+<p>A <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#rewrites"><code>Rewrites</code></a> works on one text. <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#nb_docs"><code>nb_docs</code></a> therefore also returns the cell sources joined by <code>SEP</code>, and the sentence offsets are positions in that text. <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#_addr"><code>_addr</code></a> gives each sentence an <code>addr</code>, the exhash address of the line it starts on:</p>
+<p>A block quote directly under a title is the description of the page, so <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#_md_parts"><code>_md_parts</code></a> numbers its sentences, whereas any other block quote is context. <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#_cell_docs"><code>_cell_docs</code></a> reads one cell, and <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#nb_docs"><code>nb_docs</code></a> puts the cells together. In a notebook, a sentence’s <code>addr</code> starts with its cell ID:</p>
+<div id="28f5c77c" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:41.063492+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:41.066199+00:00&quot;,&quot;total&quot;:0.0027097469999972645}}" data-execution_count="25">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/rewrite.py#L287" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="nb_docs" class="level3">
+<h3 class="anchored" data-anchor-id="nb_docs">nb_docs</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> nb_docs(</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>    nb</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The cell sources of notebook <code>nb</code> joined by <code>SEP</code>, and its (name, parts) pairs: the prose of each Markdown cell, and each code cell’s source followed by its docstrings; each sentence has its <code>addr</code> as cell ID and line address</em></p>
+</section>
+</div>
+<p>This notebook has a title cell with a description, an exported function, a prose cell, a cell with a magic, and a raw cell:</p>
+<div id="3771cbc6" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>NB <span class="op">=</span> new_nb([mk_cell(<span class="st">'# widgets</span><span class="ch">\n\n</span><span class="st">&gt; Build widgets and ship them to customers.'</span>, <span class="st">'markdown'</span>),</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>    mk_cell(<span class="st">'#| export</span><span class="ch">\n</span><span class="st">def make(spec):</span><span class="ch">\n</span><span class="st">    "Build a widget from `spec`"</span><span class="ch">\n</span><span class="st">    return Widget(spec)'</span>),</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>    mk_cell(<span class="st">'`make` needs a spec. Finished widgets ride to the customer.'</span>, <span class="st">'markdown'</span>),</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>    mk_cell(<span class="st">'%time make(1)'</span>), mk_cell(<span class="st">'Not prose.'</span>, <span class="st">'raw'</span>)])</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>nsrc,ndocs <span class="op">=</span> nb_docs(NB)</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>ndocs</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>In the input for the model, the description has its <code>&gt;</code> marker, each code cell is fenced, and a <code>Markdown cell:</code> line marks where prose starts again. A model may repeat the <code>&gt;</code> in its answer, and <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#parse_rewrites"><code>parse_rewrites</code></a> drops it:</p>
+<div id="7c241dbe" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>test_eq([nm <span class="cf">for</span> nm,_ <span class="kw">in</span> ndocs], [<span class="st">''</span>, CODE, <span class="st">'make'</span>, <span class="st">''</span>, CODE])</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>desc <span class="op">=</span> ndocs[<span class="dv">0</span>][<span class="dv">1</span>][<span class="dv">1</span>][<span class="dv">0</span>]</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>test_eq(nsrc[desc.start:desc.end], <span class="st">'Build widgets and ship them to customers.'</span>)</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>test_eq(desc.addr, <span class="ss">f'</span><span class="sc">{</span>NB<span class="sc">.</span>cells[<span class="dv">0</span>]<span class="sc">.</span><span class="bu">id</span><span class="sc">}</span><span class="ss">:</span><span class="sc">{</span>lnhash_at(NB.cells[<span class="dv">0</span>].source, <span class="dv">3</span>)<span class="sc">}</span><span class="ss">'</span>)</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>ninp <span class="op">=</span> rewrite_input(ndocs)</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'&gt; [0] Build widgets and ship them to customers.'</span> <span class="kw">in</span> ninp</span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'    return Widget(spec)</span><span class="ch">\n</span><span class="st">```</span><span class="ch">\n\n</span><span class="st">Docstring of `make`:</span><span class="ch">\n\n</span><span class="st">[1] Build a widget from `spec`</span><span class="ch">\n\n</span><span class="st">Markdown cell:</span><span class="ch">\n\n</span><span class="st">[2] `make` needs a spec.'</span> <span class="kw">in</span> ninp</span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> ninp.endswith(<span class="st">'```python</span><span class="ch">\n</span><span class="st">%time make(1)</span><span class="ch">\n</span><span class="st">```'</span>)</span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>test_eq(parse_rewrites(<span class="st">'0 &gt; Build and ship widgets.'</span>), [(<span class="dv">0</span>, <span class="dv">0</span>, <span class="st">'Build and ship widgets.'</span>)])</span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(ninp)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>A rewrite in a notebook must leave the code of every code cell as it was. <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#_same_cells"><code>_same_cells</code></a> makes that check for a <code>SEP</code>-joined text:</p>
+<div id="0b998e8e" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>nok <span class="op">=</span> _same_cells(NB)</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>nr <span class="op">=</span> Rewrites(nsrc, ndocs, [(<span class="dv">0</span>, <span class="dv">0</span>, <span class="st">'Build widgets and ship them.'</span>), (<span class="dv">1</span>, <span class="dv">1</span>, <span class="st">'Build a "widget"'</span>), (<span class="dv">3</span>, <span class="dv">3</span>, <span class="st">'We send finished widgets to the customer.'</span>)], valid<span class="op">=</span>nok)</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>test_eq([(a, kind) <span class="cf">for</span> a,_,kind,<span class="op">*</span>_ <span class="kw">in</span> nr.rows], [(<span class="dv">0</span>, <span class="st">'AFTER'</span>), (<span class="dv">1</span>, <span class="st">'LEFT OUT'</span>), (<span class="dv">3</span>, <span class="st">'AFTER'</span>)])</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>test_eq(nr.new.split(SEP)[<span class="dv">0</span>], <span class="st">'# widgets</span><span class="ch">\n\n</span><span class="st">&gt; Build widgets and ship them.'</span>)</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>nr</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="rewriting-a-file" class="level2">
+<h2 class="anchored" data-anchor-id="rewriting-a-file">Rewriting a file</h2>
+<p><a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#file_docs"><code>file_docs</code></a> reads a file and returns what the later steps need: the text, the (name, parts) pairs, and the check that <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#rewrites"><code>Rewrites</code></a> runs after each rewrite. A notebook gives the text and pairs that <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#nb_docs"><code>nb_docs</code></a> returns, with the <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#_same_cells"><code>_same_cells</code></a> check. A <code>.py</code> file gives its docstrings and the <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#same_code"><code>same_code</code></a> check. Any other file is read as Markdown and has no check. Its description is numbered too, as in the summary line under the title of an <code>llms.txt</code> file. Each sentence also gets an <code>addr</code>: the exhash address of the line it starts on, which in a notebook follows the cell ID.</p>
+<p><a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#write_new"><code>write_new</code></a> writes the <code>new</code> text of a <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#rewrites"><code>Rewrites</code></a> to a file. For a notebook it reads the notebook at <code>path</code> and replaces the source of each cell.</p>
+<div id="8ef363ee" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:41.069758+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:41.072366+00:00&quot;,&quot;total&quot;:0.002610732000000837}}" data-execution_count="28">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/rewrite.py#L317" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="write_new" class="level3">
+<h3 class="anchored" data-anchor-id="write_new">write_new</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> write_new(</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>    path, new, dest:NoneType<span class="op">=</span><span class="va">None</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Write <code>new</code>, the <code>new</code> text of a <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#rewrites"><code>Rewrites</code></a> for the file at <code>path</code>, to <code>dest</code>, or over <code>path</code> when <code>dest</code> is None; a notebook gets it as its cell sources and is validated first</em></p>
+</section>
+</div>
+<div id="37719bfd" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:41.072451+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:41.075050+00:00&quot;,&quot;total&quot;:0.002601114000000848}}" data-execution_count="29">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/rewrite.py#L307" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="file_docs" class="level3">
+<h3 class="anchored" data-anchor-id="file_docs">file_docs</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> file_docs(</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>    path</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The text of the file at <code>path</code>, its (name, parts) pairs with a line address as each sentence’s <code>addr</code>, and a <code>valid</code> check for <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#rewrites"><code>Rewrites</code></a>: a notebook’s cells, a <code>.py</code> file’s docstrings, or the whole text of any other file</em></p>
+</section>
+</div>
+<div id="903ac586" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>root <span class="op">=</span> get_config().config_path</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>src,fdocs,valid <span class="op">=</span> file_docs(root<span class="op">/</span><span class="st">'README.md'</span>)</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>test_eq([nm <span class="cf">for</span> nm,_ <span class="kw">in</span> fdocs], [<span class="st">''</span>])</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>test_is(valid, <span class="va">None</span>)</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>src,fdocs,valid <span class="op">=</span> file_docs(root<span class="op">/</span><span class="st">'slopometer'</span><span class="op">/</span><span class="st">'score.py'</span>)</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> valid(src) <span class="kw">and</span> fdocs[<span class="dv">0</span>][<span class="dv">0</span>] <span class="kw">is</span> <span class="va">None</span></span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>first <span class="op">=</span> fdocs[<span class="dv">0</span>][<span class="dv">1</span>][<span class="dv">0</span>][<span class="dv">0</span>]</span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>test_eq(first.addr, lnhash_at(src, src[:first.start].count(<span class="st">'</span><span class="ch">\n</span><span class="st">'</span>)<span class="op">+</span><span class="dv">1</span>))</span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>first.addr</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>A Markdown file’s description is numbered, and a block quote further down is not. The description can follow the <code>NB:</code> line that a file for a language model has under its title. YAML front matter is shown without a number:</p>
+<div id="85c5c89a" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>f <span class="op">=</span> Path(tempfile.mkdtemp())<span class="op">/</span><span class="st">'llms.txt'</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>f.write_text(<span class="st">'---</span><span class="ch">\n</span><span class="st">name: widgets</span><span class="ch">\n</span><span class="st">---</span><span class="ch">\n</span><span class="st"># Widgets</span><span class="ch">\n\n</span><span class="st">NB: this file is designed for an LLM reader, not a human.</span><span class="ch">\n\n</span><span class="st">&gt; Widget API. Most shop idioms fail here.</span><span class="ch">\n\n</span><span class="st">- make: `make(spec)`.</span><span class="ch">\n\n</span><span class="st">&gt; A later quotation.</span><span class="ch">\n</span><span class="st">'</span>)</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>inp <span class="op">=</span> rewrite_input(file_docs(f)[<span class="dv">1</span>]).splitlines()</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> o <span class="kw">in</span> (<span class="st">'name: widgets'</span>, <span class="st">'&gt; [1] Widget API.'</span>, <span class="st">'&gt; [2] Most shop idioms fail here.'</span>, <span class="st">'&gt; A later quotation.'</span>): <span class="cf">assert</span> o <span class="kw">in</span> inp</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>inp</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>A notebook gives the check for its code cells, and each <code>addr</code> starts with a cell ID:</p>
+<div id="e4253b7a" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>src,fdocs,valid <span class="op">=</span> file_docs(root<span class="op">/</span><span class="st">'nbs'</span><span class="op">/</span><span class="st">'00_core.ipynb'</span>)</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> valid(src) <span class="kw">and</span> fdocs[<span class="dv">0</span>][<span class="dv">1</span>][<span class="dv">1</span>][<span class="dv">0</span>].addr.startswith(read_nb(root<span class="op">/</span><span class="st">'nbs'</span><span class="op">/</span><span class="st">'00_core.ipynb'</span>).cells[<span class="dv">0</span>].<span class="bu">id</span><span class="op">+</span><span class="st">':'</span>)</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>rewrite_input(fdocs).splitlines()[:<span class="dv">3</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#prompt"><code>prompt</code></a> returns the prompt that ships with the package. It has a <code>{document}</code> placeholder where the numbered sentences go. The default prompt teaches full explanatory sentences. <code>prompt('terse')</code> is for reference pages written as short lines, such as the page for each primitive of an array language. It keeps the default prompt’s answer format and its last section, and has guidance and examples of its own between them. <code>prompt('llm')</code> is for files that a language model reads, such as an <code>llms.txt</code> file, a skill or a system prompt, written in the dense style that <code>aai_coding.write_llms</code> describes. Every style has two answers that are questions: <code>? cut:</code> for a sentence that the reader does not need, and <code>? lost:</code> for a fact that an earlier version has and this one lacks. <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#_related"><code>_related</code></a> writes out the files that a caller passes as <code>context</code>, for the model to consult. It puts the file passed as <code>earlier</code> last, under a heading that says it is an earlier version of the document. It shows that file as <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#rewrite_input"><code>rewrite_input</code></a> shows the document, without numbers. The model then compares like with like, and cannot report the code of a <code>.py</code> file as a fact that the docstrings have lost.</p>
+<div id="d9698f96" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:41.077536+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:41.080105+00:00&quot;,&quot;total&quot;:0.0025714280000030953}}" data-execution_count="31">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/rewrite.py#L327" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="prompt" class="level3">
+<h3 class="anchored" data-anchor-id="prompt">prompt</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> prompt(</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>    style:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Name of a style whose examples replace the default ones, `'terse'` or `'llm'`</span></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The rewrite prompt that ships with the package, with a <code>{document}</code> placeholder for the numbered sentences</em></p>
+</section>
+</div>
+<p>Pass a style’s prompt as <code>template</code>, as in <code>rewrite_review(path, template=prompt('terse'))</code>. Every style shares the default prompt’s first and last sections, and the first has both question answers. The last lines check what <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#_related"><code>_related</code></a> writes for an earlier version. For a <code>.py</code> file that is its docstrings without numbers, and none of its code:</p>
+<div id="2b8eba0c" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>p,hdr <span class="op">=</span> prompt(),<span class="st">'# The document'</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> style <span class="kw">in</span> <span class="st">'terse'</span>,<span class="st">'llm'</span>:</span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>    t <span class="op">=</span> prompt(style)</span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>    test_eq(t.split(<span class="st">'</span><span class="ch">\n</span><span class="st"># '</span>)[<span class="dv">0</span>], p.split(<span class="st">'</span><span class="ch">\n</span><span class="st"># '</span>)[<span class="dv">0</span>])</span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>    test_eq(t.split(hdr)[<span class="dv">1</span>], p.split(hdr)[<span class="dv">1</span>])</span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'Never turn a terse line into a longer sentence.'</span> <span class="kw">in</span> prompt(<span class="st">'terse'</span>)</span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> o <span class="kw">in</span> <span class="st">'? cut:'</span>,<span class="st">'? lost:'</span>: <span class="cf">assert</span> o <span class="kw">in</span> p.split(<span class="st">'</span><span class="ch">\n</span><span class="st"># '</span>)[<span class="dv">0</span>]</span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> _related(<span class="va">None</span>, f).startswith(<span class="st">'</span><span class="ch">\n\n</span><span class="st"># Earlier version of the document'</span>) <span class="kw">and</span> <span class="st">'Widget API'</span> <span class="kw">in</span> _related(<span class="va">None</span>, f)</span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>(py <span class="op">:=</span> f.with_suffix(<span class="st">'.py'</span>)).write_text(SRC)</span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>early <span class="op">=</span> _related(<span class="va">None</span>, py)</span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'`make` builds a widget.'</span> <span class="kw">in</span> early <span class="kw">and</span> <span class="st">'return Widget'</span> <span class="kw">not</span> <span class="kw">in</span> early <span class="kw">and</span> <span class="st">'[1]'</span> <span class="kw">not</span> <span class="kw">in</span> early</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#ask_reply"><code>ask_reply</code></a> sends the whole file’s input to a model in one call and returns the reply as text. It uses <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#prompt"><code>prompt()</code></a> unless the caller passes another template. <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#rewrite_file"><code>rewrite_file</code></a> runs every step on one file and returns a <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#rewrites"><code>Rewrites</code></a>. It does not write the file.</p>
+<div id="0727711b" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:41.082286+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:41.085592+00:00&quot;,&quot;total&quot;:0.003308517000000677}}" data-execution_count="33">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/rewrite.py#L365" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="rewrite_file" class="level3">
+<h3 class="anchored" data-anchor-id="rewrite_file">rewrite_file</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> rewrite_file(</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>    path, <span class="op">*</span>, template:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Prompt with a `{document}` placeholder; `prompt()` if None</span></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>    model:<span class="bu">str</span><span class="op">=</span><span class="st">'gemini/models/gemini-3.8-flash'</span>, <span class="co"># Model name for `fastllm`</span></span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>    effort:<span class="bu">str</span><span class="op">=</span><span class="st">'low'</span>, <span class="co"># Reasoning effort</span></span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>    system:<span class="bu">str</span><span class="op">=</span><span class="st">'Answer immediately. Do not deliberate or plan before you answer.'</span>, <span class="co"># System message; None sends none</span></span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>    fills:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Text that each `{name}` placeholder in the sentences stands for</span></span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>    context:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Files that the model can consult, such as the code that a document describes</span></span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>    skip:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Regex; a paragraph or list item that it matches gets `[-]` in place of each number</span></span>
+<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a>    earlier:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># File that holds an earlier version of the document, for `? lost:` answers</span></span>
+<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a>    mod_only:<span class="bu">bool</span><span class="op">=</span><span class="va">False</span>, <span class="co"># Give `[-]` to the docstrings of functions and classes? For a pyskill, whose module docstring is the skill's text</span></span>
+<span id="cb40-11"><a href="#cb40-11" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em><a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#rewrites"><code>Rewrites</code></a> for the file at <code>path</code>, leaving out any rewrite that would change the code of a <code>.py</code> file or a notebook</em></p>
+</section>
+</div>
+<div id="2498e7a5" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:41.085680+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:41.088641+00:00&quot;,&quot;total&quot;:0.0029638219999981175}}" data-execution_count="34">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/rewrite.py#L345" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="ask_reply" class="level3">
+<h3 class="anchored" data-anchor-id="ask_reply">ask_reply</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb41"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> ask_reply(</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>    docs, <span class="co"># (name, parts) pairs, as `file_docs` returns</span></span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>    template:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Prompt with a `{document}` placeholder; `prompt()` if None</span></span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>    model:<span class="bu">str</span><span class="op">=</span><span class="st">'gemini/models/gemini-3.8-flash'</span>, <span class="co"># Model name for `fastllm`</span></span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>    effort:<span class="bu">str</span><span class="op">=</span><span class="st">'low'</span>, <span class="co"># Reasoning effort</span></span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>    system:<span class="bu">str</span><span class="op">=</span><span class="st">'Answer immediately. Do not deliberate or plan before you answer.'</span>, <span class="co"># System message; None sends none</span></span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>    fills:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Text that each `{name}` placeholder in the sentences stands for</span></span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a>    context:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Files that the model can consult, such as the code that a document describes</span></span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>    skip:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Regex; a paragraph or list item that it matches gets `[-]` in place of each number</span></span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>    earlier:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># File that holds an earlier version of the document, for `? lost:` answers</span></span>
+<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a>    mod_only:<span class="bu">bool</span><span class="op">=</span><span class="va">False</span>, <span class="co"># Give `[-]` to the docstrings of functions and classes? For a pyskill, whose module docstring is the skill's text</span></span>
+<span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em><code>model</code>’s reply to <code>template</code> with the numbered sentences of <code>docs</code> in it, as text</em></p>
+</section>
+</div>
+<p>With <code>GEMINI_API_KEY</code> set, rewrite one file and write the result somewhere else:</p>
+<div id="e84f4a4e" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>rw <span class="op">=</span> <span class="cf">await</span> rewrite_file(root<span class="op">/</span><span class="st">'slopometer'</span><span class="op">/</span><span class="st">'score.py'</span>)</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>write_new(root<span class="op">/</span><span class="st">'slopometer'</span><span class="op">/</span><span class="st">'score.py'</span>, rw.new, <span class="st">'/tmp/score.rewritten.py'</span>)</span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>rw</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="two-models-read-by-a-person" class="level2">
+<h2 class="anchored" data-anchor-id="two-models-read-by-a-person">Two models, read by a person</h2>
+<p>A model’s rewrite is a suggestion. It can drop a fact, rename a term or split a sentence that was better whole. In this process the models only point at sentences, and a person or an agent reads what they said and writes the final text. <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#compare"><code>compare</code></a> prepares that reading. It takes each model’s answers under the model’s name. The first line counts the sentences, and for each model the runs it rewrote and the questions it asked. Answers whose sentence ranges overlap are grouped into one run. For each run, it gives the address of the first sentence, the original text, and then each model’s answer. Models whose answers differ only in case, spacing or punctuation share a line. A model that kept the sentences shows <code>-</code>.</p>
+<p>With <code>now</code>, the sentences of the file after editing, each run also gets a <code>NOW:</code> line with the text that stands there. <code>NOW: -</code> means that the run reads as it did.</p>
+<p><a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#_now"><code>_now</code></a> finds what stands in the edited file where each run of original sentences was. It lines up the two lists of sentences with <code>difflib</code> and returns None for a run that reads as it did.</p>
+<p><a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#compare"><code>compare</code></a> builds the text:</p>
+<div id="18447b49" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:41.097283+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:41.102765+00:00&quot;,&quot;total&quot;:0.005484276000004229}}" data-execution_count="38">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/rewrite.py#L399" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="compare" class="level3">
+<h3 class="anchored" data-anchor-id="compare">compare</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb43"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> compare(</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>    docs, <span class="co"># (name, parts) pairs of the original, as `file_docs` returns</span></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>    answers, <span class="co"># Each model's name with its answers, as `parse_rewrites` returns them</span></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>    now:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># The sentences of the file after editing</span></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>    code:<span class="bu">bool</span><span class="op">=</span><span class="va">False</span>, <span class="co"># Show a notebook's code cell under the first run that explains it?</span></span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>    brief:<span class="bu">bool</span><span class="op">=</span><span class="va">False</span>, <span class="co"># Keep only the runs that a model asked about or that every model changed?</span></span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>    pending:<span class="bu">bool</span><span class="op">=</span><span class="va">False</span>, <span class="co"># Keep only the runs that read as they did before editing? Needs `now`</span></span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Text for review: counts, then each run of sentences in <code>docs</code> that a model changed, with its address, the original, each answer, and with <code>now</code> what stands there after editing</em></p>
+</section>
+</div>
+<p>Here a second model answers the same file as <code>ans</code> above. It joins sentences 1 and 2, keeps sentence 7 and repeats sentence 4 unchanged, which counts as keeping it:</p>
+<div id="20e49045" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>ans2 <span class="op">=</span> parse_rewrites(<span class="st">"""1-2 `make` builds a widget and `ship` posts it to the customer.</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="st">4 Call `ship`.</span></span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a><span class="st">7 -"""</span>)</span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a><span class="bu">cmp</span> <span class="op">=</span> compare(docs, <span class="bu">dict</span>(first<span class="op">=</span>ans, second<span class="op">=</span>ans2))</span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'1-2 ORIGINAL: `make` builds a widget. Finished widgets ride to the customer with `ship`.</span><span class="ch">\n</span><span class="st">  FIRST [2]: Call `ship` to post'</span> <span class="kw">in</span> <span class="bu">cmp</span></span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'  SECOND [1-2]: `make` builds a widget and `ship` posts it to the customer.'</span> <span class="kw">in</span> <span class="bu">cmp</span></span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'7 ORIGINAL: The label carries the order number.</span><span class="ch">\n</span><span class="st">  FIRST [7]: The order number is printed on the label.</span><span class="ch">\n</span><span class="st">  SECOND: -'</span> <span class="kw">in</span> <span class="bu">cmp</span></span>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'4 ORIGINAL'</span> <span class="kw">not</span> <span class="kw">in</span> <span class="bu">cmp</span></span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="bu">cmp</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>A long comparison is quicker to read in two passes. <code>brief=True</code> keeps only the runs that a model asked a question about or that every model changed. Here the second model kept sentence 7, so that run is left out:</p>
+<div id="dbae3227" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb45"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>short <span class="op">=</span> compare(docs, <span class="bu">dict</span>(first<span class="op">=</span>ans, second<span class="op">=</span>ans2), brief<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> short.startswith(<span class="st">'9 sentences.'</span>) <span class="kw">and</span> <span class="st">'Shown: 2 of 3 runs.'</span> <span class="kw">in</span> short <span class="kw">and</span> <span class="st">'7 ORIGINAL'</span> <span class="kw">not</span> <span class="kw">in</span> short</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(short)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>A file’s review files go to one folder, which is <code>review_dir(path)</code> under XDG state unless you pass <code>out</code>. The folder keeps the <code>orig</code> copy, which is the file before its first review. Each review then writes to a numbered folder of its own inside that folder, <code>1</code> for the first review. A later review therefore keeps the replies of the earlier ones. A numbered folder holds the <code>reviewed</code> copy, which is the file as that review numbered it, and the input, the replies and the comparison.</p>
+<div id="e6eabb9e" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:41.106006+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:41.108320+00:00&quot;,&quot;total&quot;:0.002316612000001328}}" data-execution_count="40">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/rewrite.py#L437" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="review_dir" class="level3">
+<h3 class="anchored" data-anchor-id="review_dir">review_dir</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb46"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> review_dir(</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>    path</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The folder under XDG state that holds the review files for the file at <code>path</code></em></p>
+</section>
+</div>
+<p><a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#_answers"><code>_answers</code></a> reads the replies that one review saved. <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#_numbers_ok"><code>_numbers_ok</code></a> checks that this version of the package numbers the file’s sentences as that review did, because a reply’s numbers mean nothing otherwise:</p>
+<p><a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#rewrite_review"><code>rewrite_review</code></a> asks each model in <code>asks</code> about one file, all at once, with no system message. <code>ASKS</code> names the two models we use and the reasoning effort for each. It changes nothing in the file itself. It saves a copy of the file, the numbered input, each model’s reply as returned, and the comparison, which it also returns. Give it a list of files and it reviews them together and returns one comparison for each.</p>
+<p><a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#review_diff"><code>review_diff</code></a> compares the file with the <code>orig</code> copy, and a later review of the same file leaves that copy alone unless you pass <code>fresh=True</code>. When the file differs from that copy, a later review also gives the copy to the models as the earlier version, so that they can answer <code>? lost:</code> for a fact that an edit dropped. Pass <code>earlier</code> to name another file, such as the original of a file that you edited before its first review. The sentence numbers in <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#review_apply"><code>review_apply</code></a> and <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#review_report"><code>review_report</code></a> are those of the latest review, unless you pass <code>n</code> to name an earlier one.</p>
+<p><code>fills</code>, <code>skip</code> and <code>mod_only</code> go to <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#rewrite_input"><code>rewrite_input</code></a>. Pass <code>mod_only=True</code> for a pyskill. Pass <code>context</code> to give the models files to consult, such as the code that a Markdown document describes. Their contents follow the document in the prompt. A long comparison is quicker to read in two passes. <code>brief=True</code> returns only the runs that a model asked a question about or that every model changed, and the whole comparison is still written to the folder. <code>code=True</code> prints each notebook code cell under the first run that explains it.</p>
+<div id="5294e6fc" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:41.113007+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:41.117199+00:00&quot;,&quot;total&quot;:0.0041936719999995375}}" data-execution_count="43">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/rewrite.py#L488" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="rewrite_review" class="level3">
+<h3 class="anchored" data-anchor-id="rewrite_review">rewrite_review</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb47"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> rewrite_review(</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>    path, <span class="co"># File to review, or a list of them: Markdown, a notebook, or a `.py` file for its docstrings</span></span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>    out:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Folder to write to; `review_dir(path)` if None</span></span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>    template:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Prompt with a `{document}` placeholder; `prompt()` if None</span></span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>    asks:<span class="bu">dict</span><span class="op">=</span>{<span class="st">'carbon'</span>: (<span class="st">'gemini/models/gemini-4-carbon'</span>, <span class="st">'low'</span>), <span class="st">'sol'</span>: (<span class="st">'gpt-6.1-sol'</span>, <span class="st">'medium'</span>)}, <span class="co"># Name of each answer and its (model, effort)</span></span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a>    fills:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Text that each `{name}` placeholder in the sentences stands for</span></span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a>    context:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Files that the models can consult, such as the code that a document describes</span></span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a>    code:<span class="bu">bool</span><span class="op">=</span><span class="va">False</span>, <span class="co"># Show each notebook code cell under the first run that explains it?</span></span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a>    brief:<span class="bu">bool</span><span class="op">=</span><span class="va">False</span>, <span class="co"># Return only the runs that a model asked about or that every model changed?</span></span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a>    fresh:<span class="bu">bool</span><span class="op">=</span><span class="va">False</span>, <span class="co"># Save the file as a new original? The original that it replaces moves into the folder of the latest review</span></span>
+<span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a>    skip:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Regex; a paragraph or list item that it matches gets `[-]` in place of each number</span></span>
+<span id="cb47-12"><a href="#cb47-12" aria-hidden="true" tabindex="-1"></a>    earlier:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># File that holds an earlier version, for `? lost:` answers; the original that the first review saved if None and the file has changed since</span></span>
+<span id="cb47-13"><a href="#cb47-13" aria-hidden="true" tabindex="-1"></a>    mod_only:<span class="bu">bool</span><span class="op">=</span><span class="va">False</span>, <span class="co"># Give `[-]` to the docstrings of functions and classes? For a pyskill, whose module docstring is the skill's text</span></span>
+<span id="cb47-14"><a href="#cb47-14" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Ask each model in <code>asks</code> about the file at <code>path</code>; write the original to <code>out</code>, and a copy of the file, the input, each reply and their <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#compare"><code>compare</code></a> text to a new numbered folder in <code>out</code>; return that text, or one text for each file of a list; <code>brief</code> shortens what is returned, not what is written</em></p>
+</section>
+</div>
+<p>With <code>GEMINI_API_KEY</code> and <code>OPENAI_API_KEY</code> set, review one file:</p>
+<div id="6d5b01d7" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="cf">await</span> rewrite_review(root<span class="op">/</span><span class="st">'README.md'</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Here the two sets of answers above have reviewed a file, and one sentence has since been edited by hand. The review folder holds the original. Its folder <code>1</code> holds the first review’s copy of the file and both replies, as <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#rewrite_review"><code>rewrite_review</code></a> would have written them:</p>
+<div id="abbafbd3" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb49"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>f,out <span class="op">=</span> Path(tempfile.mkdtemp())<span class="op">/</span><span class="st">'widgets.py'</span>,Path(tempfile.mkdtemp())</span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>(out<span class="op">/</span><span class="st">'widgets.orig.py'</span>).write_text(SRC)</span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>(d1 <span class="op">:=</span> out<span class="op">/</span><span class="st">'1'</span>).mkdir()</span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>(d1<span class="op">/</span><span class="st">'widgets.reviewed.py'</span>).write_text(SRC)</span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a>(d1<span class="op">/</span><span class="st">'widgets.first.answer.txt'</span>).write_text(reply)</span>
+<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a>(d1<span class="op">/</span><span class="st">'widgets.second.answer.txt'</span>).write_text(<span class="st">'1-2 `make` builds a widget and `ship` posts it to the customer.</span><span class="ch">\n</span><span class="st">7 the order number is printed on the label'</span>)</span>
+<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a>f.write_text(SRC.replace(<span class="st">'The label carries the order number.'</span>, <span class="st">'The order number is printed on the label.'</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#review_apply"><code>review_apply</code></a> makes the edits for you. Give it the new text for each sentence, keyed by the sentence’s number in the comparison, by a (first, last) pair for a run, or by the old text itself. Numbers are those of the latest review, or of review <code>n</code>, and they still work after earlier edits have moved the sentences. An old text can be one sentence or a run of neighbouring ones, and it must occur exactly once. The call finds the cell and line itself. It writes nothing unless every edit can be made: a number that names a sentence you have already edited, an old text that is missing, and an edit that would change code each raise a <code>ValueError</code> that lists every failure. A notebook is validated before it is written. Numbers from a review that an older version of the package made can name the wrong sentences. The call refuses those too, and old texts still work as keys.</p>
+<div id="1fe9188b" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:41.120990+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:41.125469+00:00&quot;,&quot;total&quot;:0.004481501000000776}}" data-execution_count="45">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/rewrite.py#L520" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="review_apply" class="level3">
+<h3 class="anchored" data-anchor-id="review_apply">review_apply</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb50"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> review_apply(</span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>    path, <span class="co"># File to edit</span></span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>    edits, <span class="co"># New text for each sentence or run, or an empty one to delete it; a key is a number or (first, last) pair from the comparison, or the old text itself</span></span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>    out:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Folder that `rewrite_review` wrote to; `review_dir(path)` if None</span></span>
+<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a>    n:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Review whose numbers the keys use, counting from 1; the latest if None</span></span>
+<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Put each new text of <code>edits</code> into the file at <code>path</code> in place of the sentences that its key names; if any edit cannot be made, raise <code>ValueError</code> that lists them all, and write nothing</em></p>
+</section>
+</div>
+<p>Here one call replaces the run of sentences 1 and 2, using their numbers from the comparison:</p>
+<div id="1cbbd096" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb51"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>msg <span class="op">=</span> review_apply(f, {(<span class="dv">1</span>, <span class="dv">2</span>): <span class="st">'`make` builds a widget and `ship` posts it to the customer.'</span>}, out)</span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'`make` builds a widget and `ship` posts it to the customer.</span><span class="ch">\n</span><span class="st">'</span> <span class="kw">in</span> f.read_text()</span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>msg</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Sentence 7 was edited by hand above, so its number no longer names a sentence in the file. The call fails, and the edit beside it is not written either:</p>
+<div id="77e5b271" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb52"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>before <span class="op">=</span> f.read_text()</span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>test_fail(<span class="kw">lambda</span>: review_apply(f, {<span class="dv">7</span>: <span class="st">'Labels have order numbers.'</span>, <span class="st">'Call `ship`.'</span>: <span class="st">'Then call `ship`.'</span>}, out), contains<span class="op">=</span><span class="st">'7: not in the review, or edited since'</span>)</span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>test_eq(f.read_text(), before)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>An empty new text deletes the sentences that its key names. <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#review_apply"><code>review_apply</code></a> also removes the space between them and the next sentence of their paragraph, or else the space after the previous sentence. It removes space on the same line first, which leaves each aligned row on its own line. When a paragraph or list item loses every sentence, <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#review_apply"><code>review_apply</code></a> removes its lines and leaves no extra blank line. This file has no review. Its keys are numbers in the file as it stands:</p>
+<div id="f2a8b713" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb53"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>MDX <span class="op">=</span> <span class="st">'Alpha one. Beta two. Gamma three.</span><span class="ch">\n</span><span class="st">Delta four.</span><span class="ch">\n\n</span><span class="st">- Item one.</span><span class="ch">\n</span><span class="st">- Item two.</span><span class="ch">\n</span><span class="st">  Item two more.</span><span class="ch">\n\n</span><span class="st">x   row one. row two.</span><span class="ch">\n</span><span class="st">y   row three.</span><span class="ch">\n</span><span class="st">'</span></span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>md <span class="op">=</span> Path(tempfile.mkdtemp())<span class="op">/</span><span class="st">'notes.md'</span></span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> cut(<span class="op">*</span>ks):</span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>    md.write_text(MDX)</span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>    review_apply(md, {k: <span class="st">''</span> <span class="cf">for</span> k <span class="kw">in</span> ks}, md.parent<span class="op">/</span><span class="st">'reviews'</span>)</span>
+<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> md.read_text()</span>
+<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a>test_eq(cut(<span class="dv">1</span>).splitlines()[<span class="dv">0</span>], <span class="st">'Alpha one. Gamma three.'</span>)</span>
+<span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a>test_eq(cut(<span class="dv">0</span>).splitlines()[<span class="dv">0</span>], <span class="st">'Beta two. Gamma three.'</span>)</span>
+<span id="cb53-9"><a href="#cb53-9" aria-hidden="true" tabindex="-1"></a>test_eq(cut(<span class="dv">2</span>, <span class="dv">3</span>), MDX.replace(<span class="st">' Gamma three.</span><span class="ch">\n</span><span class="st">Delta four.'</span>, <span class="st">''</span>))</span>
+<span id="cb53-10"><a href="#cb53-10" aria-hidden="true" tabindex="-1"></a>test_eq(cut(<span class="dv">4</span>), MDX.replace(<span class="st">'- Item one.</span><span class="ch">\n</span><span class="st">'</span>, <span class="st">''</span>))</span>
+<span id="cb53-11"><a href="#cb53-11" aria-hidden="true" tabindex="-1"></a>test_eq(cut(<span class="dv">5</span>), MDX.replace(<span class="st">'Item two.</span><span class="ch">\n</span><span class="st">  '</span>, <span class="st">''</span>))</span>
+<span id="cb53-12"><a href="#cb53-12" aria-hidden="true" tabindex="-1"></a>test_eq(cut(<span class="dv">8</span>), MDX.replace(<span class="st">' row two.'</span>, <span class="st">''</span>))</span>
+<span id="cb53-13"><a href="#cb53-13" aria-hidden="true" tabindex="-1"></a>test_eq(cut(<span class="dv">7</span>, <span class="dv">8</span>), MDX.replace(<span class="st">'x   row one. row two.</span><span class="ch">\n</span><span class="st">'</span>, <span class="st">''</span>))</span>
+<span id="cb53-14"><a href="#cb53-14" aria-hidden="true" tabindex="-1"></a>test_eq(cut(<span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">6</span>), MDX.replace(<span class="st">'- Item one.</span><span class="ch">\n</span><span class="st">- Item two.</span><span class="ch">\n</span><span class="st">  Item two more.</span><span class="ch">\n\n</span><span class="st">'</span>, <span class="st">''</span>))</span>
+<span id="cb53-15"><a href="#cb53-15" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> <span class="st">'Para one.</span><span class="ch">\n\n</span><span class="st">B.</span><span class="ch">\n\n</span><span class="st">Para three.</span><span class="ch">\n</span><span class="st">'</span></span>
+<span id="cb53-16"><a href="#cb53-16" aria-hidden="true" tabindex="-1"></a>test_eq([Rewrites(P, [(<span class="st">''</span>, md_parts(P))], [(k, k, <span class="st">''</span>)]).new <span class="cf">for</span> k <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">3</span>)], [<span class="st">'B.</span><span class="ch">\n\n</span><span class="st">Para three.</span><span class="ch">\n</span><span class="st">'</span>, <span class="st">'Para one.</span><span class="ch">\n\n</span><span class="st">Para three.</span><span class="ch">\n</span><span class="st">'</span>, <span class="st">'Para one.</span><span class="ch">\n\n</span><span class="st">B.</span><span class="ch">\n</span><span class="st">'</span>])</span>
+<span id="cb53-17"><a href="#cb53-17" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(cut(<span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">5</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#review_diff"><code>review_diff</code></a> lists what you changed, by hand or with <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#review_apply"><code>review_apply</code></a>. It compares the file with the original that the first review saved.</p>
+<div id="578f8010" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:41.130858+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:41.134775+00:00&quot;,&quot;total&quot;:0.003919309000004034}}" data-execution_count="47">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/rewrite.py#L574" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="review_diff" class="level3">
+<h3 class="anchored" data-anchor-id="review_diff">review_diff</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb54"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> review_diff(</span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>    path, <span class="co"># File that was reviewed and then edited</span></span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>    out:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Folder that `rewrite_review` wrote to; `review_dir(path)` if None</span></span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>    n:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Show only what changed during review `n`, counting from 1; every change since the first review if None</span></span>
+<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>What differs between the original that the first review saved and the file at <code>path</code> now, or with <code>n</code> what changed during one review: the file’s name, then each changed sentence or heading under its address, as <code>-</code> lines and the <code>+</code> lines that replace them</em></p>
+</section>
+</div>
+<p>The diff starts with the file’s name and the number of changes. Each change has the address of the text as it now stands, and a note when the text is a docstring or in an exported Markdown cell, since a module generated from the file then needs exporting again. The two sentences that became one are shown together:</p>
+<div id="ef8a5389" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb55"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>dif <span class="op">=</span> review_diff(f, out)</span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> dif.startswith(<span class="ss">f'# </span><span class="sc">{</span>f<span class="sc">}</span><span class="ss">: 2 changes'</span>)</span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'(module docstring)</span><span class="ch">\n</span><span class="st">- `make` builds a widget.</span><span class="ch">\n</span><span class="st">- Finished widgets ride to the customer with `ship`.</span><span class="ch">\n</span><span class="st">+ `make` builds a widget and `ship` posts it to the customer.'</span> <span class="kw">in</span> dif</span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="ss">f'@</span><span class="sc">{</span>lnhash_at(f.read_text(), <span class="dv">21</span>)<span class="sc">}</span><span class="ss"> (docstring of `Widget.ship`)</span><span class="ch">\n</span><span class="ss">- The label carries the order number.</span><span class="ch">\n</span><span class="ss">+ The order number is printed on the label.'</span> <span class="kw">in</span> dif</span>
+<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(dif)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#review_report"><code>review_report</code></a> writes the comparison again with a <code>NOW:</code> line for each run, which shows the answers you took and those you left. It reports on the latest review, or on review <code>n</code>. It reads that review’s copy of the file and its replies, and writes the report beside them. It returns the counts and the report’s file name, because the whole text is long. Pass <code>full=True</code> to get the text.</p>
+<div id="8c76daf2" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:41.136445+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:41.139445+00:00&quot;,&quot;total&quot;:0.0030032360000049607}}" data-execution_count="49">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/rewrite.py#L597" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="review_report" class="level3">
+<h3 class="anchored" data-anchor-id="review_report">review_report</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb56"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> review_report(</span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>    path, <span class="co"># File that was reviewed and then edited</span></span>
+<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>    out:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Folder that `rewrite_review` wrote to; `review_dir(path)` if None</span></span>
+<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>    full:<span class="bu">bool</span><span class="op">=</span><span class="va">False</span>, <span class="co"># Return the whole report, not only its counts and where it is?</span></span>
+<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a>    code:<span class="bu">bool</span><span class="op">=</span><span class="va">False</span>, <span class="co"># Show each notebook code cell under the first run that explains it?</span></span>
+<span id="cb56-6"><a href="#cb56-6" aria-hidden="true" tabindex="-1"></a>    brief:<span class="bu">bool</span><span class="op">=</span><span class="va">False</span>, <span class="co"># Keep only the runs that a model asked about or that every model changed?</span></span>
+<span id="cb56-7"><a href="#cb56-7" aria-hidden="true" tabindex="-1"></a>    n:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Review to report on, counting from 1; the latest if None</span></span>
+<span id="cb56-8"><a href="#cb56-8" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Write the <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#compare"><code>compare</code></a> text of one review of the file at <code>path</code>, with what each run of sentences reads after editing, to that review’s folder; return its counts and the file’s name, or the text with <code>full</code></em></p>
+</section>
+</div>
+<p>The report starts with the counts. Sentence 7 is on line 22 of the file, both models gave the same rewrite for it, and it was taken. So was the second model’s answer for sentences 1 and 2. The last run reads as it did:</p>
+<div id="5da5e7ad" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb57"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>rep <span class="op">=</span> review_report(f, out, full<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> rep.startswith(<span class="st">'9 sentences. FIRST: 2 rewritten, 1 asked. SECOND: 2 rewritten, 0 asked. Edited: 2 of 3 runs.'</span>)</span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="ss">f"7 @</span><span class="sc">{</span>lnhash_at(SRC, <span class="dv">21</span>)<span class="sc">}</span><span class="ss"> ORIGINAL: The label carries the order number.</span><span class="ch">\n</span><span class="ss">  FIRST, SECOND [7]: The order number is printed on the label.</span><span class="ch">\n</span><span class="ss">  NOW: The order number is printed on the label."</span> <span class="kw">in</span> rep</span>
+<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>test_eq(rep.count(<span class="st">'  NOW: -'</span>), <span class="dv">1</span>)</span>
+<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(rep)</span>
+<span id="cb57-6"><a href="#cb57-6" aria-hidden="true" tabindex="-1"></a>review_report(f, out)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Each review has a numbered folder of its own, so a second review keeps the replies of the first. Here a second review of the edited file has one reply with two rewrites, and <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#review_apply"><code>review_apply</code></a> puts in one of them:</p>
+<div id="e890393a" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb58"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>(d2 <span class="op">:=</span> out<span class="op">/</span><span class="st">'2'</span>).mkdir()</span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>(d2<span class="op">/</span><span class="st">'widgets.reviewed.py'</span>).write_text(f.read_text())</span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>(d2<span class="op">/</span><span class="st">'widgets.third.answer.txt'</span>).write_text(<span class="st">'0 Widgets for a shop floor.</span><span class="ch">\n</span><span class="st">7 `ship` raises `ValueError` when `addr` is empty.'</span>)</span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>review_apply(f, {<span class="dv">7</span>: <span class="st">'`ship` raises `ValueError` when `addr` is empty.'</span>}, out)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#review_diff"><code>review_diff</code></a> with <code>n</code> shows what changed during one review. <code>n</code> counts the reviews from 1, and a negative <code>n</code> counts back from the latest:</p>
+<div id="a683b99f" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb59"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>dif2 <span class="op">=</span> review_diff(f, out, n<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> dif2.startswith(<span class="ss">f'# </span><span class="sc">{</span>f<span class="sc">}</span><span class="ss">: 1 change during review 2'</span>) <span class="kw">and</span> <span class="st">'order number'</span> <span class="kw">not</span> <span class="kw">in</span> dif2</span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'2 changes during review 1'</span> <span class="kw">in</span> review_diff(f, out, n<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a>test_eq(review_diff(f, out, n<span class="op">=-</span><span class="dv">1</span>), dif2)</span>
+<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(dif2)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#review_pending"><code>review_pending</code></a> goes through every review. For each one it lists the runs that a model rewrote or asked about and that still read as they did in that review. Use it to find suggestions that nobody has acted on.</p>
+<div id="f46699fd" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:41.141509+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:41.144417+00:00&quot;,&quot;total&quot;:0.002910913000000903}}" data-execution_count="51">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/rewrite.py#L614" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="review_pending" class="level3">
+<h3 class="anchored" data-anchor-id="review_pending">review_pending</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb60"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> review_pending(</span>
+<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a>    path, <span class="co"># File that has been reviewed</span></span>
+<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a>    out:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Folder that `rewrite_review` wrote to; `review_dir(path)` if None</span></span>
+<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a>    code:<span class="bu">bool</span><span class="op">=</span><span class="va">False</span>, <span class="co"># Show each notebook code cell under the first run that explains it?</span></span>
+<span id="cb60-5"><a href="#cb60-5" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>For each review of the file at <code>path</code>, the runs that a model rewrote or asked about and that still read as they did in that review: one <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#compare"><code>compare</code></a> text under a heading for each review</em></p>
+</section>
+</div>
+<p>Every run of the first review has been edited since. In the second review, nobody has acted on the rewrite of sentence 0:</p>
+<div id="ab1d7e75" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb61"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a>pend <span class="op">=</span> review_pending(f, out)</span>
+<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a>r1,r2 <span class="op">=</span> pend.split(<span class="st">'# Review 2</span><span class="ch">\n</span><span class="st">'</span>)</span>
+<span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> r1.startswith(<span class="st">'# Review 1</span><span class="ch">\n</span><span class="st">'</span>) <span class="kw">and</span> <span class="st">'Shown: 0 of 3 runs.'</span> <span class="kw">in</span> r1</span>
+<span id="cb61-4"><a href="#cb61-4" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'Shown: 1 of 2 runs.'</span> <span class="kw">in</span> r2 <span class="kw">and</span> <span class="st">'ORIGINAL: Widgets for the shop floor.'</span> <span class="kw">in</span> r2 <span class="kw">and</span> <span class="st">'addr'</span> <span class="kw">not</span> <span class="kw">in</span> r2</span>
+<span id="cb61-5"><a href="#cb61-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(pend)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The models miss sentences. A docstring can read clearly beside the prose that explains it and still be unclear on its own. <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#review_passed"><code>review_passed</code></a> lists the sentences of one review that no model rewrote or asked about, without the code, for a person or an agent to read. It leaves out the sentences that the models read without a number, which <code>mod_only</code> and <code>skip</code> mark <code>[-]</code>. Each has the number that <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#review_apply"><code>review_apply</code></a> takes and its address. A line names each docstring above its sentences.</p>
+<div id="5152632c" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:41.147561+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:41.151209+00:00&quot;,&quot;total&quot;:0.0036503359999997542}}" data-execution_count="53">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/rewrite.py#L630" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="review_passed" class="level3">
+<h3 class="anchored" data-anchor-id="review_passed">review_passed</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb62"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> review_passed(</span>
+<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a>    path, <span class="co"># File that has been reviewed</span></span>
+<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>    out:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Folder that `rewrite_review` wrote to; `review_dir(path)` if None</span></span>
+<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a>    n:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># Review to read, counting from 1; the latest if None</span></span>
+<span id="cb62-5"><a href="#cb62-5" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The numbered sentences that no model rewrote or asked about in one review of the file at <code>path</code>: a count, then each as its number, address and text, with a line that names each docstring</em></p>
+</section>
+</div>
+<p>In the first review, the two models between them rewrote or asked about sentences 1, 2, 7 and 8. The other five are listed:</p>
+<div id="a95f99f4" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb63"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>psd <span class="op">=</span> review_passed(f, out, n<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> psd.startswith(<span class="st">'5 of 9 sentences that no model changed in review 1.'</span>)</span>
+<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'Docstring of `make`:</span><span class="ch">\n</span><span class="st">5 @'</span> <span class="kw">in</span> psd <span class="kw">and</span> <span class="st">'Build a widget from `spec`'</span> <span class="kw">in</span> psd</span>
+<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'order number'</span> <span class="kw">not</span> <span class="kw">in</span> psd <span class="kw">and</span> <span class="st">'def make'</span> <span class="kw">not</span> <span class="kw">in</span> psd</span>
+<span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(psd)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>fresh=True</code> makes <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#rewrite_review"><code>rewrite_review</code></a> save the file as a new original. <a href="https://AnswerDotAI.github.io/slopometer/rewrite.html#_save_orig"><code>_save_orig</code></a> first moves the original that it replaces into the folder of the latest review, so that no saved text is lost. Here the file’s second review is the latest:</p>
+<div id="59492f32" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb64"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a>orig <span class="op">=</span> out<span class="op">/</span><span class="st">'widgets.orig.py'</span></span>
+<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a>_save_orig(f, orig, out<span class="op">/</span><span class="st">'2'</span>, fresh<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a>test_eq((out<span class="op">/</span><span class="st">'2'</span><span class="op">/</span><span class="st">'widgets.orig.py'</span>).read_text(), SRC)</span>
+<span id="cb64-4"><a href="#cb64-4" aria-hidden="true" tabindex="-1"></a>test_eq(orig.read_text(), f.read_text())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/AnswerDotAI\.github\.io\/slopometer");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+      window.quartoDecorateExternalLinks = function (root) {
+     var links = (root || window.document).querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+          if (!link.classList.contains('no-external-icon')) {
+          }
+        }
+      }
+      };
+      window.quartoDecorateExternalLinks(window.document);
+    // Esc closes the popup (WCAG 1.4.13) and focus leaving both trigger and
+    // popup closes it (WCAG 2.4.11); tippy handles neither for interactive popups.
+    const hideOnEscAndFocusOut = {
+      name: 'hideOnEscAndFocusOut',
+      defaultValue: true,
+      fn(instance) {
+        const dismiss = () => {
+          // A show scheduled by the trigger delay would otherwise reopen it
+          instance.clearDelayTimeouts();
+          instance.hide();
+        };
+        const onKeyDown = (event) => {
+          if (event.key !== 'Escape') {
+            return;
+          }
+          // Keep Esc from also reaching page handlers (e.g. reveal.js overview),
+          // except an open reveal.js slide menu, which Esc should close too.
+          // The menu handles keys only when its keyboard option is on.
+          const menuHandlesEsc = window.Reveal?.getPlugin?.('menu')?.isOpen() &&
+            window.Reveal.getConfig().menu?.keyboard !== false;
+          if (!menuHandlesEsc) {
+            event.stopPropagation();
+          }
+          if (instance.popper.contains(window.document.activeElement)) {
+            // Disabled while refocusing so the focus trigger does not reopen it
+            instance.disable();
+            instance.reference.focus();
+            instance.enable();
+          }
+          dismiss();
+        };
+        const onFocusOut = (event) => {
+          const target = event.relatedTarget;
+          if (target && !instance.reference.contains(target) &&
+              !instance.popper.contains(target)) {
+            dismiss();
+          }
+        };
+        // On the trigger too: a click trigger (code-annotations: select) has no
+        // blur handling. Attached for the instance's lifetime so leaving the
+        // trigger also cancels a show still pending on the trigger delay.
+        instance.reference.addEventListener('focusout', onFocusOut);
+        return {
+          onShow() {
+            window.document.addEventListener('keydown', onKeyDown, true);
+            instance.popper.addEventListener('focusout', onFocusOut);
+          },
+          onHide() {
+            window.document.removeEventListener('keydown', onKeyDown, true);
+            instance.popper.removeEventListener('focusout', onFocusOut);
+          },
+          onDestroy() {
+            instance.reference.removeEventListener('focusout', onFocusOut);
+          },
+        };
+      },
+    };
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+        plugins: [hideOnEscAndFocusOut],
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          // Each band is positioned against its own containing block, which is
+          // not the offsetParent of the lines, so place it from client rects.
+          const placeBand = (band, firstEl, lastEl, codeBlock) => {
+            const container = band.offsetParent;
+            if (container === null) {
+              return;
+            }
+            const containerRect = container.getBoundingClientRect();
+            // Reveal.js scales slides with a transform, so convert client
+            // pixels back to the CSS pixels of the container.
+            const scale = containerRect.height / container.offsetHeight || 1;
+            const firstRect = firstEl.getBoundingClientRect();
+            const lastRect = lastEl.getBoundingClientRect();
+            const top = (firstRect.top - containerRect.top) / scale - container.clientTop + container.scrollTop;
+            const height = (lastRect.bottom - firstRect.top) / scale;
+            band.style.top = top - 2 + "px";
+            band.style.height = height + 4 + "px";
+            if (codeBlock) {
+              // Without the copy button wrapper, the containing block is wider
+              // than the code block, so span the code block explicitly.
+              const blockRect = codeBlock.getBoundingClientRect();
+              band.style.left = (blockRect.left - containerRect.left) / scale - container.clientLeft + container.scrollLeft + "px";
+              band.style.width = blockRect.width / scale + "px";
+            }
+          };
+          if (lineIds.length > 0) {
+            const el = window.document.getElementById(lineIds[0]);
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const parent = el.parentElement.parentElement;
+            // cook up a div (if necessary) and position it
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            placeBand(div, el, lastEl, parent.closest("div.sourceCode") || parent);
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            placeBand(gutterDiv, el, lastEl);
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+  <script type="application/javascript">
+  window.quartoScrollableRegionsLabels = {"code":"Scrollable code","output":"Scrollable output"};
+  </script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/AnswerDotAI/slopometer/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

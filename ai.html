@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.11.9">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Ask a language model which sentences have a subject that does not do what its verb says">
+
+<title>ai – slopometer</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/scrollable-regions/scrollable-regions.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-f803fa4e565d46961d2a1845e6c2e3f5.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="ai – slopometer">
+<meta property="og:description" content="Ask a language model which sentences have a subject that does not do what its verb says">
+<meta property="og:site_name" content="slopometer">
+<meta name="twitter:title" content="ai – slopometer">
+<meta name="twitter:description" content="Ask a language model which sentences have a subject that does not do what its verb says">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light"><a id="quarto-skip-link" class="visually-hidden-focusable" href="#quarto-document-content">Skip to main content</a>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark" aria-label="Site">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">slopometer</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav" aria-label="Toolbar">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="Breadcrumbs"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./ai.html">ai</a></li></ol></nav>
+        <a class="flex-grow-1" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto" aria-label="Section">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">slopometer</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./core.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">core</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./segment.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">segment</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./lexicon.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">lexicon</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./syntax.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">syntax</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./para.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">para</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./score.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">score</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pangram.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pangram</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cli.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">cli</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./features.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">features</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./corpus.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">corpus</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./judge.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">judge</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./typesafe.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">typesafe</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ai.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">ai</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rewrite.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rewrite</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" aria-labelledby="toc-title" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#the-example-groups" id="toc-the-example-groups" class="nav-link active" data-scroll-target="#the-example-groups">The example groups</a></li>
+  <li><a href="#sentences" id="toc-sentences" class="nav-link" data-scroll-target="#sentences">Sentences</a></li>
+  <li><a href="#the-prompt" id="toc-the-prompt" class="nav-link" data-scroll-target="#the-prompt">The prompt</a></li>
+  <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results">Results</a></li>
+  <li><a href="#judging-texts-and-files" id="toc-judging-texts-and-files" class="nav-link" data-scroll-target="#judging-texts-and-files">Judging texts and files</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/AnswerDotAI/slopometer/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div><div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="ai.html.md"><i class="bi bi-file-code"></i>Markdown</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content" tabindex="-1">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">ai</h1>
+</div>
+
+<div>
+  <div class="description">
+    Ask a language model which sentences have a subject that does not do what its verb says
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<p>NB: this file is designed for an LLM reader, not a human. Add it to your LLM’s context and ask it to explain.</p>
+<ul>
+<li><a href="https://AnswerDotAI.github.io/slopometer/ai.html#ai_texts"><code>ai_texts</code></a>, <a href="https://AnswerDotAI.github.io/slopometer/ai.html#ai_paths"><code>ai_paths</code></a>: flag sentences like “Rows carry their source”: a model compares each with two example groups /no rule finds these reliably</li>
+<li>findings: candidates for a person or stronger model; outside the rules’ score</li>
+<li>needs <code>pip install slopometer[ai]</code>, <code>GEMINI_API_KEY</code>; ~6 cents per 4,000 words by default</li>
+</ul>
+<div id="c4d5d4ac" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:40.591297+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:40.592506+00:00&quot;,&quot;total&quot;:0.0012120119999963208}}" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> fastcore.test <span class="im">import</span> <span class="op">*</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="the-example-groups" class="level2">
+<h2 class="anchored" data-anchor-id="the-example-groups">The example groups</h2>
+<p><code>judge_groups.txt</code> ships inside the package. Group A holds sentences that are not literally true as written: a number “catches” payments, silence “signs” an agreement, settings “load”. Group B holds sentences that state a fact in the normal words for it, including instructions and passives. The two groups cover a range of subjects and lengths. Some group B sentences are unrelated to the rest, such as a greeting. We add a sentence to group A when the check misses it in a real document, and we add to group B or remove an example when the check flags a sentence wrongly.</p>
+<div id="0f2d8cca" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:40.594163+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:40.708017+00:00&quot;,&quot;total&quot;:0.11386063100000143}}" data-execution_count="5">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/ai.py#L31" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="groups" class="level3">
+<h3 class="anchored" data-anchor-id="groups">groups</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> groups():</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The group A and group B example sentences that ship with the package</em></p>
+</section>
+</div>
+<div id="9c8aaa76" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>ga,gb <span class="op">=</span> groups()</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> ga <span class="kw">and</span> gb <span class="kw">and</span> <span class="kw">not</span> <span class="bu">any</span>(s.startswith(<span class="st">'#'</span>) <span class="cf">for</span> s <span class="kw">in</span> ga<span class="op">+</span>gb)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>ga[:<span class="dv">3</span>], gb[:<span class="dv">3</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="sentences" class="level2">
+<h2 class="anchored" data-anchor-id="sentences">Sentences</h2>
+<p>The model judges sentences, so <a href="https://AnswerDotAI.github.io/slopometer/ai.html#sentences"><code>sentences</code></a> splits a document into them. It reads the paragraphs and list items that <a href="https://AnswerDotAI.github.io/slopometer/segment.html#segment"><code>segment</code></a> returns. Headings are left out, and <a href="https://AnswerDotAI.github.io/slopometer/segment.html#segment"><code>segment</code></a> has already dropped fenced code, tables and block quotes. spaCy finds the sentence boundaries in each line of the scrubbed text, where inline code cannot confuse it. Each <a href="https://AnswerDotAI.github.io/slopometer/ai.html#sent"><code>Sent</code></a> holds the sentence on one line as a reader sees it. Inline code stays. Link targets and emphasis markers are removed, since scrubbing turned them into spaces. It also keeps its offsets in the document and the index of its paragraph.</p>
+<p>Fragments of fewer than <code>min_words</code> words are skipped. Most are list items such as “fast startup”, which have no verb to judge.</p>
+<div id="1ce45609" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:40.714925+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:40.719524+00:00&quot;,&quot;total&quot;:0.004602158999993833}}" data-execution_count="7">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/ai.py#L60" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="sentences-1" class="level3">
+<h3 class="anchored" data-anchor-id="sentences-1">sentences</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> sentences(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    txt, min_words:<span class="bu">int</span><span class="op">=</span><span class="dv">3</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Sentences of <code>min_words</code>+ words in the paragraphs and list items of markdown <code>txt</code>; a newline ends a sentence</em></p>
+</section>
+</div>
+<div id="e35dc5e4" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:40.719646+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:40.722239+00:00&quot;,&quot;total&quot;:0.002596482999997818}}" data-execution_count="8">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/ai.py#L38" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="sent" class="level3">
+<h3 class="anchored" data-anchor-id="sent">Sent</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> Sent(</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    start, <span class="co"># Character offset of the sentence in the document</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    end, <span class="co"># Character offset one past its end</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    text, <span class="co"># The sentence on one line, with inline code kept and other markup removed</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    para, <span class="co"># Index of its paragraph or list item among the judged blocks</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+</div>
+<p>This document has a heading, a wrapped paragraph with inline code, a fenced block, and a list:</p>
+<div id="c95bc052" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>DOC <span class="op">=</span> <span class="st">"""# widget</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="st">Rows carry their source. Call `enhance()` to start.</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="st">fork    exact clone of this session</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="st">```python</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="st">rows.carry(source)  # code is never judged</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="st">```</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="st">- [Each event](events.md) knows its *timestamp*.</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="st">- fast startup</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>ss <span class="op">=</span> sentences(DOC)</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>ss</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The offsets locate each sentence in the document. A newline always ends a sentence. The third line of <code>DOC</code> has no full stop and is one sentence. The list marker is not part of the text:</p>
+<div id="a0b5cbc9" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>test_eq([s.text <span class="cf">for</span> s <span class="kw">in</span> ss], [<span class="st">'Rows carry their source.'</span>, <span class="st">'Call `enhance()` to start.'</span>, <span class="st">'fork exact clone of this session'</span>, <span class="st">'Each event knows its timestamp.'</span>])</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>test_eq(DOC[ss[<span class="dv">2</span>].start:ss[<span class="dv">2</span>].end], <span class="st">'fork    exact clone of this session'</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>test_eq([s.para <span class="cf">for</span> s <span class="kw">in</span> ss], [<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Some prompt files wrap their sections in tags such as <code>&lt;rules&gt;</code>. <a href="https://AnswerDotAI.github.io/slopometer/ai.html#sentences"><code>sentences</code></a> drops a tag that has a line to itself, and keeps other text in angle brackets, such as a placeholder. It also rejoins a sentence that spaCy splits in the wrong place. One such place is a full stop with no space after it, as in <code>Answer.AI</code>. Another is a place with no full stop at all, such as before “so” in the second sentence here:</p>
+<div id="92999040" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>tagged <span class="op">=</span> <span class="st">"&lt;rules&gt;</span><span class="ch">\n</span><span class="st">We work without an Answer.AI account. Asset URLs carry a content hash (`vsrc`) so browsers can cache them.</span><span class="ch">\n</span><span class="st">Check each notebook with nbdev-test &lt;nb&gt;</span><span class="ch">\n</span><span class="st">&lt;/rules&gt;</span><span class="ch">\n</span><span class="st">"</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>test_eq([s.text <span class="cf">for</span> s <span class="kw">in</span> sentences(tagged)], [<span class="st">'We work without an Answer.AI account.'</span>, <span class="st">'Asset URLs carry a content hash (`vsrc`) so browsers can cache them.'</span>,</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Check each notebook with nbdev-test &lt;nb&gt;'</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>spaCy also splits some sentences that are whole. <a href="https://AnswerDotAI.github.io/slopometer/ai.html#sentences"><code>sentences</code></a> rejoins three kinds. A colon does not end a sentence, so a label stays with what it introduces. A passage in double quotes stays in one piece, even when it holds a full stop. A full stop after a common abbreviation, such as “incl.” or “cf.”, does not end a sentence when the next word does not start with a capital letter:</p>
+<div id="e02c5fe4" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>dense <span class="op">=</span> <span class="st">"""- run: glyphs, names, groups, no spaces between. runs: `+/÷≢`, `x.[1 2]`.</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="st">- Open with "NB: this file is for an LLM reader, not a human. Add it to your context." It tells a person why the file reads oddly.</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="st">- status: ask it to report, incl. long runs. MUST NOT brief it.</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>test_eq([s.text <span class="cf">for</span> s <span class="kw">in</span> sentences(dense)], [<span class="st">'run: glyphs, names, groups, no spaces between.'</span>, <span class="st">'runs: `+/÷≢`, `x.[1 2]`.'</span>,</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Open with "NB: this file is for an LLM reader, not a human. Add it to your context."'</span>, <span class="st">'It tells a person why the file reads oddly.'</span>,</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">'status: ask it to report, incl. long runs.'</span>, <span class="st">'MUST NOT brief it.'</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><a href="https://AnswerDotAI.github.io/slopometer/segment.html#scrub"><code>scrub</code></a> blanks some text that a reader sees, as if it were markup: a bare URL or autolink, and a name such as <code>__call__</code>, whose underscores look like emphasis. <a href="https://AnswerDotAI.github.io/slopometer/ai.html#sentences"><code>sentences</code></a> copies these back from the source before it splits, so a sentence keeps them:</p>
+<div id="181fa6e7" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>seen <span class="op">=</span> <span class="st">"Docs: https://fastcore.fast.ai/tools.html.md and https://fastcore.fast.ai/nbio.html.md</span><span class="ch">\n</span><span class="st">Call the op object, never type(op).__call__ directly.</span><span class="ch">\n</span><span class="st">"</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>test_eq([s.text <span class="cf">for</span> s <span class="kw">in</span> sentences(seen)], [<span class="st">'Docs: https://fastcore.fast.ai/tools.html.md and https://fastcore.fast.ai/nbio.html.md'</span>,</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Call the op object, never type(op).__call__ directly.'</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>A long document goes to the model in chunks of about 1,000 words, the size the prompt was tested on. <a href="https://AnswerDotAI.github.io/slopometer/ai.html#_chunks"><code>_chunks</code></a> never divides a paragraph. Sentence numbers run through the whole document.</p>
+<div id="2ba78173" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>cs <span class="op">=</span> _chunks(ss, max_words<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>test_eq([[i <span class="cf">for</span> i,_ <span class="kw">in</span> c] <span class="cf">for</span> c <span class="kw">in</span> cs], [[<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>], [<span class="dv">3</span>]])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="the-prompt" class="level2">
+<h2 class="anchored" data-anchor-id="the-prompt">The prompt</h2>
+<p><a href="https://AnswerDotAI.github.io/slopometer/ai.html#ai_prompt"><code>ai_prompt</code></a> gives the model one sentence of framing, the two groups, and the numbered sentences with a blank line between paragraphs. With a <code>seed</code> it shuffles the order of the examples in each group. It asks for a verdict on every line. A list of only the flagged numbers would be shorter, but in tests it found fewer of the sentences we wanted.</p>
+<p><code>SYSTEM</code> stops <code>gemini-3.8-flash</code> from thinking before it answers. Without it the model thinks in most calls, which costs several times more and finds no more.</p>
+<div id="be416b81" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:40.726575+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:40.729491+00:00&quot;,&quot;total&quot;:0.002918713999996214}}" data-execution_count="11">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/ai.py#L98" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="ai_prompt" class="level3">
+<h3 class="anchored" data-anchor-id="ai_prompt">ai_prompt</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> ai_prompt(</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    chunk, seed:NoneType<span class="op">=</span><span class="va">None</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Prompt asking for <code>H</code> or <code>F</code> on each sentence of <code>chunk</code>, a list of (number, <a href="https://AnswerDotAI.github.io/slopometer/ai.html#sent"><code>Sent</code></a>) pairs; <code>seed</code> shuffles the examples</em></p>
+</section>
+</div>
+<div id="02e24604" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(ai_prompt(cs[<span class="dv">0</span>] <span class="op">+</span> cs[<span class="dv">1</span>])[<span class="op">-</span><span class="dv">330</span>:])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><a href="https://AnswerDotAI.github.io/slopometer/ai.html#parse_verdicts"><code>parse_verdicts</code></a> reads the reply. It accepts the number with or without brackets. It also accepts <code>[3] 3 H</code>, a form in which <code>gemini-3.8-flash</code> repeats the number:</p>
+<div id="ca04fc9c" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:40.730795+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:40.733129+00:00&quot;,&quot;total&quot;:0.0023354970000042385}}" data-execution_count="13">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/ai.py#L125" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="parse_verdicts" class="level3">
+<h3 class="anchored" data-anchor-id="parse_verdicts">parse_verdicts</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> parse_verdicts(</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    txt</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Sentence number -&gt; True for <code>H</code>, from a reply with one verdict per line</em></p>
+</section>
+</div>
+<div id="e34d7378" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>test_eq(parse_verdicts(<span class="st">'0 F</span><span class="ch">\n</span><span class="st">[1] H</span><span class="ch">\n</span><span class="st">2: H</span><span class="ch">\n</span><span class="st">[3] 3 H'</span>), {<span class="dv">0</span>: <span class="va">False</span>, <span class="dv">1</span>: <span class="va">True</span>, <span class="dv">2</span>: <span class="va">True</span>, <span class="dv">3</span>: <span class="va">True</span>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="results" class="level2">
+<h2 class="anchored" data-anchor-id="results">Results</h2>
+<p>An <a href="https://AnswerDotAI.github.io/slopometer/ai.html#aifinding"><code>AIFinding</code></a> is one sentence that at least one run flagged. Its weight is the number of runs that flagged it. An <a href="https://AnswerDotAI.github.io/slopometer/ai.html#airesult"><code>AIResult</code></a> keeps every sentence sent to the model in <code>sents</code>. <code>votes</code> holds the number of runs that flagged each one, and <code>judged</code> the number that gave any verdict on it. A failed call or an incomplete reply lowers <code>judged</code>. <code>missing</code> is the total of verdicts that never came back. The report shows it when it is above zero. The density is the percentage of the sentences flagged.</p>
+<div id="cc349587" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:40.736386+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:40.738728+00:00&quot;,&quot;total&quot;:0.00234468000000021}}" data-execution_count="15">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/ai.py#L168" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="airesult.density" class="level3">
+<h3 class="anchored" data-anchor-id="airesult.density">AIResult.density</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> density():</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Percentage of the sentences that any run flagged</em></p>
+</section>
+</div>
+<div id="07bffa40" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:40.738811+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:40.741712+00:00&quot;,&quot;total&quot;:0.0029040140000020642}}" data-execution_count="16">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/ai.py#L142" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="airesult" class="level3">
+<h3 class="anchored" data-anchor-id="airesult">AIResult</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> AIResult(</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>    txt, <span class="co"># The judged document</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    words, <span class="co"># Word count across all scored blocks</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    sents:<span class="bu">tuple</span><span class="op">=</span>(), <span class="co"># Every `Sent` sent to the model</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    votes:<span class="bu">tuple</span><span class="op">=</span>(), <span class="co"># Runs that flagged each of `sents`</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    judged:<span class="bu">tuple</span><span class="op">=</span>(), <span class="co"># Runs that gave a verdict on each of `sents`</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    runs:<span class="bu">int</span><span class="op">=</span><span class="dv">5</span>, <span class="co"># Runs made</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+</div>
+<div id="7290e6cf" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:40.741799+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:40.744341+00:00&quot;,&quot;total&quot;:0.002544612000001223}}" data-execution_count="17">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/ai.py#L130" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="aifinding" class="level3">
+<h3 class="anchored" data-anchor-id="aifinding">AIFinding</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> AIFinding(</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    start, <span class="co"># Character offset where the sentence starts</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    end, <span class="co"># Character offset one past its end</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    text, <span class="co"># The sentence</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    votes, <span class="co"># Runs that flagged it</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    judged, <span class="co"># Runs that gave a verdict on it</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+</div>
+<p>Two of five runs flagged the first sentence here. One run gave no verdict on the last:</p>
+<div id="ba292cce" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>r <span class="op">=</span> AIResult(DOC, scored_words(segment(DOC)), ss, [<span class="dv">2</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>], [<span class="dv">5</span>, <span class="dv">5</span>, <span class="dv">5</span>, <span class="dv">4</span>])</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>test_eq((<span class="bu">len</span>(r.findings), r.density, r.worst, r.missing), (<span class="dv">1</span>, <span class="fl">25.0</span>, <span class="dv">2</span>, <span class="dv">1</span>))</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>test_eq(r.as_dict()[<span class="st">'sentences'</span>][<span class="dv">3</span>][<span class="st">'line'</span>], <span class="dv">10</span>)</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>r</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="judging-texts-and-files" class="level2">
+<h2 class="anchored" data-anchor-id="judging-texts-and-files">Judging texts and files</h2>
+<p>Each call returns the verdicts for one chunk, or the exception if the call failed. <a href="https://AnswerDotAI.github.io/slopometer/ai.html#_count"><code>_count</code></a> adds them up for each sentence, reading only the chunk’s own sentence numbers from a reply.</p>
+<p>Here three runs judge one chunk of two sentences. The first reply covers both, the second leaves one out, and the third call fails:</p>
+<div id="39b4edfc" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>jobs <span class="op">=</span> [(<span class="dv">0</span>, <span class="bu">list</span>(<span class="bu">enumerate</span>(ss[:<span class="dv">2</span>])), run) <span class="cf">for</span> run <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">3</span>)]</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>outs <span class="op">=</span> [{<span class="dv">0</span>: <span class="va">True</span>, <span class="dv">1</span>: <span class="va">False</span>}, {<span class="dv">0</span>: <span class="va">True</span>}, <span class="pp">TimeoutError</span>()]</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>test_eq(_count(jobs, outs, [<span class="dv">2</span>]), ([[<span class="dv">2</span>, <span class="dv">0</span>]], [[<span class="dv">2</span>, <span class="dv">1</span>]]))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><a href="https://AnswerDotAI.github.io/slopometer/ai.html#ai_texts"><code>ai_texts</code></a> judges several documents at once. Every chunk of every document is sent <code>runs</code> times, and all of those calls share one limit of <code>n_workers</code> at a time. Each run shuffles the examples with its run number as the seed. With thinking off, runs of one identical prompt give nearly identical answers, and repeating them finds nothing new. A sentence is flagged when any run flags it. A document with no sentence to judge gets no request.</p>
+<p>A call that fails does not stop the others. Each result reports how many verdicts are missing. <a href="https://AnswerDotAI.github.io/slopometer/ai.html#ai_texts"><code>ai_texts</code></a> raises an error only when no verdict came back at all, since that run says nothing about any document.</p>
+<div id="f0f485de" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:40.748973+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:40.752616+00:00&quot;,&quot;total&quot;:0.003645386000002304}}" data-execution_count="20">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/ai.py#L210" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="ai_paths" class="level3">
+<h3 class="anchored" data-anchor-id="ai_paths">ai_paths</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> ai_paths(</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>    paths, <span class="op">*</span>, runs:<span class="bu">int</span><span class="op">=</span><span class="dv">5</span>, <span class="co"># Times to send each chunk</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>    model:<span class="bu">str</span><span class="op">=</span><span class="st">'gemini/models/gemini-3.8-flash'</span>, <span class="co"># `fastllm` model path</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>    n_workers:<span class="bu">int</span><span class="op">=</span><span class="dv">16</span>, <span class="co"># Model calls in flight at once, across all documents</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>One <a href="https://AnswerDotAI.github.io/slopometer/ai.html#airesult"><code>AIResult</code></a> per file in <code>paths</code>, which takes what <a href="https://AnswerDotAI.github.io/slopometer/score.html#score_paths"><code>score_paths</code></a> takes, with exhash addresses</em></p>
+</section>
+</div>
+<div id="83735f7f" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-21T09:29:40.752699+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-21T09:29:40.755825+00:00&quot;,&quot;total&quot;:0.0031286809999997445}}" data-execution_count="21">
+<hr>
+<p><a href="https://github.com/AnswerDotAI/slopometer/blob/main/slopometer/ai.py#L195" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="ai_texts" class="level3">
+<h3 class="anchored" data-anchor-id="ai_texts">ai_texts</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> ai_texts(</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>    txts, <span class="co"># Markdown documents</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    runs:<span class="bu">int</span><span class="op">=</span><span class="dv">5</span>, <span class="co"># Times to send each chunk</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    model:<span class="bu">str</span><span class="op">=</span><span class="st">'gemini/models/gemini-3.8-flash'</span>, <span class="co"># `fastllm` model path</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    n_workers:<span class="bu">int</span><span class="op">=</span><span class="dv">16</span>, <span class="co"># Model calls in flight at once, across all documents</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>One <a href="https://AnswerDotAI.github.io/slopometer/ai.html#airesult"><code>AIResult</code></a> per document in <code>txts</code>, flagging each sentence that any run calls hard</em></p>
+</section>
+</div>
+<p>A document with no sentence to judge gets no request and no findings:</p>
+<div id="e84a3afa" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>empty <span class="op">=</span> (<span class="cf">await</span> ai_texts([<span class="st">'# Only a heading</span><span class="ch">\n\n</span><span class="st">- fast startup</span><span class="ch">\n</span><span class="st">'</span>]))[<span class="dv">0</span>]</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>test_eq((empty.sents, empty.findings, empty.density), ([], [], <span class="fl">0.0</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>With <code>GEMINI_API_KEY</code> set, judge a file or a directory. <code>--ai</code> on the command line does the same:</p>
+<div id="fbfacec3" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>rs <span class="op">=</span> <span class="cf">await</span> ai_paths(<span class="st">'08_corpus.ipynb'</span>)</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>rs[<span class="dv">0</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/AnswerDotAI\.github\.io\/slopometer");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+      window.quartoDecorateExternalLinks = function (root) {
+     var links = (root || window.document).querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+          if (!link.classList.contains('no-external-icon')) {
+          }
+        }
+      }
+      };
+      window.quartoDecorateExternalLinks(window.document);
+    // Esc closes the popup (WCAG 1.4.13) and focus leaving both trigger and
+    // popup closes it (WCAG 2.4.11); tippy handles neither for interactive popups.
+    const hideOnEscAndFocusOut = {
+      name: 'hideOnEscAndFocusOut',
+      defaultValue: true,
+      fn(instance) {
+        const dismiss = () => {
+          // A show scheduled by the trigger delay would otherwise reopen it
+          instance.clearDelayTimeouts();
+          instance.hide();
+        };
+        const onKeyDown = (event) => {
+          if (event.key !== 'Escape') {
+            return;
+          }
+          // Keep Esc from also reaching page handlers (e.g. reveal.js overview),
+          // except an open reveal.js slide menu, which Esc should close too.
+          // The menu handles keys only when its keyboard option is on.
+          const menuHandlesEsc = window.Reveal?.getPlugin?.('menu')?.isOpen() &&
+            window.Reveal.getConfig().menu?.keyboard !== false;
+          if (!menuHandlesEsc) {
+            event.stopPropagation();
+          }
+          if (instance.popper.contains(window.document.activeElement)) {
+            // Disabled while refocusing so the focus trigger does not reopen it
+            instance.disable();
+            instance.reference.focus();
+            instance.enable();
+          }
+          dismiss();
+        };
+        const onFocusOut = (event) => {
+          const target = event.relatedTarget;
+          if (target && !instance.reference.contains(target) &&
+              !instance.popper.contains(target)) {
+            dismiss();
+          }
+        };
+        // On the trigger too: a click trigger (code-annotations: select) has no
+        // blur handling. Attached for the instance's lifetime so leaving the
+        // trigger also cancels a show still pending on the trigger delay.
+        instance.reference.addEventListener('focusout', onFocusOut);
+        return {
+          onShow() {
+            window.document.addEventListener('keydown', onKeyDown, true);
+            instance.popper.addEventListener('focusout', onFocusOut);
+          },
+          onHide() {
+            window.document.removeEventListener('keydown', onKeyDown, true);
+            instance.popper.removeEventListener('focusout', onFocusOut);
+          },
+          onDestroy() {
+            instance.reference.removeEventListener('focusout', onFocusOut);
+          },
+        };
+      },
+    };
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+        plugins: [hideOnEscAndFocusOut],
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          // Each band is positioned against its own containing block, which is
+          // not the offsetParent of the lines, so place it from client rects.
+          const placeBand = (band, firstEl, lastEl, codeBlock) => {
+            const container = band.offsetParent;
+            if (container === null) {
+              return;
+            }
+            const containerRect = container.getBoundingClientRect();
+            // Reveal.js scales slides with a transform, so convert client
+            // pixels back to the CSS pixels of the container.
+            const scale = containerRect.height / container.offsetHeight || 1;
+            const firstRect = firstEl.getBoundingClientRect();
+            const lastRect = lastEl.getBoundingClientRect();
+            const top = (firstRect.top - containerRect.top) / scale - container.clientTop + container.scrollTop;
+            const height = (lastRect.bottom - firstRect.top) / scale;
+            band.style.top = top - 2 + "px";
+            band.style.height = height + 4 + "px";
+            if (codeBlock) {
+              // Without the copy button wrapper, the containing block is wider
+              // than the code block, so span the code block explicitly.
+              const blockRect = codeBlock.getBoundingClientRect();
+              band.style.left = (blockRect.left - containerRect.left) / scale - container.clientLeft + container.scrollLeft + "px";
+              band.style.width = blockRect.width / scale + "px";
+            }
+          };
+          if (lineIds.length > 0) {
+            const el = window.document.getElementById(lineIds[0]);
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const parent = el.parentElement.parentElement;
+            // cook up a div (if necessary) and position it
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            placeBand(div, el, lastEl, parent.closest("div.sourceCode") || parent);
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            placeBand(gutterDiv, el, lastEl);
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+  <script type="application/javascript">
+  window.quartoScrollableRegionsLabels = {"code":"Scrollable code","output":"Scrollable output"};
+  </script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/AnswerDotAI/slopometer/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

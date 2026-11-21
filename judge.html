@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.11.9">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Claude’s labels of which sentences have a subject that does not do what its verb says, and how well models agree with them">
+
+<title>judge – slopometer</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/scrollable-regions/scrollable-regions.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-f803fa4e565d46961d2a1845e6c2e3f5.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="judge – slopometer">
+<meta property="og:description" content="Claude’s labels of which sentences have a subject that does not do what its verb says, and how well models agree with them">
+<meta property="og:site_name" content="slopometer">
+<meta name="twitter:title" content="judge – slopometer">
+<meta name="twitter:description" content="Claude’s labels of which sentences have a subject that does not do what its verb says, and how well models agree with them">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light"><a id="quarto-skip-link" class="visually-hidden-focusable" href="#quarto-document-content">Skip to main content</a>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark" aria-label="Site">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">slopometer</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav" aria-label="Toolbar">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="Breadcrumbs"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./judge.html">judge</a></li></ol></nav>
+        <a class="flex-grow-1" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto" aria-label="Section">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">slopometer</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./core.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">core</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./segment.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">segment</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./lexicon.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">lexicon</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./syntax.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">syntax</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./para.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">para</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./score.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">score</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pangram.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pangram</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cli.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">cli</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./features.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">features</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./corpus.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">corpus</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./judge.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">judge</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./typesafe.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">typesafe</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ai.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ai</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rewrite.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rewrite</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" aria-labelledby="toc-title" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#example-pairs" id="toc-example-pairs" class="nav-link active" data-scroll-target="#example-pairs">Example pairs</a></li>
+  <li><a href="#labelled-sentences" id="toc-labelled-sentences" class="nav-link" data-scroll-target="#labelled-sentences">Labelled sentences</a></li>
+  <li><a href="#model-survey" id="toc-model-survey" class="nav-link" data-scroll-target="#model-survey">Model survey</a></li>
+  <li><a href="#jev" id="toc-jev" class="nav-link" data-scroll-target="#jev">Jev</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/AnswerDotAI/slopometer/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div><div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="judge.html.md"><i class="bi bi-file-code"></i>Markdown</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content" tabindex="-1">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">judge</h1>
+</div>
+
+<div>
+  <div class="description">
+    Claude’s labels of which sentences have a subject that does not do what its verb says, and how well models agree with them
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<p>Some sentences are hard to follow because their subject does not do what the verb says. “Rows carry their source” is one. Rows never normally carry anything. The writer means that each row has a field naming where it came from.</p>
+<p>The rules in <code>syntax</code> find some of these sentences from lists of verbs and nouns. This notebook holds sentences that Claude labelled by reading each one, with no rule to decide the label. We use them to test whether a model can make the same judgement.</p>
+<section id="example-pairs" class="level2">
+<h2 class="anchored" data-anchor-id="example-pairs">Example pairs</h2>
+<p>Each pair gives a sentence that is hard to follow and a plain version of the same fact. Claude wrote the pairs for use as prompt examples. Jeremy has reviewed them. None comes from a document that we test on.</p>
+<div id="dde95c8f" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pairs <span class="op">=</span> [</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    (<span class="st">'Headers ride along with each request.'</span>, <span class="st">'Each request includes its headers.'</span>),</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    (<span class="st">'Startup latency demands a warm process.'</span>, <span class="st">'We keep one process warm so that the command starts quickly.'</span>),</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    (<span class="st">'0.8 keeps roughly a third of the candidates.'</span>, <span class="st">'With a threshold of 0.8, the filter keeps about a third of the candidates.'</span>),</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    (<span class="st">'The quiet path skips validation.'</span>, <span class="st">'When `quiet` is set, `load` skips validation.'</span>),</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"The positions decide the result's shape."</span>, <span class="st">'Pass `np.take` an array of indices. It returns an array with the same shape as the indices.'</span>),</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    (<span class="st">'Trust lives in the signature check.'</span>, <span class="st">'We trust a file only after `verify` checks its signature.'</span>),]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>These sentences are fine as they stand. In order, their subjects are a program that performs the action, a measurement and a person:</p>
+<div id="552221b9" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>fine <span class="op">=</span> [</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">'The parser rejects malformed input.'</span>,</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">'The error rate is about two percent.'</span>,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">'I read every match by hand and removed the false ones.'</span>,]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="labelled-sentences" class="level2">
+<h2 class="anchored" data-anchor-id="labelled-sentences">Labelled sentences</h2>
+<p><code>samples/judge.jsonl</code> holds every prose sentence of four notebooks as they stood when Claude labelled them. <code>group</code> is <code>A</code> when the subject of a clause does not do what its verb says, as in the group A examples of <code>slopometer/judge_groups.txt</code>. It is <code>B</code> when the sentence has no such clause, whatever else is wrong with it. It is null when Jeremy placed the sentence in between. Claude chose the groups by reading. <code>jeremy</code> holds Jeremy’s own words for each sentence he has judged, and the other rows have had no review.</p>
+<p>The <code>dev</code> rows come from <code>08_corpus.ipynb</code>. We tune prompts on them. The <code>holdout</code> rows come from <code>00_core.ipynb</code>, <code>01_segment.ipynb</code> and <code>06_cli.ipynb</code>. We check a finished prompt on them once, so that they show how it does on sentences it was not tuned for.</p>
+<div id="0fa42b5e" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> fastcore.utils <span class="im">import</span> <span class="op">*</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> nbdev.config <span class="im">import</span> get_config</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> collections <span class="im">import</span> Counter</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="1ade1b2f" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>rows <span class="op">=</span> L((get_config().config_path<span class="op">/</span><span class="st">'samples'</span><span class="op">/</span><span class="st">'judge.jsonl'</span>).read_text().splitlines()).<span class="bu">map</span>(json.loads)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>Counter((r[<span class="st">'split'</span>], r[<span class="st">'group'</span>]) <span class="cf">for</span> r <span class="kw">in</span> rows)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>A few of the group A sentences in the holdout rows:</p>
+<div id="b4e05afc" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>rows.<span class="bu">filter</span>(<span class="kw">lambda</span> r: r[<span class="st">'group'</span>]<span class="op">==</span><span class="st">'A'</span> <span class="kw">and</span> r[<span class="st">'split'</span>]<span class="op">==</span><span class="st">'holdout'</span>).attrgot(<span class="st">'text'</span>)[:<span class="dv">5</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="model-survey" class="level2">
+<h2 class="anchored" data-anchor-id="model-survey">Model survey</h2>
+<p><code>judge_prompt</code> shows a model the example pairs and the fine sentences, then asks for <code>H</code> or <code>F</code> on every numbered sentence, the verdict form that <a href="https://AnswerDotAI.github.io/slopometer/ai.html#parse_verdicts"><code>slopometer.ai.parse_verdicts</code></a> reads. The prompt has no description of the fault beyond its first sentence.</p>
+<div id="425e3a03" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> asyncio, time</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> fastllm.acomplete <span class="im">import</span> acomplete</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> fastllm.chat <span class="im">import</span> contents</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> aidialog.msg_parts <span class="im">import</span> mk_msgs</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> fastcore.meta <span class="im">import</span> delegates</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> slopometer.ai <span class="im">import</span> parse_verdicts</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="27e7692a" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> judge_prompt(sents, pairs<span class="op">=</span>pairs, fine<span class="op">=</span>fine):</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"Prompt asking for an `H` or `F` verdict on each of `sents`"</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    ex <span class="op">=</span> <span class="st">'</span><span class="ch">\n\n</span><span class="st">'</span>.join(<span class="ss">f'Hard: </span><span class="sc">{</span>h<span class="sc">}</span><span class="ch">\n</span><span class="ss">Plain: </span><span class="sc">{</span>p<span class="sc">}</span><span class="ss">'</span> <span class="cf">for</span> h,p <span class="kw">in</span> pairs)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    ok <span class="op">=</span> <span class="st">'</span><span class="ch">\n</span><span class="st">'</span>.join(<span class="ss">f'Fine: </span><span class="sc">{</span>s<span class="sc">}</span><span class="ss">'</span> <span class="cf">for</span> s <span class="kw">in</span> fine)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    doc <span class="op">=</span> <span class="st">'</span><span class="ch">\n</span><span class="st">'</span>.join(<span class="ss">f'[</span><span class="sc">{</span>i<span class="sc">}</span><span class="ss">] </span><span class="sc">{</span>s<span class="sc">}</span><span class="ss">'</span> <span class="cf">for</span> i,s <span class="kw">in</span> <span class="bu">enumerate</span>(sents))</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="ss">f"""Some sentences make the reader stop and work out what really happened and who did it. Each example below gives a hard sentence and a plain version of the same fact.</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="sc">{</span>ex<span class="sc">}</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="ss">These sentences are fine as they stand.</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="sc">{</span>ok<span class="sc">}</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="ss">Judge each numbered sentence below in the same way. Answer with one line per sentence, in the form `12 H` for a hard sentence or `12 F` for a fine one, and nothing else.</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="sc">{</span>doc<span class="sc">}</span><span class="ss">"""</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="62ad8d46" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(judge_prompt([<span class="st">'The parser reads the file.'</span>, <span class="st">'Offsets ride in each row.'</span>]))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="726e0ea1" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> fastcore.test <span class="im">import</span> <span class="op">*</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>survey</code> runs <code>judge</code> several times for each model, all in parallel, and keeps an error as a string so that one failing model does not stop the rest. <code>tally</code> counts the hard sentences a model found, the fine sentences it wrongly called hard, and the sentences it gave no verdict for. Model names are <code>fastllm</code> vendor paths such as <code>openai/gpt-6-luna</code>.</p>
+<div id="260ca774" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>KEYS <span class="op">=</span> <span class="bu">dict</span>(anthropic<span class="op">=</span>os.environ.get(<span class="st">'ANTHROPIC_KEY'</span>))</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="at">@delegates</span>(acomplete)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> judge(model, sents, timeout<span class="op">=</span><span class="dv">450</span>, <span class="op">**</span>kwargs):</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">"`model`'s verdicts on `sents`, with the seconds taken"</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    t <span class="op">=</span> time.time()</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    c <span class="op">=</span> <span class="cf">await</span> asyncio.wait_for(acomplete(mk_msgs([judge_prompt(sents)]), model, api_key<span class="op">=</span>KEYS.get(model.split(<span class="st">'/'</span>)[<span class="dv">0</span>]), <span class="op">**</span>kwargs), timeout)</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> parse_verdicts(contents(c).text), <span class="bu">round</span>(time.time()<span class="op">-</span>t, <span class="dv">1</span>)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> tally(verdicts, labelled):</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">"Group A sentences found, group B sentences wrongly flagged, and sentences with no verdict; rows with no group count in neither"</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    a,b <span class="op">=</span> [{i <span class="cf">for</span> i,r <span class="kw">in</span> <span class="bu">enumerate</span>(labelled) <span class="cf">if</span> r[<span class="st">'group'</span>]<span class="op">==</span>g} <span class="cf">for</span> g <span class="kw">in</span> <span class="st">'AB'</span>]</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    said <span class="op">=</span> {i <span class="cf">for</span> i,v <span class="kw">in</span> verdicts.items() <span class="cf">if</span> v}</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">dict</span>(found<span class="op">=</span><span class="bu">len</span>(said<span class="op">&amp;</span>a), wrong<span class="op">=</span><span class="bu">len</span>(said<span class="op">&amp;</span>b), missing<span class="op">=</span><span class="bu">len</span>(labelled)<span class="op">-</span><span class="bu">len</span>(verdicts))</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a><span class="at">@delegates</span>(judge)</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> survey(models, labelled, n<span class="op">=</span><span class="dv">3</span>, <span class="op">**</span>kwargs):</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    <span class="co">"Run `judge` `n` times per model in parallel; one result list per model, with errors kept as strings"</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>    sents <span class="op">=</span> [r[<span class="st">'text'</span>] <span class="cf">for</span> r <span class="kw">in</span> labelled]</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">async</span> <span class="kw">def</span> one(m):</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">try</span>:</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>            v,s <span class="op">=</span> <span class="cf">await</span> judge(m, sents, <span class="op">**</span>kwargs)</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="bu">dict</span>(tally(v, labelled), secs<span class="op">=</span>s, verdicts<span class="op">=</span>v)</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>        <span class="cf">except</span> <span class="pp">Exception</span> <span class="im">as</span> e: <span class="cf">return</span> <span class="bu">dict</span>(error<span class="op">=</span><span class="ss">f'</span><span class="sc">{</span><span class="bu">type</span>(e)<span class="sc">.</span><span class="va">__name__</span><span class="sc">}</span><span class="ss">: </span><span class="sc">{</span><span class="bu">str</span>(e)[:<span class="dv">150</span>]<span class="sc">}</span><span class="ss">'</span>)</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>    res <span class="op">=</span> <span class="cf">await</span> asyncio.gather(<span class="op">*</span>[one(m) <span class="cf">for</span> m <span class="kw">in</span> models <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(n)])</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> {m: res[i<span class="op">*</span>n:(i<span class="op">+</span><span class="dv">1</span>)<span class="op">*</span>n] <span class="cf">for</span> i,m <span class="kw">in</span> <span class="bu">enumerate</span>(models)}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The models are the solve-lp catalog, with each model once. The cell calls paid APIs and takes several minutes, so the docs build does not run it:</p>
+<div id="23f03e99" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> solve_lp.ai <span class="im">import</span> model_specs, provider_model</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>models <span class="op">=</span> <span class="bu">sorted</span>({provider_model(m) <span class="cf">for</span> m <span class="kw">in</span> model_specs})</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>dev <span class="op">=</span> rows.<span class="bu">filter</span>(<span class="kw">lambda</span> r: r[<span class="st">'split'</span>]<span class="op">==</span><span class="st">'dev'</span>)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> <span class="cf">await</span> survey(models, dev)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>{m: [(r[<span class="st">'found'</span>], r[<span class="st">'wrong'</span>]) <span class="cf">if</span> <span class="st">'error'</span> <span class="kw">not</span> <span class="kw">in</span> r <span class="cf">else</span> r[<span class="st">'error'</span>][:<span class="dv">30</span>] <span class="cf">for</span> r <span class="kw">in</span> rs] <span class="cf">for</span> m,rs <span class="kw">in</span> res.items()}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Run on 11 November 2026 against the 51 <code>dev</code> sentences, the survey gave these ranges over three runs. “Found” is out of 18 hard sentences and “wrong” is out of 33 fine ones. The labels are Claude’s alone, so the table measures agreement with one reader.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Model</th>
+<th>Found</th>
+<th>Wrong</th>
+<th>Seconds per call</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>gpt-6-astra</code></td>
+<td>16 to 18</td>
+<td>7 to 8</td>
+<td>35 to 51</td>
+</tr>
+<tr class="even">
+<td><code>gemini-3.8-flash</code></td>
+<td>14 to 15</td>
+<td>2 to 4</td>
+<td>155 to 231</td>
+</tr>
+<tr class="odd">
+<td><code>gemini-4-argon</code></td>
+<td>11 to 14</td>
+<td>0 to 2</td>
+<td>7 to 10</td>
+</tr>
+<tr class="even">
+<td><code>claude-fable-5-1</code></td>
+<td>12 to 17</td>
+<td>3 to 5</td>
+<td>29 to 50</td>
+</tr>
+<tr class="odd">
+<td><code>gpt-6.1-sol</code></td>
+<td>11 to 16</td>
+<td>3 to 6</td>
+<td>32 to 42</td>
+</tr>
+<tr class="even">
+<td><code>claude-opus-5-5</code></td>
+<td>11 to 16</td>
+<td>3 to 4</td>
+<td>11 to 13</td>
+</tr>
+<tr class="odd">
+<td><code>gpt-6.1-terra</code></td>
+<td>8 to 17</td>
+<td>1 to 6</td>
+<td>20 to 27</td>
+</tr>
+<tr class="even">
+<td><code>qwen3p8-max</code></td>
+<td>7 to 14</td>
+<td>3 to 6</td>
+<td>129 to 156</td>
+</tr>
+<tr class="odd">
+<td><code>claude-sonnet-5-5</code></td>
+<td>7</td>
+<td>0 to 2</td>
+<td>12 to 13</td>
+</tr>
+<tr class="even">
+<td><code>gemini-3.5-flash-lite</code></td>
+<td>7 to 14</td>
+<td>1 to 11</td>
+<td>2 to 3</td>
+</tr>
+<tr class="odd">
+<td><code>gpt-6-luna</code></td>
+<td>9 to 10</td>
+<td>10 to 14</td>
+<td>22 to 29</td>
+</tr>
+<tr class="even">
+<td><code>deepseek-v4p1-flash</code></td>
+<td>3 to 10</td>
+<td>1 to 2</td>
+<td>99 to 117</td>
+</tr>
+<tr class="odd">
+<td><code>glm-5p3-flash</code></td>
+<td>0 to 5</td>
+<td>2 to 5</td>
+<td>117 to 296</td>
+</tr>
+<tr class="even">
+<td><code>claude-haiku-5-5</code></td>
+<td>1 to 3</td>
+<td>2</td>
+<td>8 to 9</td>
+</tr>
+<tr class="odd">
+<td><code>minimax-m3p1-flash</code></td>
+<td>0 to 2</td>
+<td>0 to 1</td>
+<td>67 to 87</td>
+</tr>
+</tbody>
+</table>
+<p><code>muse-spark-1.3</code> and <code>muse-spark-1.3-contributor</code> each answered once and timed out twice. <code>glm-5p3</code> and <code>kimi-k3</code> timed out in every run. Fireworks returned a 404 for <code>qwen3p7-plus</code>.</p>
+<p><code>survey</code> passes extra options to <code>acomplete</code>. On the same day, <code>survey(['gemini/models/gemini-3.8-flash'], dev, reasoning_effort=...)</code> gave these results for each run. The model’s metadata lists three levels, so the fourth row is the default with no setting.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Level</th>
+<th>Found</th>
+<th>Wrong</th>
+<th>Seconds</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>default</td>
+<td>10, 11, 10</td>
+<td>2, 8, 2</td>
+<td>211, 9, 169</td>
+</tr>
+<tr class="even">
+<td><code>low</code></td>
+<td>15, 15, 16</td>
+<td>5, 3, 8</td>
+<td>6, 9, 8</td>
+</tr>
+<tr class="odd">
+<td><code>medium</code></td>
+<td>11, 11, 12</td>
+<td>2, 2, 2</td>
+<td>122, 244, 105</td>
+</tr>
+<tr class="even">
+<td><code>high</code></td>
+<td>15</td>
+<td>6</td>
+<td>293</td>
+</tr>
+</tbody>
+</table>
+<p>Two of the three <code>high</code> runs timed out at 450 seconds. The default found 10 or 11 here and 14 or 15 in the survey above, with the same prompt. Three runs are too few to rank the levels.</p>
+</section>
+<section id="jev" class="level2">
+<h2 class="anchored" data-anchor-id="jev">Jev</h2>
+<p>TypeSafe’s Jev model answers a yes/no question with a probability and generates no text. This section asks it whether a sentence fits one of two example groups. <code>slopometer/judge_groups.txt</code> holds the groups. Group A holds sentences of the hard kind. Group B holds plain sentences, some of them unrelated to the rest. The question names the groups only as <code>grammar_group_a</code> and <code>grammar_group_b</code>, so that it describes no fault.</p>
+<div id="e717b106" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> slopometer.typesafe <span class="im">import</span> <span class="op">*</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> slopometer.segment <span class="im">import</span> scrub</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> slopometer.syntax <span class="im">import</span> get_nlp</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="28f762bb" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> slopometer.ai <span class="im">import</span> groups</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>ga,gb <span class="op">=</span> groups()</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>ga[:<span class="dv">3</span>], gb[:<span class="dv">3</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>A long sentence can hold several clauses, and only one of them may be hard to follow. Every group A example is a single short clause. <code>clauses</code> splits a sentence into its subject-and-verb clauses, so that Jev can judge each one against examples of the same size:</p>
+<div id="4db5562b" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>_cut <span class="op">=</span> {<span class="st">'conj'</span>, <span class="st">'advcl'</span>, <span class="st">'parataxis'</span>, <span class="st">'cc'</span>, <span class="st">'mark'</span>, <span class="st">'punct'</span>, <span class="st">'appos'</span>, <span class="st">'relcl'</span>, <span class="st">'acl'</span>}</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> clauses(txt):</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">"Each subject-and-verb clause of `txt`, without the clauses joined to it; `[txt]` when it has none"</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    d,res <span class="op">=</span> get_nlp()(scrub(txt)),[]</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> walk(t, keep, top<span class="op">=</span><span class="va">False</span>):</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>        keep.add(t.i)</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> c <span class="kw">in</span> t.children:</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> <span class="kw">not</span> (top <span class="kw">and</span> c.dep_ <span class="kw">in</span> _cut): walk(c, keep)</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> v <span class="kw">in</span> d:</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>        subs <span class="op">=</span> [c <span class="cf">for</span> c <span class="kw">in</span> v.children <span class="cf">if</span> c.dep_ <span class="kw">in</span> (<span class="st">'nsubj'</span>, <span class="st">'nsubjpass'</span>)]</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="kw">not</span> subs <span class="kw">or</span> v.pos_ <span class="kw">not</span> <span class="kw">in</span> (<span class="st">'VERB'</span>, <span class="st">'AUX'</span>): <span class="cf">continue</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>        keep <span class="op">=</span> <span class="bu">set</span>()</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>        walk(v, keep, <span class="va">True</span>)</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> s <span class="kw">in</span> subs: walk(s, keep)</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>        ids,out <span class="op">=</span> <span class="bu">sorted</span>(keep),<span class="st">''</span></span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> a,b <span class="kw">in</span> <span class="bu">zip</span>(ids, ids[<span class="dv">1</span>:]<span class="op">+</span>[<span class="va">None</span>]):</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>            out <span class="op">+=</span> txt[d[a].idx:d[a].idx<span class="op">+</span><span class="bu">len</span>(d[a].text)]</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> b <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>: out <span class="op">+=</span> d[a].whitespace_ <span class="cf">if</span> b <span class="op">==</span> a<span class="op">+</span><span class="dv">1</span> <span class="cf">else</span> <span class="st">' '</span></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>        res.append(out.strip())</span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> res <span class="kw">or</span> [txt]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="d5fc3ef1" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>cs <span class="op">=</span> clauses(<span class="st">'Rows carry their source, so any experiment can slice by it later.'</span>)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>test_eq(cs[<span class="dv">0</span>], <span class="st">'Rows carry their source'</span>)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>cs</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Each question builder returns the Noul questions for one labelled row. <code>sent_q</code> asks about the sentence alone. <code>nbr_q</code> adds the sentences before and after it as separate named fields. <code>clause_q</code> asks one question per clause and shows the full sentence beside it. In each, the field name in the question says which text Jev must judge.</p>
+<div id="2b1d3ec5" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>JQ <span class="op">=</span> <span class="st">'Does `</span><span class="sc">{}</span><span class="st">` fit in `grammar_group_a`, grammatically?'</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> sent_q(r, drows): <span class="cf">return</span> [noul(<span class="bu">dict</span>(sentence<span class="op">=</span>r[<span class="st">'text'</span>], question<span class="op">=</span>JQ.<span class="bu">format</span>(<span class="st">'sentence'</span>)))]</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> nbr_q(r, drows):</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    nb <span class="op">=</span> <span class="kw">lambda</span> k: drows[r[<span class="st">'i'</span>]<span class="op">+</span>k][<span class="st">'text'</span>] <span class="cf">if</span> <span class="dv">0</span> <span class="op">&lt;=</span> r[<span class="st">'i'</span>]<span class="op">+</span>k <span class="op">&lt;</span> <span class="bu">len</span>(drows) <span class="cf">else</span> <span class="va">None</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    ins <span class="op">=</span> <span class="bu">dict</span>(sentence_before<span class="op">=</span>nb(<span class="op">-</span><span class="dv">1</span>), sentence_to_judge<span class="op">=</span>r[<span class="st">'text'</span>], sentence_after<span class="op">=</span>nb(<span class="dv">1</span>), question<span class="op">=</span>JQ.<span class="bu">format</span>(<span class="st">'sentence_to_judge'</span>))</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> [noul({k: v <span class="cf">for</span> k,v <span class="kw">in</span> ins.items() <span class="cf">if</span> v <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>})]</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> clause_q(r, drows):</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> [noul(<span class="bu">dict</span>(full_sentence<span class="op">=</span>r[<span class="st">'text'</span>], clause_to_judge<span class="op">=</span>c, question<span class="op">=</span>JQ.<span class="bu">format</span>(<span class="st">'clause_to_judge'</span>))) <span class="cf">for</span> c <span class="kw">in</span> clauses(r[<span class="st">'text'</span>])]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="dce5248a" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>row <span class="op">=</span> <span class="bu">dict</span>(i<span class="op">=</span><span class="dv">0</span>, text<span class="op">=</span><span class="st">'Rows carry their source, so any experiment can slice by it later.'</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>test_eq(<span class="bu">len</span>(clause_q(row, [row])), <span class="dv">2</span>)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>clause_q(row, [row])[<span class="dv">0</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>jev_probs</code> sends one request per document, with the two groups as the shared state. A row’s probability is the highest that any of its questions received. <code>rank_score</code> is the chance that a hard row gets a higher probability than a fine one. It is 0.5 for a random scorer and 1.0 for a perfect one. <code>flagged</code> counts the hard rows found and the fine rows wrongly flagged at a threshold.</p>
+<div id="4cf642b2" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> jev_probs(labelled, mkqs, state):</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"Jev's probability that each row fits group A: the highest over the questions `mkqs(row, doc_rows)` builds"</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    res <span class="op">=</span> {}</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> d <span class="kw">in</span> <span class="bu">dict</span>.fromkeys(r[<span class="st">'doc'</span>] <span class="cf">for</span> r <span class="kw">in</span> labelled):</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>        drows <span class="op">=</span> [r <span class="cf">for</span> r <span class="kw">in</span> labelled <span class="cf">if</span> r[<span class="st">'doc'</span>]<span class="op">==</span>d]</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>        ans <span class="op">=</span> ask_nouls(state, {<span class="ss">f"s</span><span class="sc">{</span>r[<span class="st">'i'</span>]<span class="sc">}</span><span class="ss">_</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss">"</span>: q <span class="cf">for</span> r <span class="kw">in</span> drows <span class="cf">for</span> k,q <span class="kw">in</span> <span class="bu">enumerate</span>(mkqs(r, drows))})</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> r <span class="kw">in</span> drows: res[d, r[<span class="st">'i'</span>]] <span class="op">=</span> <span class="bu">max</span>(v <span class="cf">for</span> k,v <span class="kw">in</span> ans.items() <span class="cf">if</span> k.startswith(<span class="ss">f"s</span><span class="sc">{</span>r[<span class="st">'i'</span>]<span class="sc">}</span><span class="ss">_"</span>))</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> [res[r[<span class="st">'doc'</span>], r[<span class="st">'i'</span>]] <span class="cf">for</span> r <span class="kw">in</span> labelled]</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> rank_score(ps, labelled):</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">"Chance that a group A row gets a higher probability than a group B row, counting a tie as half"</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>    h,f <span class="op">=</span> [[p <span class="cf">for</span> p,r <span class="kw">in</span> <span class="bu">zip</span>(ps, labelled) <span class="cf">if</span> r[<span class="st">'group'</span>]<span class="op">==</span>x] <span class="cf">for</span> x <span class="kw">in</span> <span class="st">'AB'</span>]</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">round</span>(<span class="bu">sum</span>((x<span class="op">&gt;</span>y) <span class="op">+</span> <span class="fl">0.5</span><span class="op">*</span>(x<span class="op">==</span>y) <span class="cf">for</span> x <span class="kw">in</span> h <span class="cf">for</span> y <span class="kw">in</span> f)<span class="op">/</span>(<span class="bu">len</span>(h)<span class="op">*</span><span class="bu">len</span>(f)), <span class="dv">3</span>)</span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> flagged(ps, labelled, thr<span class="op">=</span><span class="fl">0.7</span>):</span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>    <span class="co">"Group A rows found and group B rows wrongly flagged above `thr`"</span></span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">tuple</span>(<span class="bu">sum</span>(p<span class="op">&gt;</span>thr <span class="kw">and</span> r[<span class="st">'group'</span>]<span class="op">==</span>x <span class="cf">for</span> p,r <span class="kw">in</span> <span class="bu">zip</span>(ps, labelled)) <span class="cf">for</span> x <span class="kw">in</span> <span class="st">'AB'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="9be2bac0" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>lab <span class="op">=</span> [<span class="bu">dict</span>(group<span class="op">=</span><span class="st">'A'</span>), <span class="bu">dict</span>(group<span class="op">=</span><span class="st">'B'</span>), <span class="bu">dict</span>(group<span class="op">=</span><span class="st">'A'</span>), <span class="bu">dict</span>(group<span class="op">=</span><span class="va">None</span>)]</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>test_eq(rank_score([<span class="fl">0.9</span>, <span class="fl">0.2</span>, <span class="fl">0.2</span>, <span class="fl">0.9</span>], lab), <span class="fl">0.75</span>)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>test_eq(flagged([<span class="fl">0.9</span>, <span class="fl">0.8</span>, <span class="fl">0.2</span>, <span class="fl">0.9</span>], lab), (<span class="dv">1</span>, <span class="dv">1</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The cell calls a paid API, so the docs build does not run it:</p>
+<div id="3f214373" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>state <span class="op">=</span> <span class="bu">dict</span>(grammar_group_a<span class="op">=</span>ga, grammar_group_b<span class="op">=</span>gb)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>dev,holdout <span class="op">=</span> (rows.<span class="bu">filter</span>(<span class="kw">lambda</span> r: r[<span class="st">'split'</span>]<span class="op">==</span>s) <span class="cf">for</span> s <span class="kw">in</span> (<span class="st">'dev'</span>, <span class="st">'holdout'</span>))</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>{f.<span class="va">__name__</span>: (rank_score(ps, dev), flagged(ps, dev)) <span class="cf">for</span> f <span class="kw">in</span> (sent_q, nbr_q, clause_q) <span class="cf">for</span> ps <span class="kw">in</span> [jev_probs(dev, f, state)]}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/AnswerDotAI\.github\.io\/slopometer");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+      window.quartoDecorateExternalLinks = function (root) {
+     var links = (root || window.document).querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+          if (!link.classList.contains('no-external-icon')) {
+          }
+        }
+      }
+      };
+      window.quartoDecorateExternalLinks(window.document);
+    // Esc closes the popup (WCAG 1.4.13) and focus leaving both trigger and
+    // popup closes it (WCAG 2.4.11); tippy handles neither for interactive popups.
+    const hideOnEscAndFocusOut = {
+      name: 'hideOnEscAndFocusOut',
+      defaultValue: true,
+      fn(instance) {
+        const dismiss = () => {
+          // A show scheduled by the trigger delay would otherwise reopen it
+          instance.clearDelayTimeouts();
+          instance.hide();
+        };
+        const onKeyDown = (event) => {
+          if (event.key !== 'Escape') {
+            return;
+          }
+          // Keep Esc from also reaching page handlers (e.g. reveal.js overview),
+          // except an open reveal.js slide menu, which Esc should close too.
+          // The menu handles keys only when its keyboard option is on.
+          const menuHandlesEsc = window.Reveal?.getPlugin?.('menu')?.isOpen() &&
+            window.Reveal.getConfig().menu?.keyboard !== false;
+          if (!menuHandlesEsc) {
+            event.stopPropagation();
+          }
+          if (instance.popper.contains(window.document.activeElement)) {
+            // Disabled while refocusing so the focus trigger does not reopen it
+            instance.disable();
+            instance.reference.focus();
+            instance.enable();
+          }
+          dismiss();
+        };
+        const onFocusOut = (event) => {
+          const target = event.relatedTarget;
+          if (target && !instance.reference.contains(target) &&
+              !instance.popper.contains(target)) {
+            dismiss();
+          }
+        };
+        // On the trigger too: a click trigger (code-annotations: select) has no
+        // blur handling. Attached for the instance's lifetime so leaving the
+        // trigger also cancels a show still pending on the trigger delay.
+        instance.reference.addEventListener('focusout', onFocusOut);
+        return {
+          onShow() {
+            window.document.addEventListener('keydown', onKeyDown, true);
+            instance.popper.addEventListener('focusout', onFocusOut);
+          },
+          onHide() {
+            window.document.removeEventListener('keydown', onKeyDown, true);
+            instance.popper.removeEventListener('focusout', onFocusOut);
+          },
+          onDestroy() {
+            instance.reference.removeEventListener('focusout', onFocusOut);
+          },
+        };
+      },
+    };
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+        plugins: [hideOnEscAndFocusOut],
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          // Each band is positioned against its own containing block, which is
+          // not the offsetParent of the lines, so place it from client rects.
+          const placeBand = (band, firstEl, lastEl, codeBlock) => {
+            const container = band.offsetParent;
+            if (container === null) {
+              return;
+            }
+            const containerRect = container.getBoundingClientRect();
+            // Reveal.js scales slides with a transform, so convert client
+            // pixels back to the CSS pixels of the container.
+            const scale = containerRect.height / container.offsetHeight || 1;
+            const firstRect = firstEl.getBoundingClientRect();
+            const lastRect = lastEl.getBoundingClientRect();
+            const top = (firstRect.top - containerRect.top) / scale - container.clientTop + container.scrollTop;
+            const height = (lastRect.bottom - firstRect.top) / scale;
+            band.style.top = top - 2 + "px";
+            band.style.height = height + 4 + "px";
+            if (codeBlock) {
+              // Without the copy button wrapper, the containing block is wider
+              // than the code block, so span the code block explicitly.
+              const blockRect = codeBlock.getBoundingClientRect();
+              band.style.left = (blockRect.left - containerRect.left) / scale - container.clientLeft + container.scrollLeft + "px";
+              band.style.width = blockRect.width / scale + "px";
+            }
+          };
+          if (lineIds.length > 0) {
+            const el = window.document.getElementById(lineIds[0]);
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const parent = el.parentElement.parentElement;
+            // cook up a div (if necessary) and position it
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            placeBand(div, el, lastEl, parent.closest("div.sourceCode") || parent);
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            placeBand(gutterDiv, el, lastEl);
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+  <script type="application/javascript">
+  window.quartoScrollableRegionsLabels = {"code":"Scrollable code","output":"Scrollable output"};
+  </script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/AnswerDotAI/slopometer/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
