@@ -26,13 +26,13 @@ from .syntax import *
 from .para import *
 
 # %% ../nbs/05_score.ipynb #d2f5895b
-@rule('overstructure', tell=25, weight=SMELL, level='doc')
+@rule('overstructure', tell=16, weight=SMELL, level='doc')
 def find_overstructure(blocks, docs):
     "More headings than the prose beneath them justifies"
     nh,nw = n_headings(blocks), prose_words(blocks)
     if nh < 2 or nw/nh >= 40: return []
     hs = [b for b in blocks if b.kind == 'heading']
-    return [Finding('overstructure', 25, hs[0].start, hs[0].start+len(hs[0].txt),
+    return [Finding('overstructure', 16, hs[0].start, hs[0].start+len(hs[0].txt),
         f'{nh} headings on {nw} words of prose', SMELL)]
 
 # %% ../nbs/05_score.ipynb #3d4515d6

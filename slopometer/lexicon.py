@@ -59,9 +59,9 @@ noting = {'note that': None, "it's worth noting": None, 'it is worth noting': No
 transitions = {'furthermore': 'and', 'moreover': 'and', 'additionally': 'also', 'in conclusion': None,
     'when it comes to': None, 'in the realm of': None}
 
-find_hedges = lex_rule('hedges', tell=7, weight=SMELL, lex=hedges)
-find_noting = lex_rule('noting', tell=8, weight=SMELL, lex=noting)
-find_transitions = lex_rule('transitions', tell=19, weight=SMELL, lex=transitions)
+find_hedges = lex_rule('hedges', tell=6, weight=SMELL, lex=hedges)
+find_noting = lex_rule('noting', tell=7, weight=SMELL, lex=noting)
+find_transitions = lex_rule('transitions', tell=7, weight=SMELL, lex=transitions)
 
 # %% ../nbs/02_lexicon.ipynb #79549961
 _dash = re.compile(r'—')
@@ -72,10 +72,10 @@ def find_tacked_dash(txt):
     "Em dashes"
     return [Finding('tacked_dash', 1, m.start(), m.end(), m.group(), 4) for m in _dash.finditer(txt)]
 
-@rule('conseq', tell=6, weight=SMELL, level='phrase')
+@rule('conseq', tell=1, weight=SMELL, level='phrase')
 def find_conseq(txt):
     "The ', so' consequence join"
-    return [Finding('conseq', 6, m.start(), m.end(), m.group(), SMELL) for m in _conseq.finditer(txt)]
+    return [Finding('conseq', 1, m.start(), m.end(), m.group(), SMELL) for m in _conseq.finditer(txt)]
 
 # %% ../nbs/02_lexicon.ipynb #8daaf936
 @rule('emphasis', tell=3, weight=SMELL, level='markdown')

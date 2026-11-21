@@ -1,6 +1,6 @@
 """Tells, findings, the rule registry, and what the meter cannot see
 
-slopometer measures prose against the reference-prose rules in `aai_coding.write_docs`: 26 numbered tells, the named ways reference prose goes wrong. This module defines what every rule shares: the table of tells, the `Finding` record every detector returns, the registry that rules join at import time, and the registry of tells no deterministic rule can detect.
+slopometer measures prose against the reference-prose rules in `aai_coding.write_docs`: 19 numbered tells, the named ways reference prose goes wrong. This module defines what every rule shares: the table of tells, the `Finding` record every detector returns, the registry that rules join at import time, and the registry of tells no deterministic rule can detect.
 
 Docs: https://AnswerDotAI.github.io/slopometer/core.html.md"""
 
@@ -14,15 +14,13 @@ from fastcore.utils import *
 
 # %% ../nbs/00_core.ipynb #5fecc627
 tells = {
-    1: 'tacked-on clauses',    2: 'key rule in an aside',    3: 'emphasis devices',
-    4: 'elegant variation',    5: 'flourish over identifier', 6: 'consequence glue',
-    7: 'hedging',              8: 'noting fillers',          9: 'restatement',
-    10: 'justification rider', 11: 'decorative verbs',       12: 'audience misjudged',
-    13: 'throat-clearing',     14: "today's-world opener",   15: 'announce-then-deliver',
-    16: 'not-X-but-Y',         17: 'teaser pivot',           18: 'rhetorical questions',
-    19: 'filler transitions',  20: 'forced symmetry',        21: 'appraisal preamble',
-    22: 'artifact-as-agent',   23: 'recipient-as-subject',   24: 'decoration',
-    25: 'over-structuring',    26: 'false depth'}
+    1: 'tacked-on clauses',    2: 'key rule in an aside',   3: 'emphasis devices',
+    4: 'elegant variation',    5: 'flourish over identifier', 6: 'hedging',
+    7: 'filler phrases',       8: 'restatement',            9: 'justification rider',
+    10: 'decorative verbs',    11: 'audience misjudged',    12: 'throat-clearing',
+    13: 'metadiscourse',       14: 'not-X-but-Y',           15: 'rhetorical questions',
+    16: 'forced symmetry & over-structuring', 17: 'agent defocusing',
+    18: 'decoration',          19: 'false depth'}
 advice = {1: 'Rewrite it. Never split it.'}
 
 # %% ../nbs/00_core.ipynb #94d1c18f
@@ -65,17 +63,17 @@ def rule(
 _ornament = re.compile(r'[\u2190-\u2bff\ufe0f\U0001f000-\U0001faff]+')
 _arrows = {'→':'->', '⇒':'=>', '←':'<-', '↔':'<->'}
 
-@rule('decoration', tell=24, weight=KILL, level='phrase')
+@rule('decoration', tell=18, weight=KILL, level='phrase')
 def find_decoration(txt):
     "Flag emoji and ornamental unicode, suggesting ASCII for arrows"
-    return [Finding('decoration', 24, m.start(), m.end(), m.group(), KILL, _arrows.get(m.group()))
+    return [Finding('decoration', 18, m.start(), m.end(), m.group(), KILL, _arrows.get(m.group()))
         for m in _ornament.finditer(txt)]
 
 # %% ../nbs/00_core.ipynb #1af3670a
 unscoreable = {
     2: 'knowing which fact is the key rule takes judgment',
     5: "telling a flourish from a real identifier takes the project's vocabulary",
-    9: 'lead-sentence restatement defeats averaged sentence vectors, and only the heading echo is detectable (measured in the para notebook)',
-    10: 'a justification rider reads like a stated consequence, and only the domain says which it is',
-    12: 'matching prose and terminology to the reader requires audience and document context',
-    26: 'depth is judged against what the reader already knows',}
+    8: 'lead-sentence restatement defeats averaged sentence vectors, and only the heading echo is detectable (measured in the para notebook)',
+    9: 'a justification rider reads like a stated consequence, and only the domain says which it is',
+    11: 'matching prose and terminology to the reader requires audience and document context',
+    19: 'depth is judged against what the reader already knows',}

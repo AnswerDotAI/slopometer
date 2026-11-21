@@ -18,7 +18,7 @@ from .syntax import *
 # %% ../nbs/04_para.ipynb #625319b7
 def _content(toks): return {t.lemma_.lower() for t in toks if t.is_alpha and not t.is_stop}
 
-@rule('heading_echo', tell=9, weight=SMELL, level='doc')
+@rule('heading_echo', tell=8, weight=SMELL, level='doc')
 def find_heading_echo(blocks, docs):
     "A section's first sentence repeating its heading's words"
     res = []
@@ -28,7 +28,7 @@ def find_heading_echo(blocks, docs):
         if not hw: continue
         s1 = list(d.sents)[0]
         lead = first((t.lemma_.lower() for t in s1 if t.is_alpha and not t.is_stop), None)
-        if lead in hw and hw <= _content(s1): res.append(Finding('heading_echo', 9, nxt.start, nxt.start+len(s1.text), s1.text, SMELL))
+        if lead in hw and hw <= _content(s1): res.append(Finding('heading_echo', 8, nxt.start, nxt.start+len(s1.text), s1.text, SMELL))
     return res
 
 # %% ../nbs/04_para.ipynb #a2dbc1cf
@@ -66,7 +66,7 @@ def find_variation(doc):
     return res
 
 # %% ../nbs/04_para.ipynb #5ce63501
-@rule('triad', tell=20, weight=SMELL, level='para')
+@rule('triad', tell=16, weight=SMELL, level='para')
 def find_triad(doc):
     "Three or more coordinated nouns sharing one modifier lemma"
     res = []
@@ -78,10 +78,10 @@ def find_triad(doc):
         shared = set.intersection(*mods) if all(mods) else set()
         if shared:
             span = doc.text[group[0].idx:group[-1].idx+len(group[-1].text)]
-            res.append(Finding('triad', 20, group[0].idx, group[-1].idx+len(group[-1].text), span, SMELL))
+            res.append(Finding('triad', 16, group[0].idx, group[-1].idx+len(group[-1].text), span, SMELL))
     return res
 
-@rule('bullet_mold', tell=20, weight=SMELL, level='doc')
+@rule('bullet_mold', tell=16, weight=SMELL, level='doc')
 def find_bullet_mold(blocks, docs):
     "Three or more consecutive list items opening with the same word"
     res,run = [],[]
@@ -91,7 +91,7 @@ def find_bullet_mold(blocks, docs):
             run.append(b)
             continue
         if len(run) >= 3 and len({word(x) for x in run}) == 1:
-            res.append(Finding('bullet_mold', 20, run[0].start, run[-1].start+len(run[-1].txt), '\n'.join(x.txt for x in run), SMELL))
+            res.append(Finding('bullet_mold', 16, run[0].start, run[-1].start+len(run[-1].txt), '\n'.join(x.txt for x in run), SMELL))
         run = []
     return res
 

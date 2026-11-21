@@ -243,17 +243,17 @@ def find_nominalization(sent):
 _artifacts = {'pr', 'commit', 'change', 'patch', 'release', 'update', 'design', 'proposal', 'document', 'doc', 'readme', 'section', 'paragraph', 'refactor'}
 _credit_verbs = {'introduce', 'enable', 'allow', 'let', 'add', 'improve', 'fix', 'ensure', 'provide', 'bring', 'unlock'}
 
-@rule('artifact_agent', tell=22, weight=SMELL, level='sentence')
+@rule('artifact_agent', tell=17, weight=SMELL, level='sentence')
 def find_artifact_agent(sent):
     "Authored artifacts credited with their author's deed"
     res = []
     for t in sent:
         if t.dep_ == 'nsubj' and t.lemma_.lower() in _artifacts and t.head.lemma_ in _credit_verbs:
             span = sent.text[t.idx-sent.start_char:t.head.idx-sent.start_char+len(t.head.text)]
-            res.append(Finding('artifact_agent', 22, t.idx-sent.start_char, t.head.idx-sent.start_char+len(t.head.text), span, SMELL))
+            res.append(Finding('artifact_agent', 17, t.idx-sent.start_char, t.head.idx-sent.start_char+len(t.head.text), span, SMELL))
     return res
 
-@rule('recipient_subject', tell=23, weight=SMELL, level='sentence')
+@rule('recipient_subject', tell=17, weight=SMELL, level='sentence')
 def find_recipient_subject(sent):
     "Beneficiaries promoted to subject with gain/receive, or get with a via phrase"
     res = []
@@ -262,7 +262,7 @@ def find_recipient_subject(sent):
         if not any(c.dep_ == 'nsubj' for c in t.children): continue
         demoted = any(c.lemma_ in ('via', 'through') for c in t.subtree if c.pos_ == 'ADP')
         if t.lemma_ == 'get' and not demoted: continue
-        res.append(Finding('recipient_subject', 23, t.idx-sent.start_char, t.idx-sent.start_char+len(t.text), t.text, SMELL))
+        res.append(Finding('recipient_subject', 17, t.idx-sent.start_char, t.idx-sent.start_char+len(t.text), t.text, SMELL))
     return res
 
 # %% ../nbs/03_syntax.ipynb #493c9d5c
@@ -324,15 +324,15 @@ def _inert_subj(sent, verbs, name, tell, weight):
         res.append(Finding(name, tell, s, e, sent.text[s:e], weight))
     return res
 
-@rule('inert_act', tell=11, weight=2, level='sentence')
+@rule('inert_act', tell=10, weight=2, level='sentence')
 def find_inert_act(sent):
     "Subjects that cannot act, given a verb for a physical or deliberate act"
-    return _inert_subj(sent, _act_verbs, 'inert_act', 11, 2)
+    return _inert_subj(sent, _act_verbs, 'inert_act', 10, 2)
 
-@rule('inert_mind', tell=22, weight=SMELL, level='sentence')
+@rule('inert_mind', tell=17, weight=SMELL, level='sentence')
 def find_inert_mind(sent):
     "Subjects that cannot act, given a verb that needs a mind"
-    return _inert_subj(sent, _mind_verbs, 'inert_mind', 22, SMELL)
+    return _inert_subj(sent, _mind_verbs, 'inert_mind', 17, SMELL)
 
 # %% ../nbs/03_syntax.ipynb #69415f9a
 def sent_rule(
@@ -348,16 +348,16 @@ def sent_rule(
     _f.__name__,_f.__doc__ = f'find_{name}',f'Scan for {name} phrases'
     return rule(name, tell=tell, weight=weight, level='sentence')(_f)
 
-find_throat = sent_rule('throat_clearing', 13, SMELL, [r"this (?:section|document|readme|page|guide|module|doc|notebook) (?:describes|covers|explains|documents|provides|outlines|introduces)", r'the purpose of this'], anchored=True)
-find_todays = sent_rule('todays_world', 14, SMELL, [r"in today's"], anchored=True)
-find_announce = sent_rule('announce', 15, SMELL, [r"(?:the (?:fix|answer|solution|key|result|takeaway|core \w+)|here's the thing|bottom line): "], anchored=True)
-find_notxbuty = sent_rule('notxbuty', 16, KILL, [r"\bis(?:n't| not) (?:just|merely|simply|only) (?:a|an|the|about)\b", r"\baren't (?:just|merely|simply|only)\b", r"\bit's not about\b", r"\bnot (?:just|merely) about\b"])
-find_teaser = sent_rule('teaser', 17, SMELL, [r"here's where it gets", r'\bthe real story\b', r'\bgets (?:really )?interesting\b', r'\bthe main event\b'])
-find_appraisal = sent_rule('appraisal', 21, SMELL, [r'\bworth being precise\b', r"\bthe key (?:point|insight|thing) is\b", r"\bwhat's interesting is\b", r'\bcrucially\b', r'\bthe important thing is\b'])
+find_throat = sent_rule('throat_clearing', 12, SMELL, [r"this (?:section|document|readme|page|guide|module|doc|notebook) (?:describes|covers|explains|documents|provides|outlines|introduces)", r'the purpose of this'], anchored=True)
+find_todays = sent_rule('todays_world', 12, SMELL, [r"in today's"], anchored=True)
+find_announce = sent_rule('announce', 13, SMELL, [r"(?:the (?:fix|answer|solution|key|result|takeaway|core \w+)|here's the thing|bottom line): "], anchored=True)
+find_notxbuty = sent_rule('notxbuty', 14, KILL, [r"\bis(?:n't| not) (?:just|merely|simply|only) (?:a|an|the|about)\b", r"\baren't (?:just|merely|simply|only)\b", r"\bit's not about\b", r"\bnot (?:just|merely) about\b"])
+find_teaser = sent_rule('teaser', 13, SMELL, [r"here's where it gets", r'\bthe real story\b', r'\bgets (?:really )?interesting\b', r'\bthe main event\b'])
+find_appraisal = sent_rule('appraisal', 13, SMELL, [r'\bworth being precise\b', r"\bthe key (?:point|insight|thing) is\b", r"\bwhat's interesting is\b", r'\bcrucially\b', r'\bthe important thing is\b'])
 
-@rule('rhetorical', tell=18, weight=SMELL, level='sentence')
+@rule('rhetorical', tell=15, weight=SMELL, level='sentence')
 def find_rhetorical(sent):
     "Sentences that ask the reader a question"
     t = sent.text.rstrip()
     if not t.endswith('?'): return []
-    return [Finding('rhetorical', 18, 0, len(t), t, SMELL)]
+    return [Finding('rhetorical', 15, 0, len(t), t, SMELL)]
